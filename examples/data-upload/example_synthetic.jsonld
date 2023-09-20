@@ -4,6 +4,7 @@
     "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
     "nidm": "http://purl.org/nidash/nidm#",
     "cogatlas": "https://www.cognitiveatlas.org/task/id/",
+    "ncit": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#",
     "Acquisition": "nb:Acquisition",
     "identifier": "@id",
     "hasContrastType": {
@@ -18,9 +19,6 @@
     "hasLabel": {
       "@id": "nb:hasLabel"
     },
-    "hasFilePath": {
-      "@id": "nb:hasFilePath"
-    },
     "hasPortalURI": {
       "@id": "nb:hasPortalURI"
     },
@@ -30,6 +28,9 @@
     "Diagnosis": "nb:Diagnosis",
     "Image": "nb:Image",
     "Session": "nb:Session",
+    "hasFilePath": {
+      "@id": "nb:hasFilePath"
+    },
     "hasAcquisition": {
       "@id": "nb:hasAcquisition"
     },
@@ -55,12 +56,12 @@
     },
     "SubjectGroup": "nb:SubjectGroup"
   },
-  "identifier": "nb:81e47a09-658d-48ea-b7c5-8d54820d038e",
+  "identifier": "nb:58445c63-4431-4e71-a5bc-d3dd31517ed8",
   "hasLabel": "BIDS synthetic",
   "hasPortalURI": "https://github.com/bids-standard/bids-examples",
   "hasSamples": [
     {
-      "identifier": "nb:64894186-4c85-4306-b9d9-1902bb2b42b5",
+      "identifier": "nb:01172b56-4e52-4f6c-9f13-a0e7d58ad56d",
       "hasLabel": "sub-01",
       "hasAge": 34.1,
       "hasSex": {
@@ -68,7 +69,7 @@
         "schemaKey": "Sex"
       },
       "isSubjectGroup": {
-        "identifier": "purl:NCIT_C94342",
+        "identifier": "ncit:C94342",
         "schemaKey": "SubjectGroup"
       },
       "hasAssessment": [
@@ -84,7 +85,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:673e6f04-73b2-4a14-96c9-7ffb0e54e2ad",
+      "identifier": "nb:f05516b0-c03d-4b3b-9dc1-15309b30775a",
       "hasLabel": "sub-02",
       "hasSex": {
         "identifier": "snomed:248153007",
@@ -105,7 +106,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:4ed39595-c80a-4a3f-94c4-024c96cea918",
+      "identifier": "nb:380c0f0d-aebf-4fe7-bdb7-87cdf2fd9812",
       "hasLabel": "sub-03",
       "hasAge": 22.1,
       "hasAssessment": [
@@ -117,7 +118,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:b664f831-ee9b-401d-bd8a-c138a402493e",
+      "identifier": "nb:2944a223-263b-45c8-9647-9c02726e1698",
       "hasLabel": "sub-04",
       "hasAge": 21.1,
       "hasSex": {
@@ -125,7 +126,7 @@
         "schemaKey": "Sex"
       },
       "isSubjectGroup": {
-        "identifier": "purl:NCIT_C94342",
+        "identifier": "ncit:C94342",
         "schemaKey": "SubjectGroup"
       },
       "hasAssessment": [
@@ -137,7 +138,7 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:70e1dc10-b3a1-4a2e-8218-7dba3210a881",
+      "identifier": "nb:ddc56814-9279-41b5-ba66-d040d6e250d6",
       "hasLabel": "sub-05",
       "hasAge": 42.5,
       "hasSex": {
