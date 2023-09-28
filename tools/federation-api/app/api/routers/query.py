@@ -1,17 +1,17 @@
 """Router for query path operations."""
 
-from typing import List
-
 from fastapi import APIRouter, Depends
-from pydantic import constr
 
 from .. import crud
-from ..models import CONTROLLED_TERM_REGEX, CohortQueryResponse, QueryModel
+from ..models import QueryModel
 
-router = APIRouter(prefix="/query", tags=["query"])
+router = APIRouter(prefix="/federate", tags=["federation"])
 
 
-@router.get("/", response_model=List[CohortQueryResponse])
+# TODO: update to change the logic once crud is modified
+
+
+@router.get("/")
 async def get_query(query: QueryModel = Depends(QueryModel)):
     """When a GET request is sent, return list of dicts corresponding to subject-level metadata aggregated by dataset."""
     response = await crud.get(
@@ -24,13 +24,5 @@ async def get_query(query: QueryModel = Depends(QueryModel)):
         query.assessment,
         query.image_modal,
     )
-
-    return response
-
-
-@router.get("/attributes/{data_element_URI}")
-async def get_terms(data_element_URI: constr(regex=CONTROLLED_TERM_REGEX)):
-    """When a GET request is sent, return a dict with the only key corresponding to controlled term of a neurobagel class and value corresponding to all the available terms."""
-    response = await crud.get_terms(data_element_URI)
 
     return response
