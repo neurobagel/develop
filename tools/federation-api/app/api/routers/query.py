@@ -5,10 +5,7 @@ from fastapi import APIRouter, Depends
 from .. import crud
 from ..models import QueryModel
 
-router = APIRouter(prefix="/federate", tags=["federation"])
-
-
-# TODO: update to change the logic once crud is modified
+router = APIRouter(prefix="/query", tags=["query"])
 
 
 @router.get("/")
