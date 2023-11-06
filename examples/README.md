@@ -5,6 +5,7 @@ Example files using the neurobagel schema
 ### `data-upload/`
 Examples of valid input files for Neurobagel harmonization tools, including resultant Neurobagel graph-ready dataset files.
 - **example_synthetic.tsv**: valid phenotypic tabular data file (has `participant` and `session` IDs corresponding to the [`synthetic` bids-examples dataset](https://github.com/bids-standard/bids-examples/tree/master/synthetic))
+- **example_synthetic_participants.json**: valid BIDS data dictionary without Neurobagel annotations, ready to be ingested as input by the annotation tool along with example_synthetic.tsv
 - **example_synthetic.json**: valid phenotypic data dictionary for example_synthetic.tsv containing Neurobagel annotations
 - **example_synthetic.jsonld**: example graph-ready subject data file for a purely phenotypic dataset. Contains subject-level annotated phenotypic attributes. Obtained by essentially applying the data dictionary (.json) to the original tabular data (.tsv) using the [Neurobagel CLI](https://github.com/neurobagel/bagel-cli) `pheno` command..
 
