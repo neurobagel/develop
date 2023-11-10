@@ -56,12 +56,12 @@
     },
     "SubjectGroup": "nb:SubjectGroup"
   },
-  "identifier": "nb:58445c63-4431-4e71-a5bc-d3dd31517ed8",
+  "identifier": "nb:45e79e99-828b-4cea-b7bf-b29a754bcb5d",
   "hasLabel": "BIDS synthetic",
   "hasPortalURI": "https://github.com/bids-standard/bids-examples",
   "hasSamples": [
     {
-      "identifier": "nb:01172b56-4e52-4f6c-9f13-a0e7d58ad56d",
+      "identifier": "nb:2a1a3d70-31e7-4030-abd6-7abdd2869e49",
       "hasLabel": "sub-01",
       "hasAge": 34.1,
       "hasSex": {
@@ -74,18 +74,18 @@
       },
       "hasAssessment": [
         {
-          "identifier": "cogatlas:1234",
+          "identifier": "cogatlas:trm_57964b8a66aed",
           "schemaKey": "Assessment"
         },
         {
-          "identifier": "cogatlas:4321",
+          "identifier": "cogatlas:tsk_4a57abb949ece",
           "schemaKey": "Assessment"
         }
       ],
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:f05516b0-c03d-4b3b-9dc1-15309b30775a",
+      "identifier": "nb:6d7921bf-37ad-428d-8aef-97b25f9ad496",
       "hasLabel": "sub-02",
       "hasSex": {
         "identifier": "snomed:248153007",
@@ -93,32 +93,36 @@
       },
       "hasDiagnosis": [
         {
-          "identifier": "snomed:49049000",
+          "identifier": "snomed:406506008",
           "schemaKey": "Diagnosis"
         }
       ],
       "hasAssessment": [
         {
-          "identifier": "cogatlas:4321",
+          "identifier": "cogatlas:trm_57964b8a66aed",
+          "schemaKey": "Assessment"
+        },
+        {
+          "identifier": "cogatlas:tsk_4a57abb949ece",
           "schemaKey": "Assessment"
         }
       ],
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:380c0f0d-aebf-4fe7-bdb7-87cdf2fd9812",
+      "identifier": "nb:e3f6b816-575e-4efd-b64b-33d7bac87f5c",
       "hasLabel": "sub-03",
       "hasAge": 22.1,
       "hasAssessment": [
         {
-          "identifier": "cogatlas:1234",
+          "identifier": "cogatlas:trm_57964b8a66aed",
           "schemaKey": "Assessment"
         }
       ],
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:2944a223-263b-45c8-9647-9c02726e1698",
+      "identifier": "nb:c46f7255-b47d-4d57-b06a-3e4d9c53bda6",
       "hasLabel": "sub-04",
       "hasAge": 21.1,
       "hasSex": {
@@ -131,14 +135,14 @@
       },
       "hasAssessment": [
         {
-          "identifier": "cogatlas:4321",
+          "identifier": "cogatlas:tsk_4a57abb949ece",
           "schemaKey": "Assessment"
         }
       ],
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:ddc56814-9279-41b5-ba66-d040d6e250d6",
+      "identifier": "nb:1bbe85cf-a538-440b-b094-3edbaace68e3",
       "hasLabel": "sub-05",
       "hasAge": 42.5,
       "hasSex": {
@@ -147,17 +151,17 @@
       },
       "hasDiagnosis": [
         {
-          "identifier": "snomed:49049000",
+          "identifier": "snomed:406506008",
           "schemaKey": "Diagnosis"
         }
       ],
       "hasAssessment": [
         {
-          "identifier": "cogatlas:1234",
+          "identifier": "cogatlas:trm_57964b8a66aed",
           "schemaKey": "Assessment"
         },
         {
-          "identifier": "cogatlas:4321",
+          "identifier": "cogatlas:tsk_4a57abb949ece",
           "schemaKey": "Assessment"
         }
       ],
