@@ -1,5 +1,7 @@
 # Federation API
 
+Please refer to our [**official documentation**](https://neurobagel.org/overview/) for more information on how to use the federation API.
+
 ## Launching the API
 ### 1. Set the Neurobagel nodes to federate over
 Create an `.env` file with the variable `NB_NODES` set to the URLs of the nodes to be federated over. 
