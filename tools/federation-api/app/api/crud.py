@@ -1,8 +1,5 @@
 """CRUD functions called by path operations."""
 
-import httpx
-from fastapi import HTTPException
-
 from . import utility as util
 
 
@@ -17,7 +14,7 @@ async def get(
     image_modal: str,
 ):
     """
-    Makes GET requests to one or more Neurobagel node APIs using httpx where the parameters are Neurobagel query parameters.
+    Makes GET requests to one or more Neurobagel node APIs using send_get_request utility function where the parameters are Neurobagel query parameters.
 
     Parameters
     ----------
@@ -64,21 +61,40 @@ async def get(
         params["image_modal"] = image_modal
 
     for node_url in util.parse_nodes_as_list(util.NEUROBAGEL_NODES):
-        response = httpx.get(
-            url=node_url,
-            params=params,
-            # TODO: Revisit timeout value when query performance is improved
-            timeout=30.0,
-            # Enable redirect following (off by default) so APIs behind a proxy can be reached
-            follow_redirects=True,
-        )
+        response = util.send_get_request(node_url + "query/", params)
 
-        if not response.is_success:
-            raise HTTPException(
-                status_code=response.status_code,
-                detail=f"{response.reason_phrase}: {response.text}",
-            )
-
-        cross_node_results += response.json()
+        cross_node_results += response
 
     return cross_node_results
+
+
+async def get_terms(data_element_URI: str):
+    """
+    Makes a GET request to one or more Neurobagel node APIs using send_get_request utility function where the only parameter is a data element URI.
+
+    Parameters
+    ----------
+    data_element_URI : str
+        Controlled term of neurobagel class for which all the available terms should be retrieved.
+
+    Returns
+    -------
+    dict
+        Dictionary where the key is the Neurobagel class and values correspond to all the unique terms representing available (i.e. used) instances of that class.
+    """
+    cross_node_results = []
+    params = {data_element_URI: data_element_URI}
+
+    for node_url in util.parse_nodes_as_list(util.NEUROBAGEL_NODES):
+        response = util.send_get_request(
+            node_url + "attributes/" + data_element_URI, params
+        )
+
+        cross_node_results.append(response)
+
+    unique_terms = set(
+        term
+        for list_of_terms in cross_node_results
+        for term in list_of_terms[data_element_URI]
+    )
+    return {data_element_URI: list(unique_terms)}

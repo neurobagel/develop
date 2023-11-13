@@ -1,6 +1,8 @@
 """Data models."""
 from pydantic import BaseModel
 
+CONTROLLED_TERM_REGEX = r"^[a-zA-Z]+[:]\S+$"
+
 
 class QueryModel(BaseModel):
     """Data model and dependency for API that stores the query parameters to be accepted and validated."""

@@ -9,7 +9,7 @@ The URLs should be stored as a **space-separated** string.
 
 e.g.,
 ```bash
-NB_NODES="https://myfirstnode.org/query/ https://mysecondnode.org/query/"
+NB_NODES="https://myfirstnode.org/ https://mysecondnode.org/"
 ```
 
 ### 2. Run the Docker container
