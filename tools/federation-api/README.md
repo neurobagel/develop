@@ -5,11 +5,12 @@ Please refer to our [**official documentation**](https://neurobagel.org/overview
 ## Launching the API
 ### 1. Set the Neurobagel nodes to federate over
 Create an `.env` file with the variable `NB_NODES` set to the URLs of the nodes to be federated over. 
-The URLs should be stored as a **space-separated** string.
+The URLs should be stored as a **space-separated, unquoted** string. 
+Each URL **must end with a `/`**.
 
 e.g.,
 ```bash
-NB_NODES="https://myfirstnode.org/ https://mysecondnode.org/"
+NB_NODES=https://myfirstnode.org/ https://mysecondnode.org/
 ```
 
 ### 2. Run the Docker container
