@@ -11,8 +11,13 @@ NEUROBAGEL_NODES = os.environ.get("NB_NODES", "https://api.neurobagel.org/")
 
 def parse_nodes_as_list(nodes: str) -> list:
     """Returns user-defined Neurobagel nodes as a list.
-    Empty strings are filtered out, because they are falsy."""
-    return list(filter(None, nodes.split(" ")))
+    Empty strings are filtered out, because they are falsy.
+    Makes sure node URLs end with a slash."""
+    nodes_list = nodes.split(" ")
+    for i in range(len(nodes_list)):
+        if nodes_list[i] and not nodes_list[i].endswith("/"):
+            nodes_list[i] += "/"
+    return list(filter(None, nodes_list))
 
 
 def send_get_request(url: str, params: list):

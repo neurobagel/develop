@@ -9,11 +9,11 @@ from app.api import utility as util
     "set_nodes, expected_nodes",
     [
         (
-            "https://firstnode.neurobagel.org/query/",
+            "https://firstnode.neurobagel.org/query",
             ["https://firstnode.neurobagel.org/query/"],
         ),
         (
-            "https://firstnode.neurobagel.org/query/ https://secondnode.neurobagel.org/query/",
+            "https://firstnode.neurobagel.org/query/ https://secondnode.neurobagel.org/query",
             [
                 "https://firstnode.neurobagel.org/query/",
                 "https://secondnode.neurobagel.org/query/",
