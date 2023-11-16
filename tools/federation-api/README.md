@@ -1,4 +1,10 @@
+<div align="center">
+
 # Federation API
+
+[![Coverage Status](https://coveralls.io/repos/github/neurobagel/federation-api/badge.svg?branch=main)](https://coveralls.io/github/neurobagel/federation-api?branch=main)
+
+</div>
 
 Please refer to our [**official documentation**](https://neurobagel.org/overview/) for more information on how to use the federation API.
 
