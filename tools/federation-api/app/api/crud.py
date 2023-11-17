@@ -60,8 +60,12 @@ async def get(
     if image_modal:
         params["image_modal"] = image_modal
 
-    for node_url in util.parse_nodes_as_list(util.NEUROBAGEL_NODES):
+    nodes_dict = util.parse_nodes_as_dict(util.NEUROBAGEL_NODES)
+    for node_url, node_name in nodes_dict.items():
         response = util.send_get_request(node_url + "query/", params)
+
+        for result in response:
+            result["node_name"] = node_name
 
         cross_node_results += response
 
@@ -85,16 +89,17 @@ async def get_terms(data_element_URI: str):
     cross_node_results = []
     params = {data_element_URI: data_element_URI}
 
-    for node_url in util.parse_nodes_as_list(util.NEUROBAGEL_NODES):
+    for node_url in util.parse_nodes_as_dict(util.NEUROBAGEL_NODES).keys():
         response = util.send_get_request(
             node_url + "attributes/" + data_element_URI, params
         )
 
         cross_node_results.append(response)
 
-    unique_terms = set(
-        term
-        for list_of_terms in cross_node_results
-        for term in list_of_terms[data_element_URI]
-    )
-    return {data_element_URI: list(unique_terms)}
+    unique_terms_dict = {}
+
+    for list_of_terms in cross_node_results:
+        for term in list_of_terms[data_element_URI]:
+            unique_terms_dict[term["TermURL"]] = term
+
+    return {data_element_URI: list(unique_terms_dict.values())}

@@ -1,23 +1,29 @@
 """Constants for federation."""
 
 import os
+import re
 
 import httpx
 from fastapi import HTTPException
 
 #  Neurobagel nodes
-NEUROBAGEL_NODES = os.environ.get("NB_NODES", "https://api.neurobagel.org/")
+NEUROBAGEL_NODES = os.environ.get(
+    "LOCAL_NB_NODES", "(https://api.neurobagel.org/, OpenNeuro)"
+)
 
 
-def parse_nodes_as_list(nodes: str) -> list:
-    """Returns user-defined Neurobagel nodes as a list.
-    Empty strings are filtered out, because they are falsy.
+def parse_nodes_as_dict(nodes: str) -> list:
+    """Returns user-defined Neurobagel nodes as a dict.
+    It uses a regular expression to match the url, name pairs.
     Makes sure node URLs end with a slash."""
-    nodes_list = nodes.split(" ")
-    for i in range(len(nodes_list)):
-        if nodes_list[i] and not nodes_list[i].endswith("/"):
-            nodes_list[i] += "/"
-    return list(filter(None, nodes_list))
+    pattern = re.compile(r"\((?P<url>https?://[^\s]+), (?P<label>[^\)]+)\)")
+    matches = pattern.findall(nodes)
+    for i in range(len(matches)):
+        url, label = matches[i]
+        if not url.endswith("/"):
+            matches[i] = (url + "/", label)
+    nodes_dict = {url: label for url, label in matches}
+    return nodes_dict
 
 
 def send_get_request(url: str, params: list):

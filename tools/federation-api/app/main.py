@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.responses import ORJSONResponse, RedirectResponse
 
-from .api.routers import attributes, query
+from .api.routers import attributes, nodes, query
 
 app = FastAPI(
     default_response_class=ORJSONResponse, docs_url=None, redoc_url=None
@@ -56,6 +56,7 @@ def overridden_redoc():
 
 app.include_router(query.router)
 app.include_router(attributes.router)
+app.include_router(nodes.router)
 
 # Automatically start uvicorn server on execution of main.py
 if __name__ == "__main__":
