@@ -1,8 +1,8 @@
 """Data models."""
-
 from typing import Optional, Union
 
-from pydantic import BaseModel
+from fastapi import Query
+from pydantic import BaseModel, Field
 
 CONTROLLED_TERM_REGEX = r"^[a-zA-Z]+[:]\S+$"
 
@@ -18,6 +18,9 @@ class QueryModel(BaseModel):
     min_num_sessions: int = None
     assessment: str = None
     image_modal: str = None
+    # TODO: Replace default value with union of local and public nodes once https://github.com/neurobagel/federation-api/issues/28 is merged
+    # syntax from https://github.com/tiangolo/fastapi/issues/4445#issuecomment-1117632409
+    node_url: list[str] | None = Field(Query(default=[]))
 
 
 class CohortQueryResponse(BaseModel):

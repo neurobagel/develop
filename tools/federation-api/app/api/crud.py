@@ -12,6 +12,7 @@ async def get(
     min_num_sessions: int,
     assessment: str,
     image_modal: str,
+    node_urls: list[str],
 ):
     """
     Makes GET requests to one or more Neurobagel node APIs using send_get_request utility function where the parameters are Neurobagel query parameters.
@@ -34,6 +35,8 @@ async def get(
         Non-imaging assessment completed by subjects.
     image_modal : str
         Imaging modality of subject scans.
+    node_urls : list[str]
+        List of Neurobagel nodes to send the query to.
 
     Returns
     -------
@@ -42,6 +45,10 @@ async def get(
 
     """
     cross_node_results = []
+
+    node_urls = util.validate_query_node_url_list(node_urls)
+
+    # Node API query parameters
     params = {}
     if min_age:
         params["min_age"] = min_age
@@ -60,8 +67,8 @@ async def get(
     if image_modal:
         params["image_modal"] = image_modal
 
-    nodes_dict = util.parse_nodes_as_dict(util.NEUROBAGEL_NODES)
-    for node_url, node_name in nodes_dict.items():
+    for node_url in node_urls:
+        node_name = util.FEDERATION_NODES[node_url]
         response = util.send_get_request(node_url + "query/", params)
 
         for result in response:
@@ -89,7 +96,7 @@ async def get_terms(data_element_URI: str):
     cross_node_results = []
     params = {data_element_URI: data_element_URI}
 
-    for node_url in util.parse_nodes_as_dict(util.NEUROBAGEL_NODES).keys():
+    for node_url in util.FEDERATION_NODES:
         response = util.send_get_request(
             node_url + "attributes/" + data_element_URI, params
         )

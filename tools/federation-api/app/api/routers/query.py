@@ -22,6 +22,7 @@ async def get_query(query: QueryModel = Depends(QueryModel)):
         query.min_num_sessions,
         query.assessment,
         query.image_modal,
+        query.node_url,
     )
 
     return response

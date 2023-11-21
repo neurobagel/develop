@@ -1,17 +1,35 @@
 """Main app."""
 
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.responses import ORJSONResponse, RedirectResponse
 
+from .api import utility as util
 from .api.routers import attributes, nodes, query
 
-app = FastAPI(
-    default_response_class=ORJSONResponse, docs_url=None, redoc_url=None
-)
 favicon_url = "https://raw.githubusercontent.com/neurobagel/documentation/main/docs/imgs/logo/neurobagel_favicon.png"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Collect and store locally defined and public node details for federation upon startup and clears the index upon shutdown.
+    """
+    await util.create_federation_node_index()
+    yield
+    util.FEDERATION_NODES.clear()
+
+
+app = FastAPI(
+    default_response_class=ORJSONResponse,
+    docs_url=None,
+    redoc_url=None,
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,
