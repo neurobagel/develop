@@ -8,6 +8,18 @@ from app.api import utility as util
 
 
 @pytest.mark.parametrize(
+    "url, expected_url",
+    [
+        ("https://publicnode.org", "https://publicnode.org/"),
+        ("https://publicnode.org/", "https://publicnode.org/"),
+    ],
+)
+def test_add_trailing_slash(url, expected_url):
+    """Test that a trailing slash is added to a URL if it does not already have one."""
+    assert util.add_trailing_slash(url) == expected_url
+
+
+@pytest.mark.parametrize(
     "set_nodes, expected_nodes",
     [
         (
@@ -62,43 +74,54 @@ def test_parse_nodes_as_dict(monkeypatch, set_nodes, expected_nodes):
     ) == sorted(expected_nodes)
 
 
+def test_recognized_query_nodes_do_not_raise_error(monkeypatch):
+    """Test that node URLs found in the federation node index do not raise an error."""
+    monkeypatch.setattr(
+        util,
+        "FEDERATION_NODES",
+        {
+            "https://firstknownnode.org/": "My First Node",
+            "https://secondknownnode.org/": "My Second Node",
+        },
+    )
+
+    util.check_nodes_are_recognized(["https://firstknownnode.org/"])
+
+
 @pytest.mark.parametrize(
-    "node_url_list, expectation, unrecognized_urls",
+    "node_url_list, unrecognized_urls",
     [
-        (["https://firstknownnode.org/"], does_not_raise(), None),
-        ([], does_not_raise(), None),
         (
             ["https://firstknownnode.org/", "https://mysterynode.org/"],
-            pytest.raises(HTTPException),
             "['https://mysterynode.org/']",
         ),
         (
             ["https://mysterynode.org/", "https://unknownnode.org/"],
-            pytest.raises(HTTPException),
             "['https://mysterynode.org/', 'https://unknownnode.org/']",
         ),
     ],
 )
-def test_check_nodes_are_recognized(
-    monkeypatch, node_url_list, expectation, unrecognized_urls
+def test_unrecognized_query_nodes_raise_error(
+    monkeypatch, node_url_list, unrecognized_urls
 ):
-    """Test that we raise a helpful error only when the user is trying to query an unknown node."""
-    mock_federation_nodes = {
-        "https://firstknownnode.org/": "My First Node",
-        "https://secondknownnode.org/": "My Second Node",
-    }
+    """Test that we raise a helpful error when the user is trying to query an unknown node."""
+    monkeypatch.setattr(
+        util,
+        "FEDERATION_NODES",
+        {
+            "https://firstknownnode.org/": "My First Node",
+            "https://secondknownnode.org/": "My Second Node",
+        },
+    )
 
-    monkeypatch.setattr(util, "FEDERATION_NODES", mock_federation_nodes)
-
-    with expectation as exc_info:
+    with pytest.raises(HTTPException) as exc_info:
         util.check_nodes_are_recognized(node_url_list)
-    if exc_info is not None:
-        assert (
-            f"Unrecognized Neurobagel node URL(s): {unrecognized_urls}"
-            in exc_info.value.detail
-        )
+    assert (
+        f"Unrecognized Neurobagel node URL(s): {unrecognized_urls}"
+        in exc_info.value.detail
+    )  
 
-
+    
 @pytest.mark.parametrize(
     "raw_url_list, expected_url_list",
     [
@@ -126,11 +149,13 @@ def test_validate_query_node_url_list(
     monkeypatch, raw_url_list, expected_url_list
 ):
     """Test that provided URLs are deduplicated, get a trailing slash, and default to FEDERATION_NODES if none are provided."""
-    mock_federation_nodes = {
-        "https://firstknownnode.org/": "My First Node",
-        "https://secondknownnode.org/": "My Second Node",
-    }
-
-    monkeypatch.setattr(util, "FEDERATION_NODES", mock_federation_nodes)
+    monkeypatch.setattr(
+        util,
+        "FEDERATION_NODES",
+        {
+            "https://firstknownnode.org/": "My First Node",
+            "https://secondknownnode.org/": "My Second Node",
+        },
+    )
 
     assert util.validate_query_node_url_list(raw_url_list) == expected_url_list
