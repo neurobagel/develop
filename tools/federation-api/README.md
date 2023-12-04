@@ -45,7 +45,7 @@ Examples:
 docker pull neurobagel/federation_api
 
 # Run this next command in the same directory where your `local_nb_nodes.json` file is located
-docker run -d -v local_nb_nodes.json:/usr/src/local_nb_nodes.json:ro \
+docker run -d -v ${PWD}/local_nb_nodes.json:/usr/src/local_nb_nodes.json:ro \
     --name=federation -p 8080:8000 neurobagel/federation_api
 ```
 NOTE: You can replace the port number `8080` for the `-p` flag with any port on the host you wish to use for the API.
