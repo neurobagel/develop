@@ -1,5 +1,4 @@
-import os
-from contextlib import nullcontext as does_not_raise
+import json
 
 import pytest
 from fastapi import HTTPException
@@ -23,55 +22,41 @@ def test_add_trailing_slash(url, expected_url):
     "set_nodes, expected_nodes",
     [
         (
-            "(http://firstnode.neurobagel.org/query, firstnode)",
+            {
+                "ApiURL": "http://firstnode.neurobagel.org/query",
+                "NodeName": "firstnode",
+            },
             {"http://firstnode.neurobagel.org/query/": "firstnode"},
         ),
         (
-            "(https://firstnode.neurobagel.org/query/, firstnode) (https://secondnode.neurobagel.org/query, secondnode)",
+            [
+                {
+                    "ApiURL": "https://firstnode.neurobagel.org/query/",
+                    "NodeName": "firstnode",
+                },
+                {
+                    "ApiURL": "https://secondnode.neurobagel.org/query",
+                    "NodeName": "secondnode",
+                },
+            ],
             {
                 "https://firstnode.neurobagel.org/query/": "firstnode",
                 "https://secondnode.neurobagel.org/query/": "secondnode",
             },
         ),
-        (
-            "(firstnode.neurobagel.org/query/, firstnode) (https://secondnode.neurobagel.org/query, secondnode)",
-            {
-                "https://secondnode.neurobagel.org/query/": "secondnode",
-            },
-        ),
-        (
-            "( , firstnode) (https://secondnode.neurobagel.org/query, secondnode)",
-            {
-                "https://secondnode.neurobagel.org/query/": "secondnode",
-            },
-        ),
-        (
-            "(https://firstnode.neurobagel.org/query/, firstnode)(https://secondnode.neurobagel.org/query, secondnode)",
-            {
-                "https://firstnode.neurobagel.org/query/": "firstnode",
-                "https://secondnode.neurobagel.org/query/": "secondnode",
-            },
-        ),
-        (
-            "(https://firstnode.neurobagel.org/query/,firstnode)(https://secondnode.neurobagel.org/query,secondnode)",
-            {
-                "https://firstnode.neurobagel.org/query/": "firstnode",
-                "https://secondnode.neurobagel.org/query/": "secondnode",
-            },
-        ),
+        ({}, {}),
     ],
 )
-def test_parse_nodes_as_dict(monkeypatch, set_nodes, expected_nodes):
-    """Test that Neurobagel node URLs provided in a string environment variable are correctly parsed into a list."""
-    monkeypatch.setenv("LOCAL_NB_NODES", set_nodes)
-    # TODO: This currently only compares the keys of the dicts, not the values, due to calling sorted(). This is probably not what we want.
-    assert sorted(
-        util.parse_nodes_as_dict(
-            os.environ.get(
-                "LOCAL_NB_NODES", "https://api.neurobagel.org/query/"
-            )
-        )
-    ) == sorted(expected_nodes)
+def test_parse_nodes_as_dict(set_nodes, expected_nodes, tmp_path):
+    """Test that Neurobagel nodes provided via a JSON file are correctly parsed into a list."""
+    # First create a temporary input config file for the test to read
+    with open(tmp_path / "local_nb_nodes.json", "w") as f:
+        f.write(json.dumps(set_nodes, indent=2))
+
+    assert (
+        util.parse_nodes_as_dict(tmp_path / "local_nb_nodes.json")
+        == expected_nodes
+    )
 
 
 def test_recognized_query_nodes_do_not_raise_error(monkeypatch):
@@ -119,9 +104,9 @@ def test_unrecognized_query_nodes_raise_error(
     assert (
         f"Unrecognized Neurobagel node URL(s): {unrecognized_urls}"
         in exc_info.value.detail
-    )  
+    )
 
-    
+
 @pytest.mark.parametrize(
     "raw_url_list, expected_url_list",
     [

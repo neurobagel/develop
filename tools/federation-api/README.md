@@ -6,26 +6,46 @@
 
 </div>
 
-Please refer to our [**official documentation**](https://neurobagel.org/overview/) for more information on how to use the federation API.
+Please refer to our [**official documentation**](https://neurobagel.org/federate/) for more information on Neurobagel federation and how to use the federation API.
 
 ## Launching the API
-### 1. Set the Neurobagel nodes to federate over
-Create a `fed.env` file with the variable `LOCAL_NB_NODES` containing the URLs and (arbitrary) names of the nodes to be federated over. 
-Each node should be wrapped in brackets `()`, with the URL and name of the node (in that order) separated by a comma.
-The variable must be an **unquoted** string.
+### 1. Set the local Neurobagel nodes to federate over
+Create a configuration JSON file called `local_nb_nodes.json` containing the URLs and (arbitrary) names of the local nodes you wish to federate over.
+Each node must be denoted by a dictionary `{}` with two key-value pairs: `"NodeName"` for the name of the node, and `"ApiURL"` for the url of the API exposed for that node. 
+Multiple nodes must be wrapped in a list `[]`.
 
-This repo contains a [template `fed.env`](/fed.env) file that you can edit.
+This repo contains a [template `local_nb_nodes.json`](/local_nb_nodes.json) file that you can edit.
 
-e.g.,
-```bash
-LOCAL_NB_NODES=(https://myfirstnode.org/,First Node)(https://mysecondnode.org/,Second Node)
+Examples:  
+
+`local_nb_nodes.json` with one local node
+```json
+{
+    "NodeName": "First Node",
+    "ApiURL": "https://firstnode.org"
+}
+```
+
+`local_nb_nodes.json` with two local nodes
+```json
+[
+    {
+        "NodeName": "First Node",
+        "ApiURL": "https://firstnode.org"
+    },
+    {
+        "NodeName": "Second Node",
+        "ApiURL": "https://secondnode.org"
+    }
+]
 ```
 
 ### 2. Run the Docker container
 ```bash
 docker pull neurobagel/federation_api
 
-# Make sure to run the next command in the same directory where your .env file is
-docker run -d --name=federation -p 8080:8000 --env-file=fed.env neurobagel/federation_api
+# Run this next command in the same directory where your `local_nb_nodes.json` file is located
+docker run -d -v local_nb_nodes.json:/usr/src/local_nb_nodes.json:ro \
+    --name=federation -p 8080:8000 neurobagel/federation_api
 ```
 NOTE: You can replace the port number `8080` for the `-p` flag with any port on the host you wish to use for the API.
