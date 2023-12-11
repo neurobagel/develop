@@ -10,8 +10,15 @@
        }
    },
    "session_id": {
-       "Description": "A session ID"
-   },
+    "Description": "A session ID",
+    "Annotations": {
+      "IsAbout": {
+        "TermURL": "nb:SessionID",
+        "Label": "Unique session identifier"
+      },
+      "Identifies": "session"
+    }
+  },
    "pheno_age": {
        "Description": "Age of the participant",
        "Annotations": {
