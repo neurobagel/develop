@@ -5,10 +5,38 @@ import warnings
 from pathlib import Path
 
 import httpx
+import jsonschema
 from fastapi import HTTPException
+from jsonschema import validate
 
 LOCAL_NODE_INDEX_PATH = Path(__file__).parents[2] / "local_nb_nodes.json"
 FEDERATION_NODES = {}
+
+# We use this schema to validate the local_nb_nodes.json file
+# We allow both array type input and a single JSON object
+# Therefore the schema supports both
+LOCAL_NODE_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "node": {
+            "type": "object",
+            "properties": {
+                "ApiURL": {"type": "string", "pattern": "^(http|https)://"},
+                "NodeName": {"type": "string"},
+            },
+            "required": ["ApiURL", "NodeName"],
+            "additionalProperties": False,
+        }
+    },
+    "oneOf": [
+        {
+            "type": "array",
+            "items": {"$ref": "#/definitions/node"},
+            "minItems": 1,
+        },
+        {"$ref": "#/definitions/node"},
+    ],
+}
 
 
 def add_trailing_slash(url: str) -> str:
@@ -20,41 +48,76 @@ def add_trailing_slash(url: str) -> str:
 
 def parse_nodes_as_dict(path: Path) -> dict:
     """
-    Reads names and URLs of user-defined Neurobagel nodes from a JSON file (if available) and stores them in a dict
+    Reads names and URLs of user-defined Neurobagel nodes from a JSON file
+    (if available) and stores them in a dict
     where the keys are the node URLs, and the values are the node names.
-    Makes sure node URLs end with a slash.
+    Makes sure node URLs end with a slash and only valid nodes are returned.
     """
-    # TODO: Add more validation of input JSON, including for JSONDecodeError (invalid JSON)
     if path.exists() and path.stat().st_size > 0:
-        with open(path, "r") as f:
-            local_nodes = json.load(f)
-        if local_nodes:
-            if isinstance(local_nodes, list):
-                return {
-                    add_trailing_slash(node["ApiURL"]): node["NodeName"]
-                    for node in local_nodes
-                }
-            return {
-                add_trailing_slash(local_nodes["ApiURL"]): local_nodes[
-                    "NodeName"
-                ]
-            }
+        try:
+            with open(path, "r") as f:
+                local_nodes = json.load(f)
+        except json.JSONDecodeError:
+            warnings.warn(f"You provided an invalid JSON file at {path}.")
+            local_nodes = []
+
+        # We wrap our input in a list if it isn't already to enable
+        # easy iteration for adding trailing slashes, even though our
+        # file level schema could handle a single non-array input
+        input_nodes = (
+            local_nodes if isinstance(local_nodes, list) else [local_nodes]
+        )
+
+        try:
+            # We validate the entire file first, checking all nodes together
+            validate(instance=input_nodes, schema=LOCAL_NODE_SCHEMA)
+            valid_nodes = input_nodes
+        except jsonschema.ValidationError:
+            valid_nodes = []
+            invalid_nodes = []
+            for node in input_nodes:
+                try:
+                    validate(
+                        instance=node,
+                        schema=LOCAL_NODE_SCHEMA["definitions"]["node"],
+                    )
+                    valid_nodes.append(node)
+                except jsonschema.ValidationError:
+                    invalid_nodes.append(node)
+
+            if invalid_nodes:
+                warnings.warn(
+                    "Some of the nodes in the JSON are invalid:\n"
+                    f"{json.dumps(invalid_nodes, indent=2)}"
+                )
+
+    if valid_nodes:
+        return {
+            add_trailing_slash(node["ApiURL"]): node["NodeName"]
+            for node in valid_nodes
+        }
 
     return {}
 
 
 async def create_federation_node_index():
     """
-    Creates an index of nodes for federation, which is a dict where the keys are the node URLs, and the values are the node names.
-    Fetches the names and URLs of public Neurobagel nodes from a remote directory file, and combines them with the user-defined local nodes.
+    Creates an index of nodes for federation, which is a dict
+    where the keys are the node URLs, and the values are the node names.
+    Fetches the names and URLs of public Neurobagel nodes from a remote
+    directory file, and combines them with the user-defined local nodes.
     """
     node_directory_url = "https://raw.githubusercontent.com/neurobagel/menu/main/node_directory/neurobagel_public_nodes.json"
     local_nodes = parse_nodes_as_dict(LOCAL_NODE_INDEX_PATH)
 
     if not local_nodes:
         warnings.warn(
-            f"No local Neurobagel nodes defined or found. Federation will be limited to nodes available from the Neurobagel public node directory {node_directory_url}. "
-            "(To specify one or more local nodes to federate over, define them in a 'local_nb_nodes.json' file in the current directory and relaunch the API.)\n"
+            "No local Neurobagel nodes defined or found. Federation "
+            " will be limited to nodes available from the "
+            f"Neurobagel public node directory {node_directory_url}. "
+            "(To specify one or more local nodes to federate over, "
+            "define them in a 'local_nb_nodes.json' file in the "
+            "current directory and relaunch the API.)\n"
         )
 
     node_directory_response = httpx.get(
@@ -84,8 +147,10 @@ async def create_federation_node_index():
         else:
             warnings.warn(failed_get_warning)
             raise RuntimeError(
-                "No local or public Neurobagel nodes available for federation. "
-                "Please define at least one local node in a 'local_nb_nodes.json' file in the current directory and try again."
+                "No local or public Neurobagel nodes available for federation."
+                "Please define at least one local node in "
+                "a 'local_nb_nodes.json' file in the "
+                "current directory and try again."
             )
 
     # This step will remove any duplicate keys from the local and public node dicts, giving priority to the local nodes.
@@ -114,7 +179,10 @@ def check_nodes_are_recognized(node_urls: list):
 
 
 def validate_query_node_url_list(node_urls: list) -> list:
-    """Format and validate node URLs passed as values to the query endpoint, including setting a default list of node URLs when none are provided."""
+    """
+    Format and validate node URLs passed as values to the query endpoint,
+    including setting a default list of node URLs when none are provided.
+    """
     # Remove and ignore node URLs that are empty strings
     node_urls = list(filter(None, node_urls))
     if node_urls:
@@ -155,7 +223,8 @@ def send_get_request(url: str, params: list):
         params=params,
         # TODO: Revisit timeout value when query performance is improved
         timeout=30.0,
-        # Enable redirect following (off by default) so APIs behind a proxy can be reached
+        # Enable redirect following (off by default) so
+        # APIs behind a proxy can be reached
         follow_redirects=True,
     )
 
