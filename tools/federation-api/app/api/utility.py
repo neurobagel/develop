@@ -6,10 +6,12 @@ from pathlib import Path
 
 import httpx
 import jsonschema
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from jsonschema import validate
 
 LOCAL_NODE_INDEX_PATH = Path(__file__).parents[2] / "local_nb_nodes.json"
+
+# Stores the names and URLs of all Neurobagel nodes known to the API instance, in the form of {node_url: node_name, ...}
 FEDERATION_NODES = {}
 
 # We use this schema to validate the local_nb_nodes.json file
@@ -196,7 +198,7 @@ def validate_query_node_url_list(node_urls: list) -> list:
     return node_urls
 
 
-def send_get_request(url: str, params: list):
+async def send_get_request(url: str, params: list) -> dict:
     """
     Makes a GET request to one or more Neurobagel nodes.
 
@@ -218,19 +220,26 @@ def send_get_request(url: str, params: list):
     HTTPException
         _description_
     """
-    response = httpx.get(
-        url=url,
-        params=params,
-        # TODO: Revisit timeout value when query performance is improved
-        timeout=30.0,
-        # Enable redirect following (off by default) so
-        # APIs behind a proxy can be reached
-        follow_redirects=True,
-    )
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(
+                url=url,
+                params=params,
+                # TODO: Revisit timeout value when query performance is improved
+                timeout=30.0,
+                # Enable redirect following (off by default) so
+                # APIs behind a proxy can be reached
+                follow_redirects=True,
+            )
 
-    if not response.is_success:
-        raise HTTPException(
-            status_code=response.status_code,
-            detail=f"{response.reason_phrase}: {response.text}",
-        )
-    return response.json()
+            if not response.is_success:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"{response.reason_phrase}: {response.text}",
+                )
+            return response.json()
+        except httpx.NetworkError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"Request failed due to a network error or because the node API cannot be reached: {exc}",
+            ) from exc

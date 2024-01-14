@@ -1,16 +1,14 @@
 """Router for query path operations."""
 
-from typing import List
-
 from fastapi import APIRouter, Depends
 
 from .. import crud
-from ..models import CohortQueryResponse, QueryModel
+from ..models import CombinedQueryResponse, QueryModel
 
 router = APIRouter(prefix="/query", tags=["query"])
 
 
-@router.get("/", response_model=List[CohortQueryResponse])
+@router.get("/", response_model=CombinedQueryResponse)
 async def get_query(query: QueryModel = Depends(QueryModel)):
     """When a GET request is sent, return list of dicts corresponding to subject-level metadata aggregated by dataset."""
     response = await crud.get(

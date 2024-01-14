@@ -1,4 +1,5 @@
 """Data models."""
+from enum import Enum
 from typing import Optional, Union
 
 from fastapi import Query
@@ -36,3 +37,26 @@ class CohortQueryResponse(BaseModel):
     num_matching_subjects: int
     subject_data: Union[list[dict], str]
     image_modals: list
+
+
+class NodesResponseStatus(str, Enum):
+    """Possible values for the status of the responses from the queried nodes."""
+
+    SUCCESS = "success"
+    PARTIAL_SUCCESS = "partial success"
+    FAIL = "fail"
+
+
+class NodeError(BaseModel):
+    """Data model for an error encountered when querying a node."""
+
+    node_name: str
+    error: str
+
+
+class CombinedQueryResponse(BaseModel):
+    """Data model for the combined query results of all matching datasets across all queried nodes."""
+
+    errors: list[NodeError]
+    responses: list[CohortQueryResponse]
+    nodes_response_status: NodesResponseStatus
