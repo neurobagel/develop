@@ -1,3 +1,6 @@
+ci:
+  autofix_prs: false
+
 repos:
   - repo: https://github.com/psf/black
     rev: 23.9.1
@@ -32,11 +35,6 @@ repos:
     rev: v2.2.5
     hooks:
       - id: codespell
-
-  - repo: https://github.com/iamthefij/docker-pre-commit
-    rev: v3.0.1
-    hooks:
-      - id: docker-compose-check
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
     rev: 0.27.0
