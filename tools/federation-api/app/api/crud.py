@@ -15,7 +15,8 @@ async def get(
     sex: str,
     diagnosis: str,
     is_control: bool,
-    min_num_sessions: int,
+    min_num_imaging_sessions: int,
+    min_num_phenotypic_sessions: int,
     assessment: str,
     image_modal: str,
     node_urls: list[str],
@@ -35,8 +36,10 @@ async def get(
         Subject diagnosis.
     is_control : bool
         Whether or not subject is a control.
-    min_num_sessions : int
+    min_num_imaging_sessions : int
         Subject minimum number of imaging sessions.
+    min_num_phenotypic_sessions : int
+        Subject minimum number of phenotypic sessions.
     assessment : str
         Non-imaging assessment completed by subjects.
     image_modal : str
@@ -68,8 +71,10 @@ async def get(
         params["diagnosis"] = diagnosis
     if is_control:
         params["is_control"] = is_control
-    if min_num_sessions:
-        params["min_num_sessions"] = min_num_sessions
+    if min_num_imaging_sessions:
+        params["min_num_imaging_sessions"] = min_num_imaging_sessions
+    if min_num_phenotypic_sessions:
+        params["min_num_phenotypic_sessions"] = min_num_phenotypic_sessions
     if assessment:
         params["assessment"] = assessment
     if image_modal:
@@ -120,7 +125,7 @@ async def get(
             },
         )
 
-    print(f"All nodes queried successfully ({total_nodes/total_nodes}).")
+    print(f"All nodes queried successfully ({total_nodes}/{total_nodes}).")
     return {
         "errors": node_errors,
         "responses": cross_node_results,

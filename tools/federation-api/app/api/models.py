@@ -16,7 +16,8 @@ class QueryModel(BaseModel):
     sex: str = None
     diagnosis: str = None
     is_control: bool = None
-    min_num_sessions: int = None
+    min_num_imaging_sessions: int = None
+    min_num_phenotypic_sessions: int = None
     assessment: str = None
     image_modal: str = None
     # TODO: Replace default value with union of local and public nodes once https://github.com/neurobagel/federation-api/issues/28 is merged

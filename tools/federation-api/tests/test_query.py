@@ -202,4 +202,4 @@ def test_all_nodes_success_handled_gracefully(
     assert response["nodes_response_status"] == "success"
     assert response["errors"] == []
     assert len(response["responses"]) == 2
-    assert "All nodes queried successfully" in captured.out
+    assert "All nodes queried successfully (2/2)" in captured.out
