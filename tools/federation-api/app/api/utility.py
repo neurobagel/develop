@@ -55,6 +55,8 @@ def parse_nodes_as_dict(path: Path) -> dict:
     where the keys are the node URLs, and the values are the node names.
     Makes sure node URLs end with a slash and only valid nodes are returned.
     """
+    valid_nodes = []
+
     if path.exists() and path.stat().st_size > 0:
         try:
             with open(path, "r") as f:
@@ -75,7 +77,6 @@ def parse_nodes_as_dict(path: Path) -> dict:
             validate(instance=input_nodes, schema=LOCAL_NODE_SCHEMA)
             valid_nodes = input_nodes
         except jsonschema.ValidationError:
-            valid_nodes = []
             invalid_nodes = []
             for node in input_nodes:
                 try:
