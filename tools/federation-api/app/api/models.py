@@ -62,3 +62,11 @@ class CombinedQueryResponse(BaseModel):
     errors: list[NodeError]
     responses: list[CohortQueryResponse]
     nodes_response_status: NodesResponseStatus
+
+
+class CombinedAttributeResponse(BaseModel):
+    """Data model for the combined available terms for a given Neurobagel attribute/variable across all available nodes."""
+
+    errors: list[NodeError]
+    responses: dict
+    nodes_response_status: NodesResponseStatus

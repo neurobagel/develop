@@ -3,10 +3,34 @@
 import asyncio
 import warnings
 
-from fastapi import HTTPException, status
-from fastapi.responses import JSONResponse
+from fastapi import HTTPException
 
 from . import utility as util
+
+
+def build_combined_response(
+    total_nodes: int, cross_node_results: list | dict, node_errors: list
+) -> dict:
+    """Return a combined response containing all the nodes' responses and errors. Logs to console a summary of the federated request."""
+    content = {"errors": node_errors, "responses": cross_node_results}
+
+    if node_errors:
+        # TODO: Use logger instead of print. For example of how to set this up for FastAPI, see https://github.com/tiangolo/fastapi/discussions/8517
+        print(
+            f"Requests to {len(node_errors)}/{total_nodes} nodes failed: {[node_error['node_name'] for node_error in node_errors]}."
+        )
+        if len(node_errors) == total_nodes:
+            # See https://fastapi.tiangolo.com/advanced/additional-responses/ for more info
+            content["nodes_response_status"] = "fail"
+        else:
+            content["nodes_response_status"] = "partial success"
+    else:
+        print(
+            f"Requests to all nodes succeeded ({total_nodes}/{total_nodes})."
+        )
+        content["nodes_response_status"] = "success"
+
+    return content
 
 
 async def get(
@@ -57,7 +81,6 @@ async def get(
     node_errors = []
 
     node_urls = util.validate_query_node_url_list(node_urls)
-    total_nodes = len(node_urls)
 
     # Node API query parameters
     params = {}
@@ -92,51 +115,25 @@ async def get(
             node_errors.append(
                 {"node_name": node_name, "error": response.detail}
             )
+            # TODO: Replace with logger
             warnings.warn(
-                f"Query to node {node_name} ({node_url}) did not succeed: {response.detail}"
+                f"Request to node {node_name} ({node_url}) did not succeed: {response.detail}"
             )
         else:
             for result in response:
                 result["node_name"] = node_name
             cross_node_results.extend(response)
 
-    if node_errors:
-        # TODO: Use logger instead of print, see https://github.com/tiangolo/fastapi/issues/5003
-        print(
-            f"Queries to {len(node_errors)}/{total_nodes} nodes failed: {[node_error['node_name'] for node_error in node_errors]}."
-        )
-
-        if len(node_errors) == total_nodes:
-            # See https://fastapi.tiangolo.com/advanced/additional-responses/ for more info
-            return JSONResponse(
-                status_code=status.HTTP_207_MULTI_STATUS,
-                content={
-                    "errors": node_errors,
-                    "responses": cross_node_results,
-                    "nodes_response_status": "fail",
-                },
-            )
-        return JSONResponse(
-            status_code=status.HTTP_207_MULTI_STATUS,
-            content={
-                "errors": node_errors,
-                "responses": cross_node_results,
-                "nodes_response_status": "partial success",
-            },
-        )
-
-    print(f"All nodes queried successfully ({total_nodes}/{total_nodes}).")
-    return {
-        "errors": node_errors,
-        "responses": cross_node_results,
-        "nodes_response_status": "success",
-    }
+    return build_combined_response(
+        total_nodes=len(node_urls),
+        cross_node_results=cross_node_results,
+        node_errors=node_errors,
+    )
 
 
 async def get_terms(data_element_URI: str):
-    # TODO: Make this path able to handle partial successes as well
     """
-    Makes a GET request to one or more Neurobagel node APIs using send_get_request utility function where the only parameter is a data element URI.
+    Makes a GET request to all available Neurobagel node APIs using send_get_request utility function where the only parameter is a data element URI.
 
     Parameters
     ----------
@@ -148,20 +145,38 @@ async def get_terms(data_element_URI: str):
     dict
         Dictionary where the key is the Neurobagel class and values correspond to all the unique terms representing available (i.e. used) instances of that class.
     """
-    cross_node_results = []
-    params = {data_element_URI: data_element_URI}
-
-    for node_url in util.FEDERATION_NODES:
-        response = util.send_get_request(
-            node_url + "attributes/" + data_element_URI, params
-        )
-
-        cross_node_results.append(response)
-
+    node_errors = []
     unique_terms_dict = {}
 
-    for list_of_terms in cross_node_results:
-        for term in list_of_terms[data_element_URI]:
-            unique_terms_dict[term["TermURL"]] = term
+    params = {data_element_URI: data_element_URI}
+    tasks = [
+        util.send_get_request(
+            node_url + "attributes/" + data_element_URI, params
+        )
+        for node_url in util.FEDERATION_NODES
+    ]
+    responses = await asyncio.gather(*tasks, return_exceptions=True)
 
-    return {data_element_URI: list(unique_terms_dict.values())}
+    for (node_url, node_name), response in zip(
+        util.FEDERATION_NODES.items(), responses
+    ):
+        if isinstance(response, HTTPException):
+            node_errors.append(
+                {"node_name": node_name, "error": response.detail}
+            )
+            # TODO: Replace with logger
+            warnings.warn(
+                f"Request to node {node_name} ({node_url}) did not succeed: {response.detail}"
+            )
+        else:
+            # Build the dictionary of unique term-label pairings from all nodes
+            for term_dict in response[data_element_URI]:
+                unique_terms_dict[term_dict["TermURL"]] = term_dict
+
+    cross_node_results = {data_element_URI: list(unique_terms_dict.values())}
+
+    return build_combined_response(
+        total_nodes=len(util.FEDERATION_NODES),
+        cross_node_results=cross_node_results,
+        node_errors=node_errors,
+    )
