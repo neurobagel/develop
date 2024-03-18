@@ -239,8 +239,27 @@ async def send_get_request(url: str, params: list) -> dict:
                     detail=f"{response.reason_phrase}: {response.text}",
                 )
             return response.json()
+        # Make sure that any HTTPException raised by us is not then caught by the most generic Exception block below
+        # (from https://stackoverflow.com/a/16123643)
+        except HTTPException:
+            raise
         except httpx.NetworkError as exc:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=f"Request failed due to a network error or because the node API cannot be reached: {exc}",
+                detail=f"Request failed due to a network error or because the node API could not be reached: {exc}",
+            ) from exc
+        except httpx.TimeoutException as exc:
+            raise HTTPException(
+                status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                detail=f"Request failed due to a timeout: {exc}",
+            ) from exc
+        except httpx.RequestError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Request failed due to an error: {exc}",
+            ) from exc
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"An unexpected error was encountered: {exc}",
             ) from exc

@@ -1,3 +1,5 @@
+import json
+
 import httpx
 import pytest
 from fastapi import status
@@ -29,7 +31,7 @@ def test_partial_node_failure_responses_handled_gracefully(
     mocked_single_matching_dataset_result,
 ):
     """
-    Test that when queries to some nodes return errors, the overall API get request still succeeds,
+    Test that when queries to some nodes return unsuccessful responses, the overall API get request still succeeds,
     the successful responses are returned along with a list of the encountered errors, and the failed nodes are logged to the console.
     """
 
@@ -75,15 +77,39 @@ def test_partial_node_failure_responses_handled_gracefully(
     )
 
 
-def test_partial_node_connection_failures_handled_gracefully(
+@pytest.mark.parametrize(
+    "error_to_raise,expected_node_message",
+    [
+        (
+            httpx.ConnectError("Some connection error"),
+            "Request failed due to a network error or because the node API could not be reached",
+        ),
+        (
+            httpx.ConnectTimeout("Some timeout error"),
+            "Request failed due to a timeout",
+        ),
+        (
+            httpx.UnsupportedProtocol("Some protocol error"),
+            "Request failed due to an error",
+        ),
+        # JSONDecodeError has some extra required parameters: https://docs.python.org/3/library/json.html#json.JSONDecodeError
+        (
+            json.JSONDecodeError("Some JSON decoding error", "", 0),
+            "An unexpected error was encountered",
+        ),
+    ],
+)
+def test_partial_node_request_failures_handled_gracefully(
     monkeypatch,
     test_app,
     capsys,
     set_valid_test_federation_nodes,
     mocked_single_matching_dataset_result,
+    error_to_raise,
+    expected_node_message,
 ):
     """
-    Test that when requests to some nodes fail (e.g., if API is unreachable), the overall API get request still succeeds,
+    Test that when requests to some nodes fail (so there is no response status code), the overall API get request still succeeds,
     the successful responses are returned along with a list of the encountered errors, and the failed nodes are logged to the console.
     """
 
@@ -93,7 +119,7 @@ def test_partial_node_connection_failures_handled_gracefully(
                 status_code=200, json=[mocked_single_matching_dataset_result]
             )
 
-        raise httpx.ConnectError("Some connection error")
+        raise error_to_raise
 
     monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
 
@@ -105,21 +131,20 @@ def test_partial_node_connection_failures_handled_gracefully(
         captured = capsys.readouterr()
 
     assert response.status_code == status.HTTP_207_MULTI_STATUS
-    assert response.json() == {
-        "errors": [
-            {
-                "node_name": "Second Public Node",
-                "error": "Request failed due to a network error or because the node API cannot be reached: Some connection error",
-            },
-        ],
-        "responses": [
-            {
-                **mocked_single_matching_dataset_result,
-                "node_name": "First Public Node",
-            },
-        ],
-        "nodes_response_status": "partial success",
-    }
+
+    response = response.json()
+    assert response["responses"] == [
+        {
+            **mocked_single_matching_dataset_result,
+            "node_name": "First Public Node",
+        },
+    ]
+    assert response["nodes_response_status"] == "partial success"
+
+    node_errors = response["errors"]
+    assert len(node_errors) == 1
+    assert node_errors[0]["node_name"] == "Second Public Node"
+    assert expected_node_message in node_errors[0]["error"]
     assert (
         "Requests to 1/2 nodes failed: ['Second Public Node']" in captured.out
     )
