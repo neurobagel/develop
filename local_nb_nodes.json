@@ -1,0 +1,10 @@
+[
+    {
+        "NodeName": "Node1",
+        "ApiURL": "node1:8000"
+    },
+    {
+        "NodeName": "Node2",
+        "ApiURL": "node2:8000"
+    }
+]
