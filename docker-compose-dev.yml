@@ -8,14 +8,14 @@ services:
     volumes:
       - "./local_nb_nodes.json:/usr/src/local_nb_nodes.json:ro"
     environment:
-      - NB_API_PORT=8000
+      NB_API_PORT: 8000
   
   query:
-    image: "neurobagel/query_tool:latest"
+    image: "neurobagel/query_tool:v0.1.0"
     ports:
-      - "3000:3000"
+      - "3000:5173"
     environment:
-      - NB_API_QUERY_URL=federation:8000/
+      NB_API_QUERY_URL: "http://localhost:8000/"
 
   api1:
     image: "neurobagel/api:latest"
@@ -47,7 +47,10 @@ services:
 
   graph:
     image: "ontotext/graphdb:10.3.1"
-    volumes:
-      - "./graphdb_home:/opt/graphdb/home"
     ports:
       - "7200:7200"
+    volumes:
+      - "./graphdb_entrypoint.sh:/opt/graphdb_entrypoint.sh"
+      - "./data-config_template.ttl:/opt/data-config_template.ttl"
+      - "./:/data/"
+    entrypoint: ["/opt/graphdb_entrypoint.sh"]
