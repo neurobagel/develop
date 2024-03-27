@@ -1,12 +1,9 @@
 import httpx
-import pytest
 from fastapi import status
 
 
 def test_partially_failed_terms_fetching_handled_gracefully(
-    test_app,
-    monkeypatch,
-    set_valid_test_federation_nodes,
+    test_app, monkeypatch, set_valid_test_federation_nodes, caplog
 ):
     """
     When some nodes fail while getting term instances for an attribute (/attribute/{data_element_URI}),
@@ -42,10 +39,12 @@ def test_partially_failed_terms_fetching_handled_gracefully(
 
     monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
 
-    with pytest.warns(UserWarning):
-        response = test_app.get("/attributes/nb:Assessment")
+    response = test_app.get("/attributes/nb:Assessment")
 
     assert response.status_code == status.HTTP_207_MULTI_STATUS
+
+    assert len(caplog.records) > 0
+    any(record.levelname == "WARNING" for record in caplog.records)
 
     response_object = response.json()
     assert response_object["errors"] == [
@@ -63,6 +62,7 @@ def test_fully_failed_terms_fetching_handled_gracefully(
     monkeypatch,
     mock_failed_connection_httpx_get,
     set_valid_test_federation_nodes,
+    caplog,
 ):
     """
     When *all* nodes fail while getting term instances for an attribute (/attribute/{data_element_URI}),
@@ -72,10 +72,12 @@ def test_fully_failed_terms_fetching_handled_gracefully(
         httpx.AsyncClient, "get", mock_failed_connection_httpx_get
     )
 
-    with pytest.warns(UserWarning):
-        response = test_app.get("/attributes/nb:Assessment")
+    response = test_app.get("/attributes/nb:Assessment")
 
     assert response.status_code == status.HTTP_207_MULTI_STATUS
+    # We expect several warnings from logging
+    assert len(caplog.records) > 0
+    any(record.levelname == "WARNING" for record in caplog.records)
 
     response = response.json()
     assert response["nodes_response_status"] == "fail"

@@ -1,5 +1,6 @@
 """Main app."""
 
+import logging
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -10,6 +11,12 @@ from fastapi.responses import ORJSONResponse, RedirectResponse
 
 from .api import utility as util
 from .api.routers import attributes, nodes, query
+
+logger = logging.getLogger("nb-f-API")
+stdout_handler = logging.StreamHandler()
+
+logger.setLevel(logging.INFO)
+logger.addHandler(stdout_handler)
 
 favicon_url = "https://raw.githubusercontent.com/neurobagel/documentation/main/docs/imgs/logo/neurobagel_favicon.png"
 

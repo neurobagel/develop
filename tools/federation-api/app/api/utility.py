@@ -1,6 +1,7 @@
 """Constants and utility functions for federation."""
 
 import json
+import logging
 import warnings
 from pathlib import Path
 
@@ -143,12 +144,12 @@ async def create_federation_node_index():
         public_nodes = {}
 
         if local_nodes:
-            warnings.warn(
+            logging.warning(
                 failed_get_warning
                 + f"Federation will be limited to the nodes defined locally for this API: {local_nodes}."
             )
         else:
-            warnings.warn(failed_get_warning)
+            logging.warning(failed_get_warning)
             raise RuntimeError(
                 "No local or public Neurobagel nodes available for federation."
                 "Please define at least one local node in "

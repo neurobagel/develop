@@ -1,7 +1,7 @@
 """CRUD functions called by path operations."""
 
 import asyncio
-import warnings
+import logging
 
 from fastapi import HTTPException
 
@@ -15,8 +15,7 @@ def build_combined_response(
     content = {"errors": node_errors, "responses": cross_node_results}
 
     if node_errors:
-        # TODO: Use logger instead of print. For example of how to set this up for FastAPI, see https://github.com/tiangolo/fastapi/discussions/8517
-        print(
+        logging.warning(
             f"Requests to {len(node_errors)}/{total_nodes} nodes failed: {[node_error['node_name'] for node_error in node_errors]}."
         )
         if len(node_errors) == total_nodes:
@@ -25,7 +24,7 @@ def build_combined_response(
         else:
             content["nodes_response_status"] = "partial success"
     else:
-        print(
+        logging.info(
             f"Requests to all nodes succeeded ({total_nodes}/{total_nodes})."
         )
         content["nodes_response_status"] = "success"
@@ -115,8 +114,7 @@ async def get(
             node_errors.append(
                 {"node_name": node_name, "error": response.detail}
             )
-            # TODO: Replace with logger
-            warnings.warn(
+            logging.warning(
                 f"Request to node {node_name} ({node_url}) did not succeed: {response.detail}"
             )
         else:
@@ -164,8 +162,7 @@ async def get_terms(data_element_URI: str):
             node_errors.append(
                 {"node_name": node_name, "error": response.detail}
             )
-            # TODO: Replace with logger
-            warnings.warn(
+            logging.warning(
                 f"Request to node {node_name} ({node_url}) did not succeed: {response.detail}"
             )
         else:
