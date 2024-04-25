@@ -65,7 +65,7 @@
     "Description": "Group variable",
     "Levels": {
       "PAT": "Patient",
-      "CTRL": "A Control subject"
+      "CTRL": "Control subject"
     },
     "Annotations": {
       "IsAbout": {
