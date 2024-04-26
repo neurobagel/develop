@@ -1,5 +1,5 @@
 {
-    "participant_id_TEST": {
+    "participant_id": {
         "Description": "A participant ID",
         "Annotations": {
             "IsAbout": {
