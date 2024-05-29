@@ -2,13 +2,23 @@
 
 import json
 import logging
+import os
 import warnings
+from collections import namedtuple
 from pathlib import Path
 
 import httpx
 import jsonschema
 from fastapi import HTTPException, status
 from jsonschema import validate
+
+EnvVar = namedtuple("EnvVar", ["name", "value"])
+
+IS_FEDERATE_REMOTE_PUBLIC_NODES = EnvVar(
+    "NB_FEDERATE_REMOTE_PUBLIC_NODES",
+    os.environ.get("NB_FEDERATE_REMOTE_PUBLIC_NODES", "True").lower()
+    == "true",
+)
 
 LOCAL_NODE_INDEX_PATH = Path(__file__).parents[2] / "local_nb_nodes.json"
 
@@ -124,38 +134,43 @@ async def create_federation_node_index():
             "current directory and relaunch the API.)\n"
         )
 
-    node_directory_response = httpx.get(
-        url=node_directory_url,
-    )
-    # TODO: Handle network errors gracefully
-    if node_directory_response.is_success:
-        public_nodes = {
-            add_trailing_slash(node["ApiURL"]): node["NodeName"]
-            for node in node_directory_response.json()
-        }
-    else:
-        failed_get_warning = "\n".join(
-            [
-                f"Unable to fetch directory of public Neurobagel nodes from {node_directory_url}.",
-                "Details of the response from the source:",
-                f"Status code {node_directory_response.status_code}: {node_directory_response.reason_phrase}\n",
-            ]
-        )
-        public_nodes = {}
+    node_directory_response = {}
+    public_nodes = {}
+    failed_get_warning = ""
 
-        if local_nodes:
-            logging.warning(
-                failed_get_warning
-                + f"Federation will be limited to the nodes defined locally for this API: {local_nodes}."
-            )
+    if IS_FEDERATE_REMOTE_PUBLIC_NODES.value:
+        node_directory_response = httpx.get(
+            url=node_directory_url,
+        )
+        # TODO: Handle network errors gracefully
+        if node_directory_response.is_success:
+            public_nodes = {
+                add_trailing_slash(node["ApiURL"]): node["NodeName"]
+                for node in node_directory_response.json()
+            }
         else:
-            logging.warning(failed_get_warning)
-            raise RuntimeError(
-                "No local or public Neurobagel nodes available for federation."
-                "Please define at least one local node in "
-                "a 'local_nb_nodes.json' file in the "
-                "current directory and try again."
+            failed_get_warning = "\n".join(
+                [
+                    "IS_FEDERATE_REMOTE_PUBLIC_NODES is set to True, but",
+                    f"unable to fetch directory of public Neurobagel nodes from {node_directory_url}.",
+                    "Details of the response from the source:",
+                    f"Status code {node_directory_response.status_code}: {node_directory_response.reason_phrase}\n",
+                ]
             )
+
+            if local_nodes:
+                logging.warning(
+                    failed_get_warning
+                    + f"Federation will be limited to the nodes defined locally for this API: {local_nodes}."
+                )
+            else:
+                logging.warning(failed_get_warning)
+                raise RuntimeError(
+                    "No local or public Neurobagel nodes available for federation."
+                    "Please define at least one local node in "
+                    "a 'local_nb_nodes.json' file in the "
+                    "current directory and try again."
+                )
 
     # This step will remove any duplicate keys from the local and public node dicts, giving priority to the local nodes.
     FEDERATION_NODES.update(

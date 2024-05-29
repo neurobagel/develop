@@ -1,5 +1,6 @@
 import json
 
+import httpx
 import pytest
 from fastapi import HTTPException
 
@@ -229,3 +230,37 @@ def test_empty_json_does_not_error(tmp_path):
         f.write("")
 
     assert util.parse_nodes_as_dict(tmp_path / "local_nb_nodes.json") == {}
+
+
+@pytest.mark.asyncio
+async def test_federate_only_local_nodes(tmp_path, monkeypatch):
+    """Ensure that the API only federates local nodes when NB_FEDERATE_REMOTE_PUBLIC_NODES env var is set to False."""
+
+    local_nodes = {
+        "https://firstlocalnode.org/": "First Local Node",
+        "https://secondlocalnode.org/": "Second Local Node",
+    }
+
+    def mock_parse_nodes_as_dict(path):
+        return local_nodes
+
+    def mock_httpx_get(**kwargs):
+        return httpx.Response(
+            status_code=200,
+            json=[
+                {
+                    "NodeName": "First Public Node",
+                    "ApiURL": "https://firstpublicnode.org",
+                },
+            ],
+        )
+
+    monkeypatch.setattr(util, "parse_nodes_as_dict", mock_parse_nodes_as_dict)
+    monkeypatch.setattr(httpx, "get", mock_httpx_get)
+    monkeypatch.setattr(
+        util, "IS_FEDERATE_REMOTE_PUBLIC_NODES", util.EnvVar("", False)
+    )
+
+    await util.create_federation_node_index()
+
+    assert util.FEDERATION_NODES == local_nodes
