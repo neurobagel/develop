@@ -215,7 +215,9 @@ def validate_query_node_url_list(node_urls: list) -> list:
     return node_urls
 
 
-async def send_get_request(url: str, params: list) -> dict:
+async def send_get_request(
+    url: str, params: list, timeout: float = None
+) -> dict:
     """
     Makes a GET request to one or more Neurobagel nodes.
 
@@ -242,8 +244,7 @@ async def send_get_request(url: str, params: list) -> dict:
             response = await client.get(
                 url=url,
                 params=params,
-                # TODO: Revisit timeout value when query performance is improved
-                timeout=30.0,
+                timeout=timeout,
                 # Enable redirect following (off by default) so
                 # APIs behind a proxy can be reached
                 follow_redirects=True,
