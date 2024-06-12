@@ -1,3 +1,16 @@
+# v0.2.0 (Wed Jun 12 2024)
+
+#### 🚀 Enhancements
+
+- [ENH] Implemented `NB_FEDERATE_REMOTE_PUBLIC_NODES` env var [#90](https://github.com/neurobagel/federation-api/pull/90) ([@rmanaem](https://github.com/rmanaem))
+- [MNT] Set default timeout to `None` [#94](https://github.com/neurobagel/federation-api/pull/94) ([@rmanaem](https://github.com/rmanaem))
+
+#### Authors: 1
+
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+
+---
+
 # v0.1.0 (Thu Apr 11 2024)
 
 :tada: This release contains work from new contributors! :tada:
