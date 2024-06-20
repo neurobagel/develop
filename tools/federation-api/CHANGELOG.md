@@ -1,3 +1,19 @@
+# v0.2.1 (Thu Jun 20 2024)
+
+#### 🚀 Enhancements
+
+- [MNT] Add welcome page at / [#99](https://github.com/neurobagel/federation-api/pull/99) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Explicitly check that `local_nb_nodes.json` is an existing file [#98](https://github.com/neurobagel/federation-api/pull/98) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.2.0 (Wed Jun 12 2024)
 
 #### 🚀 Enhancements
