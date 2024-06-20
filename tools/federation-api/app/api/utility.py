@@ -68,7 +68,11 @@ def parse_nodes_as_dict(path: Path) -> dict:
     """
     valid_nodes = []
 
-    if path.exists() and path.stat().st_size > 0:
+    # Check if the path points to an existing file and also is not empty
+    # NOTE:
+    # Empty directories do not necessarily have a size of 0. This depends on the filesystem.
+    # So, we check first if the path is a file.
+    if path.is_file() and path.stat().st_size > 0:
         try:
             with open(path, "r") as f:
                 local_nodes = json.load(f)

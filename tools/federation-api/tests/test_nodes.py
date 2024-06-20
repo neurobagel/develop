@@ -141,6 +141,31 @@ def test_unset_local_nodes_raises_warning(test_app, monkeypatch):
     assert "No local Neurobagel nodes defined or found" in w[0].message.args[0]
 
 
+def test_local_nodes_directory_does_not_raise_error(tmp_path):
+    """
+    Test that when the local nodes path points to a directory and not a file,
+    the parsing of local nodes does not raise an error and returns an empty dictionary.
+
+    This covers the case where the f-API is deployed using Docker but the local_nb_nodes.json file is missing,
+    so during mounting, Docker creates an empty directory inside the container instead.
+    """
+    local_nodes_dir = tmp_path / "local_nb_nodes.json"
+    local_nodes_dir.mkdir()
+
+    assert local_nodes_dir.is_dir()
+    assert util.parse_nodes_as_dict(local_nodes_dir) == {}
+
+
+def test_missing_local_nodes_file_does_not_raise_error(tmp_path):
+    """
+    Test that when local_nb_nodes.json is missing, the parsing of local nodes
+    does not raise an error and returns an empty dictionary.
+    """
+    expected_file_path = tmp_path / "local_nb_nodes.json"
+    assert not expected_file_path.exists()
+    assert util.parse_nodes_as_dict(expected_file_path) == {}
+
+
 def test_no_available_nodes_raises_error(monkeypatch, test_app, caplog):
     """Test that when no local or remote nodes are available, an informative error is raised."""
 
