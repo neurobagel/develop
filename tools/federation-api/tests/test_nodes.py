@@ -14,7 +14,9 @@ from app.api import utility as util
         },
     ],
 )
-def test_nodes_discovery_endpoint(test_app, monkeypatch, local_nodes):
+def test_nodes_discovery_endpoint(
+    test_app, monkeypatch, local_nodes, disable_auth
+):
     """Test that a federation node index is correctly created from locally set and remote node lists."""
 
     def mock_parse_nodes_as_dict(path):
@@ -59,7 +61,7 @@ def test_nodes_discovery_endpoint(test_app, monkeypatch, local_nodes):
 
 
 def test_failed_public_nodes_fetching_raises_warning(
-    test_app, monkeypatch, caplog
+    test_app, monkeypatch, disable_auth, caplog
 ):
     """Test that when request for remote list of public nodes fails, an informative warning is raised and the federation node index only includes local nodes."""
 
@@ -95,7 +97,7 @@ def test_failed_public_nodes_fetching_raises_warning(
         assert warn_substr in caplog.text
 
 
-def test_unset_local_nodes_raises_warning(test_app, monkeypatch):
+def test_unset_local_nodes_raises_warning(test_app, monkeypatch, disable_auth):
     """Test that when no local nodes are set, an informative warning is raised and the federation node index only includes remote nodes."""
 
     def mock_parse_nodes_as_dict(path):
@@ -166,7 +168,9 @@ def test_missing_local_nodes_file_does_not_raise_error(tmp_path):
     assert util.parse_nodes_as_dict(expected_file_path) == {}
 
 
-def test_no_available_nodes_raises_error(monkeypatch, test_app, caplog):
+def test_no_available_nodes_raises_error(
+    monkeypatch, test_app, disable_auth, caplog
+):
     """Test that when no local or remote nodes are available, an informative error is raised."""
 
     def mock_parse_nodes_as_dict(path):

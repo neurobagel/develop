@@ -11,6 +11,7 @@ from fastapi.responses import HTMLResponse, ORJSONResponse, RedirectResponse
 
 from .api import utility as util
 from .api.routers import attributes, nodes, query
+from .api.security import check_client_id
 
 logger = logging.getLogger("nb-f-API")
 stdout_handler = logging.StreamHandler()
@@ -26,6 +27,7 @@ async def lifespan(app: FastAPI):
     """
     Collect and store locally defined and public node details for federation upon startup and clears the index upon shutdown.
     """
+    check_client_id()
     await util.create_federation_node_index()
     yield
     util.FEDERATION_NODES.clear()
