@@ -41,7 +41,7 @@ def test_nodes_discovery_endpoint(
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
 
     with test_app:
-        response = test_app.get("/nodes/")
+        response = test_app.get("/nodes")
         assert util.FEDERATION_NODES == {
             "https://firstpublicnode.org/": "First Public Node",
             "https://secondpublicnode.org/": "Second Public Node",
@@ -77,7 +77,7 @@ def test_failed_public_nodes_fetching_raises_warning(
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
 
     with test_app:
-        response = test_app.get("/nodes/")
+        response = test_app.get("/nodes")
         assert util.FEDERATION_NODES == {
             "https://mylocalnode.org/": "Local Node"
         }
@@ -123,7 +123,7 @@ def test_unset_local_nodes_raises_warning(test_app, monkeypatch, disable_auth):
 
     with pytest.warns(UserWarning) as w:
         with test_app:
-            response = test_app.get("/nodes/")
+            response = test_app.get("/nodes")
             assert util.FEDERATION_NODES == {
                 "https://firstpublicnode.org/": "First Public Node",
                 "https://secondpublicnode.org/": "Second Public Node",

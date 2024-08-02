@@ -12,24 +12,6 @@ def mock_token():
     return "Bearer foo"
 
 
-@pytest.fixture()
-def mocked_single_matching_dataset_result():
-    """Valid aggregate query result for a single matching dataset."""
-    return {
-        "dataset_uuid": "http://neurobagel.org/vocab/12345",
-        "dataset_name": "QPN",
-        "dataset_portal_uri": "https://rpq-qpn.ca/en/researchers-section/databases/",
-        "dataset_total_subjects": 200,
-        "num_matching_subjects": 5,
-        "records_protected": True,
-        "subject_data": "protected",
-        "image_modals": [
-            "http://purl.org/nidash/nidm#T1Weighted",
-            "http://purl.org/nidash/nidm#T2Weighted",
-        ],
-    }
-
-
 def test_partial_node_failure_responses_handled_gracefully(
     monkeypatch,
     test_app,
@@ -47,7 +29,7 @@ def test_partial_node_failure_responses_handled_gracefully(
     async def mock_httpx_get(self, **kwargs):
         # The self parameter is necessary to match the signature of the method being mocked,
         # which is a class method of the httpx.AsyncClient class (see https://www.python-httpx.org/api/#asyncclient).
-        if kwargs["url"] == "https://firstpublicnode.org/query/":
+        if kwargs["url"] == "https://firstpublicnode.org/query":
             return httpx.Response(
                 status_code=200, json=[mocked_single_matching_dataset_result]
             )
@@ -59,7 +41,7 @@ def test_partial_node_failure_responses_handled_gracefully(
     monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
 
     response = test_app.get(
-        "/query/",
+        "/query",
         headers={"Authorization": mock_token},
     )
 
@@ -127,7 +109,7 @@ def test_partial_node_request_failures_handled_gracefully(
     """
 
     async def mock_httpx_get(self, **kwargs):
-        if kwargs["url"] == "https://firstpublicnode.org/query/":
+        if kwargs["url"] == "https://firstpublicnode.org/query":
             return httpx.Response(
                 status_code=200, json=[mocked_single_matching_dataset_result]
             )
@@ -137,7 +119,7 @@ def test_partial_node_request_failures_handled_gracefully(
     monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
 
     response = test_app.get(
-        "/query/",
+        "/query",
         headers={"Authorization": mock_token},
     )
 
@@ -183,7 +165,7 @@ def test_all_nodes_failure_handled_gracefully(
     )
 
     response = test_app.get(
-        "/query/",
+        "/query",
         headers={"Authorization": mock_token},
     )
 
@@ -225,7 +207,7 @@ def test_all_nodes_success_handled_gracefully(
     monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
 
     response = test_app.get(
-        "/query/",
+        "/query",
         headers={"Authorization": mock_token},
     )
 
@@ -256,6 +238,6 @@ def test_query_without_token_succeeds_when_auth_disabled(
 
     monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
 
-    response = test_app.get("/query/")
+    response = test_app.get("/query")
 
     assert response.status_code == status.HTTP_200_OK

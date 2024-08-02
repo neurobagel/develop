@@ -103,7 +103,7 @@ async def get(
         params["image_modal"] = image_modal
 
     tasks = [
-        util.send_get_request(node_url + "query/", params)
+        util.send_get_request(node_url + "query", params)
         for node_url in node_urls
     ]
     responses = await asyncio.gather(*tasks, return_exceptions=True)
