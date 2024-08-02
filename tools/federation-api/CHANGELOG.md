@@ -1,3 +1,16 @@
+# v0.3.0 (Fri Aug 02 2024)
+
+#### 💥 Breaking Changes
+
+- [FIX] Disable redirect slashes and remove trailing slashes from routes [#109](https://github.com/neurobagel/federation-api/pull/109) ([@alyssadai](https://github.com/alyssadai))
+- Add authentication to `/query` route [#104](https://github.com/neurobagel/federation-api/pull/104) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.2.1 (Thu Jun 20 2024)
 
 #### 🚀 Enhancements
