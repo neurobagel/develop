@@ -1,0 +1,218 @@
+{
+  "errors": [],
+  "responses": [
+    {
+      "node_name": "2 OpenNeuro Datasets",
+      "dataset_uuid": "http://neurobagel.org/vocab/1c9a29d8-9ce7-4bb6-9c44-f33ac504bcb4",
+      "dataset_name": "Balloon Analog Risk-taking Task",
+      "dataset_portal_uri": "https://github.com/OpenNeuroDatasets-JSONLD/ds000001.git",
+      "dataset_total_subjects": 16,
+      "records_protected": true,
+      "num_matching_subjects": 10,
+      "subject_data": "protected",
+      "image_modals": [
+        "http://purl.org/nidash/nidm#T2Weighted",
+        "http://purl.org/nidash/nidm#T1Weighted",
+        "http://purl.org/nidash/nidm#FlowWeighted"
+      ]
+    },
+    {
+      "node_name": "2 OpenNeuro Datasets",
+      "dataset_uuid": "http://neurobagel.org/vocab/c7bb6a5b-4066-4a59-b56c-3c6fe4d44b90",
+      "dataset_name": "Classification learning",
+      "dataset_portal_uri": "https://github.com/OpenNeuroDatasets-JSONLD/ds000002.git",
+      "dataset_total_subjects": 17,
+      "records_protected": true,
+      "num_matching_subjects": 10,
+      "subject_data": "protected",
+      "image_modals": [
+        "http://purl.org/nidash/nidm#T2Weighted",
+        "http://purl.org/nidash/nidm#T1Weighted",
+        "http://purl.org/nidash/nidm#FlowWeighted"
+      ]
+    },
+    {
+      "node_name": "BIDS Synthetic",
+      "dataset_uuid": "http://neurobagel.org/vocab/e0c7d08c-edcc-4c2a-816a-306878ed7be2",
+      "dataset_name": "BIDS synthetic",
+      "dataset_portal_uri": "https://github.com/bids-standard/bids-examples",
+      "dataset_total_subjects": 5,
+      "records_protected": false,
+      "num_matching_subjects": 2,
+      "subject_data": [
+        {
+          "sub_id": "sub-01",
+          "session_id": "ses-01",
+          "num_matching_phenotypic_sessions": 2,
+          "num_matching_imaging_sessions": 2,
+          "session_type": "http://neurobagel.org/vocab/ImagingSession",
+          "age": null,
+          "sex": null,
+          "diagnosis": [
+            null
+          ],
+          "subject_group": null,
+          "assessment": [
+            null
+          ],
+          "image_modal": [
+            "http://purl.org/nidash/nidm#T1Weighted",
+            "http://purl.org/nidash/nidm#FlowWeighted"
+          ],
+          "session_file_path": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-01/ses-01"
+        },
+        {
+          "sub_id": "sub-01",
+          "session_id": "ses-01",
+          "num_matching_phenotypic_sessions": 2,
+          "num_matching_imaging_sessions": 2,
+          "session_type": "http://neurobagel.org/vocab/PhenotypicSession",
+          "age": 34.1,
+          "sex": "http://purl.bioontology.org/ontology/SNOMEDCT/248152002",
+          "diagnosis": [
+            null
+          ],
+          "subject_group": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C94342",
+          "assessment": [
+            "https://www.cognitiveatlas.org/task/id/trm_57964b8a66aed",
+            "https://www.cognitiveatlas.org/task/id/tsk_4a57abb949ece"
+          ],
+          "image_modal": [
+            null
+          ],
+          "session_file_path": null
+        },
+        {
+          "sub_id": "sub-01",
+          "session_id": "ses-02",
+          "num_matching_phenotypic_sessions": 2,
+          "num_matching_imaging_sessions": 2,
+          "session_type": "http://neurobagel.org/vocab/ImagingSession",
+          "age": null,
+          "sex": null,
+          "diagnosis": [
+            null
+          ],
+          "subject_group": null,
+          "assessment": [
+            null
+          ],
+          "image_modal": [
+            "http://purl.org/nidash/nidm#T1Weighted",
+            "http://purl.org/nidash/nidm#FlowWeighted"
+          ],
+          "session_file_path": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-01/ses-02"
+        },
+        {
+          "sub_id": "sub-01",
+          "session_id": "ses-02",
+          "num_matching_phenotypic_sessions": 2,
+          "num_matching_imaging_sessions": 2,
+          "session_type": "http://neurobagel.org/vocab/PhenotypicSession",
+          "age": 35.3,
+          "sex": "http://purl.bioontology.org/ontology/SNOMEDCT/248152002",
+          "diagnosis": [
+            null
+          ],
+          "subject_group": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C94342",
+          "assessment": [
+            "https://www.cognitiveatlas.org/task/id/trm_57964b8a66aed",
+            "https://www.cognitiveatlas.org/task/id/tsk_4a57abb949ece"
+          ],
+          "image_modal": [
+            null
+          ],
+          "session_file_path": null
+        },
+        {
+          "sub_id": "sub-04",
+          "session_id": "ses-01",
+          "num_matching_phenotypic_sessions": 2,
+          "num_matching_imaging_sessions": 2,
+          "session_type": "http://neurobagel.org/vocab/ImagingSession",
+          "age": null,
+          "sex": null,
+          "diagnosis": [
+            null
+          ],
+          "subject_group": null,
+          "assessment": [
+            null
+          ],
+          "image_modal": [
+            "http://purl.org/nidash/nidm#T1Weighted",
+            "http://purl.org/nidash/nidm#FlowWeighted"
+          ],
+          "session_file_path": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-04/ses-01"
+        },
+        {
+          "sub_id": "sub-04",
+          "session_id": "ses-01",
+          "num_matching_phenotypic_sessions": 2,
+          "num_matching_imaging_sessions": 2,
+          "session_type": "http://neurobagel.org/vocab/PhenotypicSession",
+          "age": 21.1,
+          "sex": "http://purl.bioontology.org/ontology/SNOMEDCT/248152002",
+          "diagnosis": [
+            null
+          ],
+          "subject_group": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C94342",
+          "assessment": [
+            "https://www.cognitiveatlas.org/task/id/tsk_4a57abb949ece"
+          ],
+          "image_modal": [
+            null
+          ],
+          "session_file_path": null
+        },
+        {
+          "sub_id": "sub-04",
+          "session_id": "ses-02",
+          "num_matching_phenotypic_sessions": 2,
+          "num_matching_imaging_sessions": 2,
+          "session_type": "http://neurobagel.org/vocab/ImagingSession",
+          "age": null,
+          "sex": null,
+          "diagnosis": [
+            null
+          ],
+          "subject_group": null,
+          "assessment": [
+            null
+          ],
+          "image_modal": [
+            "http://purl.org/nidash/nidm#T1Weighted",
+            "http://purl.org/nidash/nidm#FlowWeighted"
+          ],
+          "session_file_path": "/data/neurobagel/bagel-cli/bids-examples/synthetic/sub-04/ses-02"
+        },
+        {
+          "sub_id": "sub-04",
+          "session_id": "ses-02",
+          "num_matching_phenotypic_sessions": 2,
+          "num_matching_imaging_sessions": 2,
+          "session_type": "http://neurobagel.org/vocab/PhenotypicSession",
+          "age": 22.3,
+          "sex": "http://purl.bioontology.org/ontology/SNOMEDCT/248152002",
+          "diagnosis": [
+            null
+          ],
+          "subject_group": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C94342",
+          "assessment": [
+            "https://www.cognitiveatlas.org/task/id/trm_57964b8a66aed",
+            "https://www.cognitiveatlas.org/task/id/tsk_4a57abb949ece"
+          ],
+          "image_modal": [
+            null
+          ],
+          "session_file_path": null
+        }
+      ],
+      "image_modals": [
+        "http://purl.org/nidash/nidm#T1Weighted",
+        "http://purl.org/nidash/nidm#FlowWeighted"
+      ]
+    }
+  ],
+  "nodes_response_status": "success"
+}

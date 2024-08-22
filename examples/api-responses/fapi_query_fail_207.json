@@ -1,0 +1,14 @@
+{
+  "errors": [
+    {
+      "node_name": "2 OpenNeuro Datasets",
+      "error": "Request failed due to a network error or because the node API could not be reached: [Errno -3] Temporary failure in name resolution"
+    },
+    {
+      "node_name": "BIDS Synthetic",
+      "error": "Request failed due to a network error or because the node API could not be reached: [Errno -2] Name or service not known"
+    }
+  ],
+  "responses": [],
+  "nodes_response_status": "fail"
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "dataset_uuid": "http://neurobagel.org/vocab/1c9a29d8-9ce7-4bb6-9c44-f33ac504bcb4",
+    "dataset_name": "Balloon Analog Risk-taking Task",
+    "dataset_portal_uri": "https://github.com/OpenNeuroDatasets-JSONLD/ds000001.git",
+    "dataset_total_subjects": 16,
+    "records_protected": true,
+    "num_matching_subjects": 10,
+    "subject_data": "protected",
+    "image_modals": [
+      "http://purl.org/nidash/nidm#T2Weighted",
+      "http://purl.org/nidash/nidm#T1Weighted",
+      "http://purl.org/nidash/nidm#FlowWeighted"
+    ]
+  },
+  {
+    "dataset_uuid": "http://neurobagel.org/vocab/c7bb6a5b-4066-4a59-b56c-3c6fe4d44b90",
+    "dataset_name": "Classification learning",
+    "dataset_portal_uri": "https://github.com/OpenNeuroDatasets-JSONLD/ds000002.git",
+    "dataset_total_subjects": 17,
+    "records_protected": true,
+    "num_matching_subjects": 10,
+    "subject_data": "protected",
+    "image_modals": [
+      "http://purl.org/nidash/nidm#T2Weighted",
+      "http://purl.org/nidash/nidm#T1Weighted",
+      "http://purl.org/nidash/nidm#FlowWeighted"
+    ]
+  }
+]
