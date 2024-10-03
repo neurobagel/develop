@@ -5,7 +5,7 @@
     "ncit": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#",
     "nidm": "http://purl.org/nidash/nidm#",
     "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
-    "np": "https://github.com/nipoppy/pipeline-catalog/tree/main/processing",
+    "np": "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/",
     "Acquisition": "nb:Acquisition",
     "identifier": "@id",
     "hasContrastType": {
@@ -70,16 +70,16 @@
     },
     "SubjectGroup": "nb:SubjectGroup"
   },
-  "identifier": "nb:e0c7d08c-edcc-4c2a-816a-306878ed7be2",
+  "identifier": "nb:838f54dd-bc3c-4469-8795-b5e280ae0f82",
   "hasLabel": "BIDS synthetic",
   "hasPortalURI": "https://github.com/bids-standard/bids-examples",
   "hasSamples": [
     {
-      "identifier": "nb:34ec1e2d-9a81-4a50-bcd0-eb22c88d11e1",
+      "identifier": "nb:f8e8d12d-50fd-40f8-8805-ddf5a3913a36",
       "hasLabel": "sub-01",
       "hasSession": [
         {
-          "identifier": "nb:85c7473c-6122-4999-ad3b-5cd57a883c87",
+          "identifier": "nb:bcdb7b7f-be17-402b-bc20-c3a374a43431",
           "hasLabel": "ses-01",
           "hasAge": 34.1,
           "hasSex": {
@@ -103,7 +103,7 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:eb57d0c1-fb96-4c04-8c16-1f29f7f40db4",
+          "identifier": "nb:3d0464fa-918a-474a-ad40-7d730a002031",
           "hasLabel": "ses-02",
           "hasAge": 35.3,
           "hasSex": {
@@ -127,11 +127,11 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:9e2137a9-da4b-4188-a7f6-adf6314c7fd5",
+          "identifier": "nb:9c87d9ae-92b5-47e5-8648-570f631a5151",
           "hasLabel": "ses-01",
           "hasCompletedPipeline": [
             {
-              "identifier": "nb:03a03e39-7d08-4c90-9fbc-a3e8aa38c7e0",
+              "identifier": "nb:e1d7fe58-254f-4155-bb1c-a5434f1b057a",
               "hasPipelineVersion": "23.1.3",
               "hasPipelineName": {
                 "identifier": "np:fmriprep",
@@ -140,7 +140,7 @@
               "schemaKey": "CompletedPipeline"
             },
             {
-              "identifier": "nb:77bd24fc-35f6-47d6-8ca1-217162b756ca",
+              "identifier": "nb:ce9b23c8-e654-4630-9b8d-d9f6796ef63b",
               "hasPipelineVersion": "7.3.2",
               "hasPipelineName": {
                 "identifier": "np:freesurfer",
@@ -155,11 +155,11 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:2de41397-805f-4059-b464-388ef501d6e5",
+      "identifier": "nb:c73690c0-37d9-4ef9-8d55-e71e3fc16f0a",
       "hasLabel": "sub-02",
       "hasSession": [
         {
-          "identifier": "nb:0ce182f3-b47c-4b50-8b76-8f257e490cf3",
+          "identifier": "nb:92d61f79-2331-4273-a4b6-0d8e9045f09b",
           "hasLabel": "ses-01",
           "hasSex": {
             "identifier": "snomed:248153007",
@@ -184,7 +184,7 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:4871d5c2-963f-4825-ab43-85a87edac4ce",
+          "identifier": "nb:3c42b3dc-cbd4-4f11-968b-a90a0e3af294",
           "hasLabel": "ses-02",
           "hasAge": 39.0,
           "hasSex": {
@@ -210,11 +210,11 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:14565090-a64e-4022-af54-443cda257dfc",
+          "identifier": "nb:952c08df-df59-42ef-81fb-68aa5e31e22d",
           "hasLabel": "ses-01",
           "hasCompletedPipeline": [
             {
-              "identifier": "nb:41e0e0a1-5d00-469d-9c52-70d1b9528fd4",
+              "identifier": "nb:4dac74f9-a40d-41e8-b8d9-0b0f39264843",
               "hasPipelineVersion": "23.1.3",
               "hasPipelineName": {
                 "identifier": "np:fmriprep",
@@ -223,7 +223,7 @@
               "schemaKey": "CompletedPipeline"
             },
             {
-              "identifier": "nb:210d6143-076c-42cf-9afe-2cdd7c4502ea",
+              "identifier": "nb:bb95f9ad-8167-44cb-99c4-470cbfe5e036",
               "hasPipelineVersion": "7.3.2",
               "hasPipelineName": {
                 "identifier": "np:freesurfer",
@@ -235,11 +235,11 @@
           "schemaKey": "ImagingSession"
         },
         {
-          "identifier": "nb:ad463b76-aad8-446c-9093-a915556d1fab",
+          "identifier": "nb:a107c482-fb34-4a04-830c-c975e307933f",
           "hasLabel": "ses-02",
           "hasCompletedPipeline": [
             {
-              "identifier": "nb:f1d1a3fd-3524-473e-a8c5-dcd385f66234",
+              "identifier": "nb:4e5a7e18-db09-4fc3-96c4-d582fe1ef786",
               "hasPipelineVersion": "7.3.2",
               "hasPipelineName": {
                 "identifier": "np:freesurfer",
@@ -254,11 +254,11 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:d4258426-2971-43ff-92fa-4b20bd21c31f",
+      "identifier": "nb:885389cd-6b66-45ff-b0a7-7028b66a5fc8",
       "hasLabel": "sub-03",
       "hasSession": [
         {
-          "identifier": "nb:3f9c82d5-6648-4b9b-8f86-195ee9283875",
+          "identifier": "nb:7e580649-68d5-4a7a-8518-ace5906b751a",
           "hasLabel": "ses-01",
           "hasAge": 22.1,
           "hasAssessment": [
@@ -270,7 +270,7 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:0f7fe93b-13b1-4ca7-9e58-b997a18ec9b9",
+          "identifier": "nb:8b90bf80-1765-496a-9a2f-9c31a52fe35e",
           "hasLabel": "ses-02",
           "hasAge": 23.2,
           "hasDiagnosis": [
@@ -295,11 +295,11 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:73193f71-cd19-4b8c-ae73-abc882e9b688",
+      "identifier": "nb:232f9e9a-fc3b-48e5-9d57-9d64492c35f4",
       "hasLabel": "sub-04",
       "hasSession": [
         {
-          "identifier": "nb:962aa986-dbd7-4412-a180-49c0a24c9f87",
+          "identifier": "nb:d0236a6c-b16d-4ff8-9878-10e8219aeb8a",
           "hasLabel": "ses-01",
           "hasAge": 21.1,
           "hasSex": {
@@ -319,7 +319,7 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:8622fc66-013d-4675-a328-fdcccd4616b0",
+          "identifier": "nb:d138e635-72fb-4eb2-9080-d33ff60a868d",
           "hasLabel": "ses-02",
           "hasAge": 22.3,
           "hasSex": {
@@ -346,11 +346,11 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:cb8d7a96-fdec-425c-b0b5-9e9ac3c70e8c",
+      "identifier": "nb:25f83242-227f-486a-b21a-7ca9f509c718",
       "hasLabel": "sub-05",
       "hasSession": [
         {
-          "identifier": "nb:1d7c30f5-cae9-43c9-a154-26dbe0029594",
+          "identifier": "nb:b5cff3ea-570e-40c5-81f8-2f2d6fdd4d7e",
           "hasLabel": "ses-01",
           "hasAge": 42.5,
           "hasSex": {
@@ -376,7 +376,7 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:2401e418-6f9b-4113-9511-b1b9a332a5d0",
+          "identifier": "nb:8de97991-183c-4a08-a174-71d4f4d0e629",
           "hasLabel": "ses-02",
           "hasAge": 43.2,
           "hasSex": {
