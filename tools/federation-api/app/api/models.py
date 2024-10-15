@@ -21,6 +21,8 @@ class QueryModel(BaseModel):
     min_num_phenotypic_sessions: int = None
     assessment: str = None
     image_modal: str = None
+    pipeline_name: str = None
+    pipeline_version: str = None
     # TODO: Replace default value with union of local and public nodes once https://github.com/neurobagel/federation-api/issues/28 is merged
     # syntax from https://github.com/tiangolo/fastapi/issues/4445#issuecomment-1117632409
     node_url: list[str] | None = Field(Query(default=[]))
@@ -39,6 +41,7 @@ class CohortQueryResponse(BaseModel):
     num_matching_subjects: int
     subject_data: Union[list[dict], str]
     image_modals: list
+    available_pipelines: dict
 
 
 class NodesResponseStatus(str, Enum):

@@ -85,4 +85,12 @@ def mocked_single_matching_dataset_result():
             "http://purl.org/nidash/nidm#T1Weighted",
             "http://purl.org/nidash/nidm#T2Weighted",
         ],
+        "available_pipelines": {
+            "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/fmriprep": [
+                "23.1.3"
+            ],
+            "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/freesurfer": [
+                "7.3.2"
+            ],
+        },
     }

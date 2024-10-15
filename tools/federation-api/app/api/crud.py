@@ -42,6 +42,8 @@ async def get(
     min_num_phenotypic_sessions: int,
     assessment: str,
     image_modal: str,
+    pipeline_name: str,
+    pipeline_version: str,
     node_urls: list[str],
 ) -> dict:
     """
@@ -67,6 +69,10 @@ async def get(
         Non-imaging assessment completed by subjects.
     image_modal : str
         Imaging modality of subject scans.
+    pipeline_name : str
+        Name of pipeline run on subject scans.
+    pipeline_version : str
+        Version of pipeline run on subject scans.
     node_urls : list[str]
         List of Neurobagel nodes to send the query to.
 
@@ -101,6 +107,10 @@ async def get(
         params["assessment"] = assessment
     if image_modal:
         params["image_modal"] = image_modal
+    if pipeline_name:
+        params["pipeline_name"] = pipeline_name
+    if pipeline_version:
+        params["pipeline_version"] = pipeline_version
 
     tasks = [
         util.send_get_request(node_url + "query", params)
