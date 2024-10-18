@@ -156,10 +156,9 @@ async def get_terms(data_element_URI: str):
     node_errors = []
     unique_terms_dict = {}
 
-    params = {data_element_URI: data_element_URI}
     tasks = [
         util.send_get_request(
-            node_url + "attributes/" + data_element_URI, params
+            node_url + "attributes/" + data_element_URI,
         )
         for node_url in util.FEDERATION_NODES
     ]
@@ -181,6 +180,52 @@ async def get_terms(data_element_URI: str):
                 unique_terms_dict[term_dict["TermURL"]] = term_dict
 
     cross_node_results = {data_element_URI: list(unique_terms_dict.values())}
+
+    return build_combined_response(
+        total_nodes=len(util.FEDERATION_NODES),
+        cross_node_results=cross_node_results,
+        node_errors=node_errors,
+    )
+
+
+async def get_pipeline_versions(pipeline_term: str):
+    """
+    Make a GET request to all available node APIs for available versions of a specified pipeline.
+
+    Parameters
+    ----------
+    pipeline_term : str
+        Controlled term of pipeline for which all the available terms should be retrieved.
+
+    Returns
+    -------
+    dict
+        Dictionary where the key is the pipeline term and the value is the list of unique available (i.e. used) versions of the pipeline.
+    """
+    # TODO: The logic in this function is very similar to get_terms. Consider refactoring to reduce code duplication.
+    node_errors = []
+    all_pipe_versions = []
+
+    tasks = [
+        util.send_get_request(f"{node_url}pipelines/{pipeline_term}/versions")
+        for node_url in util.FEDERATION_NODES
+    ]
+    responses = await asyncio.gather(*tasks, return_exceptions=True)
+
+    for (node_url, node_name), response in zip(
+        util.FEDERATION_NODES.items(), responses
+    ):
+        if isinstance(response, HTTPException):
+            node_errors.append(
+                {"node_name": node_name, "error": response.detail}
+            )
+            logging.warning(
+                f"Request to node {node_name} ({node_url}) did not succeed: {response.detail}"
+            )
+        else:
+            all_pipe_versions.extend(response[pipeline_term])
+
+    cross_node_results = {pipeline_term: sorted(list(set(all_pipe_versions)))}
 
     return build_combined_response(
         total_nodes=len(util.FEDERATION_NODES),

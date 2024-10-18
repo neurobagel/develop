@@ -220,7 +220,7 @@ def validate_query_node_url_list(node_urls: list) -> list:
 
 
 async def send_get_request(
-    url: str, params: list, timeout: float = None
+    url: str, params: list = None, timeout: float = None
 ) -> dict:
     """
     Makes a GET request to one or more Neurobagel nodes.
@@ -229,8 +229,10 @@ async def send_get_request(
     ----------
     url : str
         URL of Neurobagel node API.
-    params : list
-        Neurobagel query parameters.
+    params : list, optional
+        Neurobagel query parameters, by default None.
+    timeout : float, optional
+        Timeout for the request, by default None.
 
     Returns
     -------
@@ -253,7 +255,6 @@ async def send_get_request(
                 # APIs behind a proxy can be reached
                 follow_redirects=True,
             )
-
             if not response.is_success:
                 raise HTTPException(
                     status_code=response.status_code,
