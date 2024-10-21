@@ -139,14 +139,14 @@ async def get(
     )
 
 
-async def get_terms(data_element_URI: str):
+async def get_instances(attribute_base_path: str):
     """
-    Makes a GET request to all available Neurobagel node APIs using send_get_request utility function where the only parameter is a data element URI.
+    Makes a GET request to the root subpath of the specified attribute router of all available Neurobagel n-APIs.
 
     Parameters
     ----------
-    data_element_URI : str
-        Controlled term of neurobagel class for which all the available terms should be retrieved.
+    attribute_base_path : str
+        Base path corresponding to a specific Neurobagel class for which all the available instances should be retrieved, e.g., "assessments"
 
     Returns
     -------
@@ -155,10 +155,14 @@ async def get_terms(data_element_URI: str):
     """
     node_errors = []
     unique_terms_dict = {}
+    # We want to always provide the URI of the requested attribute in a successful federated response,
+    # but cannot rely on it always being available in the node responses (e.g., if all nodes fail),
+    # so we define it locally based on the requested attribute base path.
+    attribute_uri = util.RESOURCE_URI_MAP[attribute_base_path]
 
     tasks = [
         util.send_get_request(
-            node_url + "attributes/" + data_element_URI,
+            url=node_url + attribute_base_path + "/",
         )
         for node_url in util.FEDERATION_NODES
     ]
@@ -175,11 +179,13 @@ async def get_terms(data_element_URI: str):
                 f"Request to node {node_name} ({node_url}) did not succeed: {response.detail}"
             )
         else:
-            # Build the dictionary of unique term-label pairings from all nodes
-            for term_dict in response[data_element_URI]:
+            # NOTE: We return only the unique attribute instances from all nodes, based on the instance's *term URL*.
+            # This means that if the same instance term appears in multiple nodes with potentially different human-readable labels,
+            # only one version (term-label pairing) will be included in the response.
+            for term_dict in response[attribute_uri]:
                 unique_terms_dict[term_dict["TermURL"]] = term_dict
 
-    cross_node_results = {data_element_URI: list(unique_terms_dict.values())}
+    cross_node_results = {attribute_uri: list(unique_terms_dict.values())}
 
     return build_combined_response(
         total_nodes=len(util.FEDERATION_NODES),

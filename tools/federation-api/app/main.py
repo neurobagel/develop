@@ -10,7 +10,7 @@ from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.responses import HTMLResponse, ORJSONResponse, RedirectResponse
 
 from .api import utility as util
-from .api.routers import attributes, nodes, pipelines, query
+from .api.routers import assessments, diagnoses, nodes, pipelines, query
 from .api.security import check_client_id
 
 logger = logging.getLogger("nb-f-API")
@@ -98,7 +98,8 @@ def overridden_redoc():
 
 
 app.include_router(query.router)
-app.include_router(attributes.router)
+app.include_router(assessments.router)
+app.include_router(diagnoses.router)
 app.include_router(pipelines.router)
 app.include_router(nodes.router)
 

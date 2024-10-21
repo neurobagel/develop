@@ -3,8 +3,18 @@ from pydantic import constr
 
 from .. import crud
 from ..models import CONTROLLED_TERM_REGEX, CombinedAttributeResponse
+from . import route_factory
 
 router = APIRouter(prefix="/pipelines", tags=["pipelines"])
+
+router.add_api_route(
+    path="/",
+    endpoint=route_factory.create_get_instances_handler(
+        attributes_base_path="pipelines"
+    ),
+    response_model=CombinedAttributeResponse,
+    methods=["GET"],
+)
 
 
 @router.get(

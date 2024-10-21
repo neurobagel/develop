@@ -51,6 +51,14 @@ LOCAL_NODE_SCHEMA = {
     ],
 }
 
+# API resource names (base paths) and corresponding controlled terms for
+# Neurobagel attributes queryable using the API
+RESOURCE_URI_MAP = {
+    "assessments": "nb:Assessment",
+    "diagnoses": "nb:Diagnosis",
+    "pipelines": "nb:Pipeline",
+}
+
 
 def add_trailing_slash(url: str) -> str:
     """Add trailing slash to a URL if it does not already have one."""
