@@ -1,3 +1,34 @@
+# v0.4.0 (Thu Oct 24 2024)
+
+#### 💥 Breaking Changes
+
+- [ENH] Split `/attributes` into attribute-specific resources [#126](https://github.com/neurobagel/federation-api/pull/126) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Implemented `pipeline_name` and `pipeline_version` query params [#121](https://github.com/neurobagel/federation-api/pull/121) ([@rmanaem](https://github.com/rmanaem))
+
+#### 🚀 Enhancements
+
+- [ENH] Add route for fetching available versions of a pipeline across n-APIs [#125](https://github.com/neurobagel/federation-api/pull/125) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Allow only `"true"` or `None` for `is_control` query parameter [#129](https://github.com/neurobagel/federation-api/pull/129) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [MNT] Removed build docker nightly workflow file [#114](https://github.com/neurobagel/federation-api/pull/114) ([@rmanaem](https://github.com/rmanaem))
+
+#### 📝 Documentation
+
+- [FIX] Docs link [#119](https://github.com/neurobagel/federation-api/pull/119) ([@surchs](https://github.com/surchs))
+
+#### Authors: 3
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
 # v0.3.0 (Fri Aug 02 2024)
 
 #### 💥 Breaking Changes
