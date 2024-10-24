@@ -37,7 +37,7 @@ async def get(
     max_age: float,
     sex: str,
     diagnosis: str,
-    is_control: bool,
+    is_control: str,
     min_num_imaging_sessions: int,
     min_num_phenotypic_sessions: int,
     assessment: str,
@@ -59,7 +59,7 @@ async def get(
         Sex of subject.
     diagnosis : str
         Subject diagnosis.
-    is_control : bool
+    is_control : str
         Whether or not subject is a control.
     min_num_imaging_sessions : int
         Subject minimum number of imaging sessions.

@@ -4,6 +4,9 @@ import logging
 import httpx
 import pytest
 from fastapi import status
+from fastapi.exceptions import HTTPException
+
+from app.api.models import QueryModel
 
 
 @pytest.fixture()
@@ -241,3 +244,21 @@ def test_query_without_token_succeeds_when_auth_disabled(
     response = test_app.get("/query")
 
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.parametrize("valid_iscontrol", ["true", "True", "TRUE"])
+def test_valid_iscontrol_values_unchanged(valid_iscontrol):
+    """Test that valid values for the 'is_control' field are accepted without modification or errors."""
+    example_fquery = QueryModel(is_control=valid_iscontrol)
+    assert example_fquery.is_control == valid_iscontrol
+
+
+@pytest.mark.parametrize("invalid_iscontrol", ["false", 52])
+def test_invalid_iscontrol_value_raises_error(invalid_iscontrol):
+    """Test that invalid values for the 'is_control' field fail model validation and raise an informative HTTPException."""
+    with pytest.raises(HTTPException) as exc:
+        QueryModel(is_control=invalid_iscontrol)
+
+    assert "'is_control' must be either set to 'true' or omitted" in str(
+        exc.value
+    )
