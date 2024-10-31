@@ -228,7 +228,10 @@ def validate_query_node_url_list(node_urls: list) -> list:
 
 
 async def send_get_request(
-    url: str, params: list = None, timeout: float = None
+    url: str,
+    params: list | None = None,
+    token: str | None = None,
+    timeout: float | None = None,
 ) -> dict:
     """
     Makes a GET request to one or more Neurobagel nodes.
@@ -239,6 +242,8 @@ async def send_get_request(
         URL of Neurobagel node API.
     params : list, optional
         Neurobagel query parameters, by default None.
+    token : str, optional
+        Authorization token for the request, by default None.
     timeout : float, optional
         Timeout for the request, by default None.
 
@@ -254,10 +259,15 @@ async def send_get_request(
         _description_
     """
     async with httpx.AsyncClient() as client:
+        headers = {
+            "Content-Type": "application/json",
+            **({"Authorization": f"Bearer {token}"} if token else {}),
+        }
         try:
             response = await client.get(
                 url=url,
                 params=params,
+                headers=headers,
                 timeout=timeout,
                 # Enable redirect following (off by default) so
                 # APIs behind a proxy can be reached

@@ -45,6 +45,7 @@ async def get(
     pipeline_name: str,
     pipeline_version: str,
     node_urls: list[str],
+    token: str | None = None,
 ) -> dict:
     """
     Makes GET requests to one or more Neurobagel node APIs using send_get_request utility function where the parameters are Neurobagel query parameters.
@@ -75,6 +76,8 @@ async def get(
         Version of pipeline run on subject scans.
     node_urls : list[str]
         List of Neurobagel nodes to send the query to.
+    token : str, optional
+        Google ID token for authentication, by default None
 
     Returns
     -------
@@ -113,7 +116,7 @@ async def get(
         params["pipeline_version"] = pipeline_version
 
     tasks = [
-        util.send_get_request(node_url + "query", params)
+        util.send_get_request(node_url + "query", params, token)
         for node_url in node_urls
     ]
     responses = await asyncio.gather(*tasks, return_exceptions=True)

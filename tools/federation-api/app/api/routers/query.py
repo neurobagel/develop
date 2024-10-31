@@ -76,6 +76,7 @@ async def get_query(
         query.pipeline_name,
         query.pipeline_version,
         query.node_url,
+        token,
     )
 
     if response_dict["errors"]:
