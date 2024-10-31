@@ -1,3 +1,15 @@
+# v0.4.1 (Thu Oct 31 2024)
+
+#### 🚀 Enhancements
+
+- [FIX] Ensure Google auth token is forwarded in request to n-API [#132](https://github.com/neurobagel/federation-api/pull/132) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.4.0 (Thu Oct 24 2024)
 
 #### 💥 Breaking Changes
