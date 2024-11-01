@@ -1,3 +1,15 @@
+# v0.4.2 (Fri Nov 01 2024)
+
+#### 🚀 Enhancements
+
+- [FIX] Ensure token forwarded to n-APIs does not include an extra scheme string [#134](https://github.com/neurobagel/federation-api/pull/134) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.4.1 (Thu Oct 31 2024)
 
 #### 🚀 Enhancements
