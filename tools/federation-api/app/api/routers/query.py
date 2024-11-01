@@ -5,7 +5,7 @@ from fastapi.security import OAuth2
 
 from .. import crud, security
 from ..models import CombinedQueryResponse, QueryModel
-from ..security import verify_token
+from ..security import verify_and_extract_token
 
 # from fastapi.security import open_id_connect_url
 
@@ -61,7 +61,7 @@ async def get_query(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not authenticated",
             )
-        verify_token(token)
+        token = verify_and_extract_token(token)
 
     response_dict = await crud.get(
         query.min_age,

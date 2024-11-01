@@ -28,20 +28,23 @@ def disable_auth(monkeypatch):
 
 
 @pytest.fixture()
-def mock_verify_token():
+def mock_verify_and_extract_token():
     """Mock a successful token verification that does not raise any exceptions."""
 
-    def _verify_token(token):
+    def _verify_and_extract_token(token):
         return None
 
-    return _verify_token
+    return _verify_and_extract_token
 
 
 @pytest.fixture()
-def set_mock_verify_token(monkeypatch, mock_verify_token):
+def set_mock_verify_and_extract_token(
+    monkeypatch, mock_verify_and_extract_token
+):
     """Set the verify_token function to a mock that does not raise any exceptions."""
     monkeypatch.setattr(
-        "app.api.routers.query.verify_token", mock_verify_token
+        "app.api.routers.query.verify_and_extract_token",
+        mock_verify_and_extract_token,
     )
 
 
