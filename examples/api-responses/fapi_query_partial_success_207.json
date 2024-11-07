@@ -19,7 +19,8 @@
         "http://purl.org/nidash/nidm#T2Weighted",
         "http://purl.org/nidash/nidm#T1Weighted",
         "http://purl.org/nidash/nidm#FlowWeighted"
-      ]
+      ],
+      "available_pipelines": {}
     },
     {
       "node_name": "2 OpenNeuro Datasets",
@@ -34,7 +35,8 @@
         "http://purl.org/nidash/nidm#T2Weighted",
         "http://purl.org/nidash/nidm#T1Weighted",
         "http://purl.org/nidash/nidm#FlowWeighted"
-      ]
+      ],
+      "available_pipelines": {}
     }
   ],
   "nodes_response_status": "partial success"

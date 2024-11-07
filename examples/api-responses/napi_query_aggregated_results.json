@@ -11,7 +11,8 @@
       "http://purl.org/nidash/nidm#T2Weighted",
       "http://purl.org/nidash/nidm#T1Weighted",
       "http://purl.org/nidash/nidm#FlowWeighted"
-    ]
+    ],
+    "available_pipelines": {}
   },
   {
     "dataset_uuid": "http://neurobagel.org/vocab/c7bb6a5b-4066-4a59-b56c-3c6fe4d44b90",
@@ -25,6 +26,7 @@
       "http://purl.org/nidash/nidm#T2Weighted",
       "http://purl.org/nidash/nidm#T1Weighted",
       "http://purl.org/nidash/nidm#FlowWeighted"
-    ]
+    ],
+    "available_pipelines": {}
   }
 ]
