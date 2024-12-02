@@ -1,3 +1,15 @@
+# v0.4.3 (Mon Dec 02 2024)
+
+#### 🏠 Internal
+
+- [REF] Manually verify ID token using PyJWT instead of google_auth [#139](https://github.com/neurobagel/federation-api/pull/139) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.4.2 (Fri Nov 01 2024)
 
 #### 🚀 Enhancements
