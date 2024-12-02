@@ -21,7 +21,7 @@ def test_partial_node_failure_responses_handled_gracefully(
     set_valid_test_federation_nodes,
     mocked_single_matching_dataset_result,
     mock_token,
-    set_mock_verify_and_extract_token,
+    set_mock_verify_token,
     caplog,
 ):
     """
@@ -101,7 +101,7 @@ def test_partial_node_request_failures_handled_gracefully(
     set_valid_test_federation_nodes,
     mocked_single_matching_dataset_result,
     mock_token,
-    set_mock_verify_and_extract_token,
+    set_mock_verify_token,
     error_to_raise,
     expected_node_message,
     caplog,
@@ -155,7 +155,7 @@ def test_all_nodes_failure_handled_gracefully(
     test_app,
     mock_failed_connection_httpx_get,
     mock_token,
-    set_mock_verify_and_extract_token,
+    set_mock_verify_token,
     set_valid_test_federation_nodes,
     caplog,
 ):
@@ -193,7 +193,7 @@ def test_all_nodes_success_handled_gracefully(
     set_valid_test_federation_nodes,
     mocked_single_matching_dataset_result,
     mock_token,
-    set_mock_verify_and_extract_token,
+    set_mock_verify_token,
 ):
     """
     Test that when queries sent to all nodes succeed, the federation API response includes an overall success status and no errors.

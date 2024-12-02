@@ -77,7 +77,7 @@ async def get(
     node_urls : list[str]
         List of Neurobagel nodes to send the query to.
     token : str, optional
-        Google ID token for authentication, by default None
+        ID token for authentication, by default None
 
     Returns
     -------
