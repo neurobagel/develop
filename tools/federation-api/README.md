@@ -2,15 +2,13 @@
 
 # Federation API
 
-[![Tests](https://img.shields.io/github/actions/workflow/status/neurobagel/federation-api/test.yaml?color=BDB76B&label=test&style=flat)](https://github.com/neurobagel/federation-api/actions/workflows/test.yaml)
-[![codecov](https://codecov.io/gh/neurobagel/federation-api/graph/badge.svg?token=B827PI9W1U)](https://codecov.io/gh/neurobagel/federation-api)
-[![License](https://img.shields.io/github/license/neurobagel/federation-api?color=CD5C5C&style=flat)](LICENSE)
-[![Python versions](https://img.shields.io/badge/python-3.10-4682B4?style=flat)](https://www.python.org/)
-![Docker Image Version (tag)](https://img.shields.io/docker/v/neurobagel/federation_api/latest?logo=docker)
-
-
-
-
+![GitHub branch check runs](https://img.shields.io/github/check-runs/neurobagel/federation-api/main?style=flat-square)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/neurobagel/federation-api/test.yaml?branch=main&style=flat-square&label=tests&link=https%3A%2F%2Fgithub.com%2Fneurobagel%2Ffederation-api%2Factions%2Fworkflows%2Ftest.yaml)
+![Codecov](https://img.shields.io/codecov/c/github/neurobagel/federation-api?token=B827PI9W1U&style=flat-square&logo=codecov&link=https%3A%2F%2Fcodecov.io%2Fgh%2Fneurobagel%2Ffederation-api)
+![Static Badge](https://img.shields.io/badge/python-3.10-blue?style=flat-square&logo=python)
+![GitHub License](https://img.shields.io/github/license/neurobagel/federation-api?style=flat-square&color=purple&link=LICENSE)
+![Docker Image Version (tag)](https://img.shields.io/docker/v/neurobagel/federation_api/latest?style=flat-square&logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fneurobagel%2Ffederation_api%2Ftags)
+![Docker Pulls](https://img.shields.io/docker/pulls/neurobagel/federation_api?style=flat-square&logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fneurobagel%2Ffederation_api%2Ftags)
 
 </div>
 
