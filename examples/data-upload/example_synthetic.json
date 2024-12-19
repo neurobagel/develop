@@ -95,8 +95,8 @@
                 "Label": "Assessment tool"
             },
             "IsPartOf": {
-                "TermURL": "cogatlas:trm_57964b8a66aed",
-                "Label": "Montreal Cognitive Assessment"
+                "TermURL": "snomed:859351000000102",
+                "Label": "Montreal cognitive assessment"
             },
             "MissingValues": [
                 "missing"
@@ -111,8 +111,8 @@
                 "Label": "Assessment tool"
             },
             "IsPartOf": {
-                "TermURL": "cogatlas:trm_57964b8a66aed",
-                "Label": "Montreal Cognitive Assessment"
+                "TermURL": "snomed:859351000000102",
+                "Label": "Montreal cognitive assessment"
             },
             "MissingValues": [
                 "missing"
@@ -127,8 +127,8 @@
                 "Label": "Assessment tool"
             },
             "IsPartOf": {
-                "TermURL": "cogatlas:tsk_4a57abb949ece",
-                "Label": "Unified Parkinson's Disease Rating Scale"
+                "TermURL": "snomed:342061000000106",
+                "Label": "Unified Parkinsons disease rating scale score"
             },
             "MissingValues": [
                 "not completed"
