@@ -8,5 +8,4 @@ updates:
       interval: 'weekly'
     labels:
       - "_bot"
-      - "maint:dependency"
-      - "type:maintenance"
+      - "dependencies"
