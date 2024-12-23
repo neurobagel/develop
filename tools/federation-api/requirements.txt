@@ -23,7 +23,7 @@ jsonschema==4.20.0
 jsonschema-specifications==2023.11.2
 nodeenv==1.7.0
 numpy==1.26.2
-orjson==3.8.6
+orjson==3.9.15
 packaging==21.3
 pandas==1.5.2
 platformdirs==2.5.4
