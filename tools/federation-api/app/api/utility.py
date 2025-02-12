@@ -15,7 +15,7 @@ from jsonschema import validate
 EnvVar = namedtuple("EnvVar", ["name", "value"])
 
 ROOT_PATH = EnvVar(
-    "NB_FAPI_ROOT_PATH", os.environ.get("NB_FAPI_ROOT_PATH", "")
+    "NB_FAPI_BASE_PATH", os.environ.get("NB_FAPI_BASE_PATH", "")
 )
 IS_FEDERATE_REMOTE_PUBLIC_NODES = EnvVar(
     "NB_FEDERATE_REMOTE_PUBLIC_NODES",

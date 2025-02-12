@@ -6,7 +6,7 @@ def test_get_instances_with_duplicate_terms_handled(
     test_app, monkeypatch, set_valid_test_federation_nodes
 ):
     """
-    When multiple nodes return an assessment with the same URI for a request to /assessments/,
+    When multiple nodes return an assessment with the same URI for a request to /assessments,
     the API should return only one instance of that assessment term in the final federated response.
     """
 
@@ -42,7 +42,7 @@ def test_get_instances_with_duplicate_terms_handled(
 
     monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
 
-    response = test_app.get("/assessments/")
+    response = test_app.get("/assessments")
 
     response_object = response.json()
     found_instances = response_object["responses"]["nb:Assessment"]
@@ -66,7 +66,7 @@ def test_partially_failed_get_instances_handled_gracefully(
     test_app, monkeypatch, set_valid_test_federation_nodes, caplog
 ):
     """
-    When some nodes fail while getting term instances for an attribute (/assessments/),
+    When some nodes fail while getting term instances for an attribute (/assessments),
     the overall API get request still succeeds, and the response includes a list of the encountered errors along with the successfully fetched terms.
     """
     mocked_node_get_assessments_response = {
@@ -94,7 +94,7 @@ def test_partially_failed_get_instances_handled_gracefully(
 
     monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
 
-    response = test_app.get("/assessments/")
+    response = test_app.get("/assessments")
 
     assert response.status_code == status.HTTP_207_MULTI_STATUS
 
@@ -120,14 +120,14 @@ def test_fully_failed_get_instances_handled_gracefully(
     caplog,
 ):
     """
-    When *all* nodes fail while getting term instances for an attribute (/assessments/),
+    When *all* nodes fail while getting term instances for an attribute (/assessments),
     the overall API get request still succeeds, but includes an overall failure status and all encountered errors in the response.
     """
     monkeypatch.setattr(
         httpx.AsyncClient, "get", mock_failed_connection_httpx_get
     )
 
-    response = test_app.get("/assessments/")
+    response = test_app.get("/assessments")
 
     assert response.status_code == status.HTTP_207_MULTI_STATUS
     # We expect several warnings from logging

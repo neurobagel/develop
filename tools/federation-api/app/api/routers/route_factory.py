@@ -12,8 +12,8 @@ from .. import crud
 # (less relevant for now since there is only one response model).
 def create_get_instances_handler(attributes_base_path: str):
     """
-    Create the handler (path function) for a federated GET request to the root `/` subpath of
-    a given attribute router, e.g. /assesssments/.
+    Create the handler (path function) for a federated GET request to the base subpath of
+    a given attribute router, e.g. /assesssments.
     """
 
     async def get_instances(response: Response):
