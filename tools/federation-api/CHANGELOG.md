@@ -1,3 +1,16 @@
+# v0.4.4 (Wed Feb 12 2025)
+
+#### 🚀 Enhancements
+
+- [MNT] Remove trailing slashes from all paths + rename `NB_FAPI_ROOT_PATH` [#157](https://github.com/neurobagel/federation-api/pull/157) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Make `root_path` for app configurable [#154](https://github.com/neurobagel/federation-api/pull/154) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.4.3 (Mon Dec 02 2024)
 
 #### 🏠 Internal
