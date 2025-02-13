@@ -1,5 +1,8 @@
 import httpx
+import pytest
 from fastapi import status
+
+from app.api import crud
 
 
 def test_get_instances_with_duplicate_terms_handled(
@@ -138,3 +141,32 @@ def test_fully_failed_get_instances_handled_gracefully(
     assert response["nodes_response_status"] == "fail"
     assert len(response["errors"]) == 2
     assert response["responses"] == {"nb:Assessment": []}
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "assessments",
+        "diagnoses",
+        "pipelines",
+        "query",
+    ],
+)
+def test_node_request_urls_do_not_have_trailing_slash(path):
+    """
+    Ensure that URLs used to forward requests to node APIs do not include a trailing slash.
+    """
+    # TODO: Revisit once root_path is tested in production -
+    # the example node URLs below assume that validate_query_node_url_list has already been called,
+    # which will have appended trailing slashes to the node URLs if they were missing
+    node_request_urls = crud.build_node_request_urls(
+        node_urls=[
+            "https://api.node1.institute.org/",
+            "https://node2.institute.org/api/",
+        ],
+        path=path,
+    )
+    assert node_request_urls == [
+        f"https://api.node1.institute.org/{path}",
+        f"https://node2.institute.org/api/{path}",
+    ]

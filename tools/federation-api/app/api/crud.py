@@ -8,6 +8,16 @@ from fastapi import HTTPException
 from . import utility as util
 
 
+def build_node_request_urls(node_urls: list, path: str) -> list:
+    """
+    Return a list of URLs for the current request for the specified set of Neurobagel nodes.
+    """
+    node_request_urls = []
+    for node_url in node_urls:
+        node_request_urls.append(node_url + path)
+    return node_request_urls
+
+
 def build_combined_response(
     total_nodes: int, cross_node_results: list | dict, node_errors: list
 ) -> dict:
@@ -116,8 +126,8 @@ async def get(
         params["pipeline_version"] = pipeline_version
 
     tasks = [
-        util.send_get_request(node_url + "query", params, token)
-        for node_url in node_urls
+        util.send_get_request(node_request_url, params, token)
+        for node_request_url in build_node_request_urls(node_urls, "query")
     ]
     responses = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -142,14 +152,14 @@ async def get(
     )
 
 
-async def get_instances(attribute_base_path: str):
+async def get_instances(attribute_path: str):
     """
     Makes a GET request to the root subpath of the specified attribute router of all available Neurobagel n-APIs.
 
     Parameters
     ----------
-    attribute_base_path : str
-        Base path corresponding to a specific Neurobagel class for which all the available instances should be retrieved, e.g., "assessments"
+    attribute_path : str
+        Path corresponding to a specific Neurobagel class for which all the available instances should be retrieved, e.g., "assessments"
 
     Returns
     -------
@@ -160,14 +170,14 @@ async def get_instances(attribute_base_path: str):
     unique_terms_dict = {}
     # We want to always provide the URI of the requested attribute in a successful federated response,
     # but cannot rely on it always being available in the node responses (e.g., if all nodes fail),
-    # so we define it locally based on the requested attribute base path.
-    attribute_uri = util.RESOURCE_URI_MAP[attribute_base_path]
+    # so we define it locally based on the requested attribute path.
+    attribute_uri = util.RESOURCE_URI_MAP[attribute_path]
 
     tasks = [
-        util.send_get_request(
-            url=node_url + attribute_base_path + "/",
+        util.send_get_request(url=node_request_url)
+        for node_request_url in build_node_request_urls(
+            util.FEDERATION_NODES, attribute_path
         )
-        for node_url in util.FEDERATION_NODES
     ]
     responses = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -216,8 +226,10 @@ async def get_pipeline_versions(pipeline_term: str):
     all_pipe_versions = []
 
     tasks = [
-        util.send_get_request(f"{node_url}pipelines/{pipeline_term}/versions")
-        for node_url in util.FEDERATION_NODES
+        util.send_get_request(node_request_url)
+        for node_request_url in build_node_request_urls(
+            util.FEDERATION_NODES, f"pipelines/{pipeline_term}/versions"
+        )
     ]
     responses = await asyncio.gather(*tasks, return_exceptions=True)
 

@@ -54,7 +54,7 @@ LOCAL_NODE_SCHEMA = {
     ],
 }
 
-# API resource names (base paths) and corresponding controlled terms for
+# API resource names (paths) and corresponding controlled terms for
 # Neurobagel attributes queryable using the API
 RESOURCE_URI_MAP = {
     "assessments": "nb:Assessment",
