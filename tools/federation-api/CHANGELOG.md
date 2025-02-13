@@ -1,3 +1,15 @@
+# v0.4.5 (Thu Feb 13 2025)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Remove trailing slash from forwarded requests [#159](https://github.com/neurobagel/federation-api/pull/159) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.4.4 (Wed Feb 12 2025)
 
 #### 🚀 Enhancements
