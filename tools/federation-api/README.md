@@ -2,8 +2,8 @@
 
 # Federation API
 
-[![Main branch check status](https://img.shields.io/github/check-runs/neurobagel/federation-api/main?style=flat-square)](https://github.com/neurobagel/federation-api/actions?query=branch:main)
-[![Tests status](https://img.shields.io/github/actions/workflow/status/neurobagel/federation-api/test.yaml?branch=main&style=flat-square&label=tests&link=https%3A%2F%2Fgithub.com%2Fneurobagel%2Ffederation-api%2Factions%2Fworkflows%2Ftest.yaml)](https://github.com/neurobagel/federation-api/actions/workflows/test.yaml)
+[![Main branch check status](https://img.shields.io/github/check-runs/neurobagel/federation-api/main?style=flat-square&logo=github)](https://github.com/neurobagel/federation-api/actions?query=branch:main)
+[![Tests status](https://img.shields.io/github/actions/workflow/status/neurobagel/federation-api/test.yaml?branch=main&style=flat-square&logo=github&label=tests&link=https%3A%2F%2Fgithub.com%2Fneurobagel%2Ffederation-api%2Factions%2Fworkflows%2Ftest.yaml)](https://github.com/neurobagel/federation-api/actions/workflows/test.yaml)
 [![Codecov](https://img.shields.io/codecov/c/github/neurobagel/federation-api?token=B827PI9W1U&style=flat-square&logo=codecov&link=https%3A%2F%2Fcodecov.io%2Fgh%2Fneurobagel%2Ffederation-api)](https://app.codecov.io/gh/neurobagel/federation-api)
 [![Python versions static](https://img.shields.io/badge/python-3.10-blue?style=flat-square&logo=python)](https://www.python.org)
 [![License](https://img.shields.io/github/license/neurobagel/federation-api?style=flat-square&color=purple&link=LICENSE)](LICENSE)
