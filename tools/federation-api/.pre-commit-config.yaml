@@ -11,7 +11,7 @@ repos:
           - --safe
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.1.1
+    rev: 7.1.2
     hooks:
       - id: flake8
         language_version: python3
@@ -37,6 +37,6 @@ repos:
       - id: codespell
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.31.1
+    rev: 0.31.2
     hooks:
       - id: check-github-workflows
