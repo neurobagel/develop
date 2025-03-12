@@ -1,0 +1,141 @@
+name: Generate example API responses
+
+on:
+  workflow_dispatch:
+
+jobs:
+  make-api-responses:
+    name: Make API responses
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.NB_BOT_ID }}
+          private-key: ${{ secrets.NB_BOT_KEY }}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+
+      - name: Create temporary node directories
+        run: |
+          mkdir test_node1 test_node2
+    
+      # Test node 1 will be a full_stack node, providing the federation services
+      - name: Get recipes for Test node 1
+        uses: actions/checkout@v4
+        with:
+          repository: neurobagel/recipes
+          path: test_node1/recipes
+
+      - name: Get data source for Test node 1
+        uses: actions/checkout@v4
+        with:
+          repository: neurobagel/openneuro-annotations
+          path: test_node1/openneuro-annotations
+
+      - name: Get data for Test node 1
+        run: |
+          mkdir test_node1/openneuro_mini_data
+          cp test_node1/openneuro-annotations/ds000001.jsonld test_node1/openneuro-annotations/ds000002.jsonld test_node1/openneuro_mini_data
+
+      - name: Configure Test node 1
+        working-directory: test_node1/recipes
+        run: |
+          cp template.env .env
+
+          # Set environment variables
+          # We need a .* in the sed command to match even if the line is commented out
+          sed -i 's|^#\?[[:space:]]\?LOCAL_GRAPH_DATA=.*|LOCAL_GRAPH_DATA=../openneuro_mini_data|' .env
+          sed -i 's|^#\?[[:space:]]\?NB_FEDERATE_REMOTE_PUBLIC_NODES=.*|NB_FEDERATE_REMOTE_PUBLIC_NODES=False|' .env
+          sed -i 's|^#\?[[:space:]]\?NB_API_QUERY_URL=.*|NB_API_QUERY_URL=http://localhost:8080|' .env
+
+          # Use full container names to avoid conflicts
+          echo '[{"NodeName": "2 OpenNeuro Datasets", "ApiURL": "http://neurobagel_node-api-1:8000"},{"NodeName": "BIDS Synthetic", "ApiURL": "http://neurobagel_node2-api-1:8000"}]' > local_nb_nodes.json
+
+      - name: Launch Test node 1
+        working-directory: test_node1/recipes
+        run: |
+          docker compose up -d
+
+          # Wait for graph to finish being set up
+          until [ -f scripts/logs/DEPLOY.log ] && grep -q "Finished setting up the Neurobagel graph backend." scripts/logs/DEPLOY.log; do
+            sleep 1
+          done
+
+      - name: Generate partial success result
+        run: |
+          curl -s http://localhost:8080/query | jq . > api-responses/fapi_query_partial_success_207.json
+
+      - name: Generate a fail result
+        run: |
+          docker stop neurobagel_node-api-1
+          curl -s http://localhost:8080/query | jq . > api-responses/fapi_query_fail_207.json
+
+      - name: Get recipes for Test node 2
+        uses: actions/checkout@v4
+        with:
+          repository: neurobagel/recipes
+          path: test_node2/recipes
+
+      - name: Configure Test node 2
+        working-directory: test_node2/recipes
+        run: |
+          cp template.env .env
+
+          # Set environment variables
+          sed -i 's|^#\?[[:space:]]\?COMPOSE_PROJECT_NAME=.*|COMPOSE_PROJECT_NAME=neurobagel_node2|' .env
+          sed -i 's|^#\?[[:space:]]\?NB_GRAPH_PORT_HOST=.*|NB_GRAPH_PORT_HOST=7201|' .env
+          sed -i 's|^#\?[[:space:]]\?NB_NAPI_PORT_HOST=.*|NB_NAPI_PORT_HOST=8001|' .env
+          sed -i 's|^#\?[[:space:]]\?NB_RETURN_AGG=.*|NB_RETURN_AGG=false|' .env
+          sed -i 's|^#\?[[:space:]]\?COMPOSE_PROFILES=.*|COMPOSE_PROFILES=local_node|' .env
+        
+      - name: Launch both nodes
+        working-directory: test_node2/recipes
+        run: |
+          docker start neurobagel_node-api-1
+          docker compose up -d
+
+          # Wait for graph to finish being set up
+          until [ -f scripts/logs/DEPLOY.log ] && grep -q "Finished setting up the Neurobagel graph backend." scripts/logs/DEPLOY.log; do
+            sleep 1
+          done
+
+          # Add second n-API to the network of the first node, so that the f-API can access the second n-API by container name
+          docker network connect neurobagel_node_default neurobagel_node2-api-1
+      
+      - name: Generate full success result
+        run: |
+          curl -s http://localhost:8080/query | jq . > api-responses/fapi_query_success_200.json
+
+      - name: Generate protected and open n-API results
+        run: |
+          # Test node 1
+          curl -s http://localhost:8000/query | jq . > api-responses/napi_query_aggregated_results.json
+          # Test node 2
+          curl -s http://localhost:8001/query | jq . > api-responses/napi_query_unaggregated_results.json
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          add-paths: api-responses/*.json
+          commit-message: Update example API response files
+          title: Update example API responses
+          body: |
+            This PR updates the examples in `api-responses` with the latest changes.
+
+            Automated changes by [create-pull-request](https://github.com/peter-evans/create-pull-request) GitHub action
+          sign-commits: true
+          base: main
+          branch: create-pull-request/update-api-examples
+          labels: _bot
+
+      - name: Cleanup
+        run: |
+          cd test_node1/recipes && docker compose down && cd ../..
+          cd test_node2/recipes && docker compose down && cd ../..
+          sudo rm -rf test_node1 test_node2

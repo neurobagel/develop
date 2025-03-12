@@ -5,7 +5,7 @@
     "dataset_portal_uri": "https://github.com/OpenNeuroDatasets-JSONLD/ds000001.git",
     "dataset_total_subjects": 16,
     "records_protected": true,
-    "num_matching_subjects": 10,
+    "num_matching_subjects": 16,
     "subject_data": "protected",
     "image_modals": [
       "http://purl.org/nidash/nidm#T2Weighted",
@@ -20,7 +20,7 @@
     "dataset_portal_uri": "https://github.com/OpenNeuroDatasets-JSONLD/ds000002.git",
     "dataset_total_subjects": 17,
     "records_protected": true,
-    "num_matching_subjects": 10,
+    "num_matching_subjects": 17,
     "subject_data": "protected",
     "image_modals": [
       "http://purl.org/nidash/nidm#T2Weighted",
