@@ -7,7 +7,7 @@ from fastapi.security import OAuth2
 
 from .. import crud
 from ..config import settings
-from ..models import CohortQueryResponse, QueryModel
+from ..models import QueryModel, SubjectsQueryResponse
 from ..security import verify_token
 
 router = APIRouter(prefix="/query", tags=["query"])
@@ -31,7 +31,7 @@ oauth2_scheme = OAuth2(
 # to ensure that a request without a trailing slash (e.g., to /query instead of /query/)
 # is correctly routed to this endpoint.
 # For more context, see https://github.com/neurobagel/api/issues/327.
-@router.get("", response_model=List[CohortQueryResponse])
+@router.get("", response_model=List[SubjectsQueryResponse])
 async def get_query(
     query: Annotated[QueryModel, Query()],
     token: str | None = Depends(oauth2_scheme),
@@ -45,18 +45,20 @@ async def get_query(
             )
         verify_token(token)
 
-    response = await crud.get(
-        query.min_age,
-        query.max_age,
-        query.sex,
-        query.diagnosis,
-        query.is_control,
-        query.min_num_imaging_sessions,
-        query.min_num_phenotypic_sessions,
-        query.assessment,
-        query.image_modal,
-        query.pipeline_name,
-        query.pipeline_version,
+    # TODO: See if we can pass the query object directly to crud.query_records() instead of unpacking it
+    response = await crud.query_records(
+        min_age=query.min_age,
+        max_age=query.max_age,
+        sex=query.sex,
+        diagnosis=query.diagnosis,
+        is_control=query.is_control,
+        min_num_imaging_sessions=query.min_num_imaging_sessions,
+        min_num_phenotypic_sessions=query.min_num_phenotypic_sessions,
+        assessment=query.assessment,
+        image_modal=query.image_modal,
+        pipeline_name=query.pipeline_name,
+        pipeline_version=query.pipeline_version,
+        is_datasets_query=False,
     )
 
     return response
