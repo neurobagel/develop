@@ -16,7 +16,7 @@ jobs:
           private-key: ${{ secrets.NB_BOT_KEY }}
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ steps.generate-token.outputs.token }}
 
@@ -26,13 +26,13 @@ jobs:
     
       # Test node 1 will be a full_stack node, providing the federation services
       - name: Get recipes for Test node 1
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: neurobagel/recipes
           path: test_node1/recipes
 
       - name: Get data source for Test node 1
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: neurobagel/openneuro-annotations
           path: test_node1/openneuro-annotations
@@ -76,7 +76,7 @@ jobs:
           curl -s http://localhost:8080/query | jq . > api-responses/fapi_query_fail_207.json
 
       - name: Get recipes for Test node 2
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: neurobagel/recipes
           path: test_node2/recipes
