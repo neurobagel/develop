@@ -19,7 +19,7 @@ def test_root(test_app, set_valid_test_federation_nodes, route, monkeypatch):
     assert all(
         substring in response.text
         for substring in [
-            "Neurobagel Federation API",
+            "<h1>Welcome to the Neurobagel Federation API!</h1>",
             '<a href="/docs">API documentation</a>',
         ]
     )
