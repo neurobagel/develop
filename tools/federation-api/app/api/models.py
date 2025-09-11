@@ -4,8 +4,7 @@ from enum import Enum
 from typing import Optional, Union
 
 from fastapi import Query
-from fastapi.exceptions import HTTPException
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 
 CONTROLLED_TERM_REGEX = r"^[a-zA-Z]+[:]\S+$"
 
@@ -17,7 +16,6 @@ class QueryModel(BaseModel):
     max_age: float = None
     sex: str = None
     diagnosis: str = None
-    is_control: str = None
     min_num_imaging_sessions: int = None
     min_num_phenotypic_sessions: int = None
     assessment: str = None
@@ -27,20 +25,6 @@ class QueryModel(BaseModel):
     # TODO: Replace default value with union of local and public nodes once https://github.com/neurobagel/federation-api/issues/28 is merged
     # syntax from https://github.com/tiangolo/fastapi/issues/4445#issuecomment-1117632409
     node_url: list[str] | None = Field(Query(default=[]))
-
-    @validator("is_control")
-    def check_allowed_iscontrol_values(cls, v):
-        """Raise a validation error if the value of 'is_control' is not 'true' (case-insensitive) or None."""
-        if v is not None:
-            # Ensure that the allowed value is case-insensitive
-            if v.lower() != "true":
-                raise HTTPException(
-                    status_code=422,
-                    detail="'is_control' must be either set to 'true' or omitted from the query",
-                )
-            # Keep it a str because that's what the n-API expects
-            return v
-        return None
 
 
 class CohortQueryResponse(BaseModel):

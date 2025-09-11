@@ -70,7 +70,6 @@ async def get_query(
         query.max_age,
         query.sex,
         query.diagnosis,
-        query.is_control,
         query.min_num_imaging_sessions,
         query.min_num_phenotypic_sessions,
         query.assessment,
