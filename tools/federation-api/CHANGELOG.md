@@ -1,3 +1,19 @@
+# v0.5.0 (Thu Sep 11 2025)
+
+#### 💥 Breaking Changes
+
+- [MNT] Removed `is_control` query parameter [#188](https://github.com/neurobagel/federation-api/pull/188) ([@rmanaem](https://github.com/rmanaem))
+
+#### 🚀 Enhancements
+
+- [ENH] Added bells and whistles to the root ui [#186](https://github.com/neurobagel/federation-api/pull/186) ([@rmanaem](https://github.com/rmanaem))
+
+#### Authors: 1
+
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+
+---
+
 # v0.4.5 (Thu Feb 13 2025)
 
 #### 🐛 Bug Fixes
