@@ -1,6 +1,12 @@
 # Examples
 Example inputs and outputs from Neurobagel tools.
 
+## Regenerating examples
+
+Code to regenerate the example JSONLD files: https://github.com/neurobagel/bagel-cli/blob/main/helper_scripts/generate_neurobagel_example_jsonlds.sh
+
+Code to regenerate the example API responses: https://github.com/neurobagel/neurobagel_examples/blob/main/.github/workflows/make_api_responses.yml
+
 ## `api-responses/`
 Examples of responses returned by Neurobagel APIs.
 

@@ -45,9 +45,9 @@
         "age": 34.1,
         "sex": "http://purl.bioontology.org/ontology/SNOMEDCT/248152002",
         "diagnosis": [
-          null
+          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C94342"
         ],
-        "subject_group": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C94342",
+        "subject_group": null,
         "assessment": [
           "http://purl.bioontology.org/ontology/SNOMEDCT/859351000000102",
           "http://purl.bioontology.org/ontology/SNOMEDCT/342061000000106"
@@ -89,9 +89,9 @@
         "age": 35.3,
         "sex": "http://purl.bioontology.org/ontology/SNOMEDCT/248152002",
         "diagnosis": [
-          null
+          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C94342"
         ],
-        "subject_group": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C94342",
+        "subject_group": null,
         "assessment": [
           "http://purl.bioontology.org/ontology/SNOMEDCT/859351000000102",
           "http://purl.bioontology.org/ontology/SNOMEDCT/342061000000106"

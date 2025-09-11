@@ -1,9 +1,9 @@
 {
   "@context": {
     "nb": "http://neurobagel.org/vocab/",
+    "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
     "ncit": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#",
     "nidm": "http://purl.org/nidash/nidm#",
-    "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
     "np": "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/",
     "Acquisition": "nb:Acquisition",
     "identifier": "@id",
@@ -69,26 +69,28 @@
     },
     "SubjectGroup": "nb:SubjectGroup"
   },
-  "identifier": "nb:925a0d0c-7b16-47a2-8505-6fabcc18a68c",
+  "identifier": "nb:313fb234-22b8-4b5b-8690-64bd8b08b7d0",
   "hasLabel": "BIDS synthetic",
   "hasPortalURI": "https://github.com/bids-standard/bids-examples",
   "hasSamples": [
     {
-      "identifier": "nb:1bdb1187-63a5-4b7b-99d8-f8820b313245",
+      "identifier": "nb:43cbb6ee-4b3a-415b-a12c-8384b9a96ad7",
       "hasLabel": "sub-01",
       "hasSession": [
         {
-          "identifier": "nb:87639b4f-d36c-4388-9f8f-c337787046bf",
+          "identifier": "nb:c302a421-5626-4e22-bb84-ca08bfcb933c",
           "hasLabel": "ses-01",
           "hasAge": 34.1,
           "hasSex": {
             "identifier": "snomed:248152002",
             "schemaKey": "Sex"
           },
-          "isSubjectGroup": {
-            "identifier": "ncit:C94342",
-            "schemaKey": "SubjectGroup"
-          },
+          "hasDiagnosis": [
+            {
+              "identifier": "ncit:C94342",
+              "schemaKey": "Diagnosis"
+            }
+          ],
           "hasAssessment": [
             {
               "identifier": "snomed:859351000000102",
@@ -102,17 +104,19 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:44d9b3dd-f01f-42b9-bdab-f127dbd530e9",
+          "identifier": "nb:bf60f021-78a7-4931-9a6d-052b07ec4bc4",
           "hasLabel": "ses-02",
           "hasAge": 35.3,
           "hasSex": {
             "identifier": "snomed:248152002",
             "schemaKey": "Sex"
           },
-          "isSubjectGroup": {
-            "identifier": "ncit:C94342",
-            "schemaKey": "SubjectGroup"
-          },
+          "hasDiagnosis": [
+            {
+              "identifier": "ncit:C94342",
+              "schemaKey": "Diagnosis"
+            }
+          ],
           "hasAssessment": [
             {
               "identifier": "snomed:859351000000102",
@@ -129,11 +133,11 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:65148792-3dc4-4926-a719-c614e87b17f3",
+      "identifier": "nb:3a4e9074-bb8c-4fc3-bfa8-fa61429319fe",
       "hasLabel": "sub-02",
       "hasSession": [
         {
-          "identifier": "nb:8bfc9bd2-224e-4383-8f82-11d1731f8bac",
+          "identifier": "nb:18dd852d-5313-411b-9a94-894a4a382122",
           "hasLabel": "ses-01",
           "hasSex": {
             "identifier": "snomed:248153007",
@@ -158,7 +162,7 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:6d5e37c0-966b-41a8-9454-c0a5616cfaba",
+          "identifier": "nb:ab344278-c912-417b-b8ad-a8406713ac7d",
           "hasLabel": "ses-02",
           "hasAge": 39.0,
           "hasSex": {
@@ -187,11 +191,11 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:9a1a5c81-2e7f-4f03-a523-bcaa0ead4a39",
+      "identifier": "nb:36a86808-a12f-44e4-9eff-dbc8a2896c09",
       "hasLabel": "sub-03",
       "hasSession": [
         {
-          "identifier": "nb:23686b31-623b-482b-b406-971088f03fdd",
+          "identifier": "nb:fcbee62d-a87b-4f84-bff6-d23a2c558279",
           "hasLabel": "ses-01",
           "hasAge": 22.1,
           "hasAssessment": [
@@ -203,7 +207,7 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:762b54f6-feae-4311-89c3-f38e326ebb32",
+          "identifier": "nb:e561a2a1-14bd-4c2a-8f2e-c6a7727dc0f2",
           "hasLabel": "ses-02",
           "hasAge": 23.2,
           "hasDiagnosis": [
@@ -228,21 +232,23 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:7a8f3df4-4bee-42b1-9118-4093a3f9910c",
+      "identifier": "nb:e06282c4-653d-4147-8eca-e9fb0c069cb3",
       "hasLabel": "sub-04",
       "hasSession": [
         {
-          "identifier": "nb:61107ff4-971a-4edf-91fd-1b9d170b0e22",
+          "identifier": "nb:ba1f2bfd-6787-4ec3-a08b-d607f89f82f5",
           "hasLabel": "ses-01",
           "hasAge": 21.1,
           "hasSex": {
             "identifier": "snomed:248152002",
             "schemaKey": "Sex"
           },
-          "isSubjectGroup": {
-            "identifier": "ncit:C94342",
-            "schemaKey": "SubjectGroup"
-          },
+          "hasDiagnosis": [
+            {
+              "identifier": "ncit:C94342",
+              "schemaKey": "Diagnosis"
+            }
+          ],
           "hasAssessment": [
             {
               "identifier": "snomed:342061000000106",
@@ -252,17 +258,19 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:0b08fab5-3a54-438b-b5ec-ec68f81cb423",
+          "identifier": "nb:d1ed43d4-7196-4bb8-b08e-790e39873f77",
           "hasLabel": "ses-02",
           "hasAge": 22.3,
           "hasSex": {
             "identifier": "snomed:248152002",
             "schemaKey": "Sex"
           },
-          "isSubjectGroup": {
-            "identifier": "ncit:C94342",
-            "schemaKey": "SubjectGroup"
-          },
+          "hasDiagnosis": [
+            {
+              "identifier": "ncit:C94342",
+              "schemaKey": "Diagnosis"
+            }
+          ],
           "hasAssessment": [
             {
               "identifier": "snomed:859351000000102",
@@ -279,11 +287,11 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:1663eca7-e148-4db5-bc4b-cd73995a1c90",
+      "identifier": "nb:ad9bd63c-8ffe-4f82-817a-ac44c3491253",
       "hasLabel": "sub-05",
       "hasSession": [
         {
-          "identifier": "nb:ef0ddc83-3584-4c05-9166-9f72f32683d7",
+          "identifier": "nb:495155da-ed84-4726-8a39-11fb390e1362",
           "hasLabel": "ses-01",
           "hasAge": 42.5,
           "hasSex": {
@@ -309,7 +317,7 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:464d03b4-ca11-4ca9-a5f5-f4a5308aa6bd",
+          "identifier": "nb:8addd5a6-f87e-42f2-93ac-ac139c63d51b",
           "hasLabel": "ses-02",
           "hasAge": 43.2,
           "hasSex": {
