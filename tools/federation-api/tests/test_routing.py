@@ -39,12 +39,12 @@ def test_request_without_trailing_slash_not_redirected(
 ):
     """Test that a request to a route without a / is not redirected to have a trailing slash."""
 
-    async def mock_httpx_get(self, **kwargs):
+    async def mock_httpx_request(self, method, url, **kwargs):
         return httpx.Response(
             status_code=200, json=[mocked_single_matching_dataset_result]
         )
 
-    monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
+    monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
 
     response = test_app.get(valid_route, follow_redirects=False)
     assert response.status_code == status.HTTP_200_OK

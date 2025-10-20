@@ -60,15 +60,17 @@ def set_valid_test_federation_nodes(monkeypatch):
 
 
 @pytest.fixture()
-def mock_failed_connection_httpx_get():
+def mock_failed_connection_httpx_request():
     """Return a mock for the httpx.AsyncClient.get method that raises a ConnectError when called."""
 
-    async def _mock_httpx_get_with_connect_error(self, **kwargs):
+    async def _mock_httpx_request_with_connect_error(
+        self, method, url, **kwargs
+    ):
         # The self parameter is necessary to match the signature of the method being mocked,
         # which is a class method of the httpx.AsyncClient class (see https://www.python-httpx.org/api/#asyncclient).
         raise httpx.ConnectError("Some connection error")
 
-    return _mock_httpx_get_with_connect_error
+    return _mock_httpx_request_with_connect_error
 
 
 @pytest.fixture()

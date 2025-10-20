@@ -28,7 +28,7 @@ packaging==21.3
 pandas==1.5.2
 platformdirs==3.9.1
 pluggy==1.0.0
-pre-commit==2.20.0
+pre-commit==4.3.0
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
 pycparser==2.22

@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 import httpx
 import pytest
 from fastapi import status
@@ -13,10 +15,10 @@ def test_get_instances_with_duplicate_terms_handled(
     the API should return only one instance of that assessment term in the final federated response.
     """
 
-    async def mock_httpx_get(self, **kwargs):
+    async def mock_httpx_request(self, method, url, **kwargs):
         # The self parameter is necessary to match the signature of the method being mocked,
         # which is a class method of the httpx.AsyncClient class (see https://www.python-httpx.org/api/#asyncclient).
-        if "https://firstpublicnode.org/" in kwargs["url"]:
+        if urlparse(url).hostname == "firstpublicnode.org":
             mocked_node_get_assessments_response = {
                 "nb:Assessment": [
                     {
@@ -43,7 +45,7 @@ def test_get_instances_with_duplicate_terms_handled(
             json=mocked_node_get_assessments_response,
         )
 
-    monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
+    monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
 
     response = test_app.get("/assessments")
 
@@ -85,8 +87,8 @@ def test_partially_failed_get_instances_handled_gracefully(
         ]
     }
 
-    async def mock_httpx_get(self, **kwargs):
-        if "https://secondpublicnode.org/" in kwargs["url"]:
+    async def mock_httpx_request(self, method, url, **kwargs):
+        if urlparse(url).hostname == "secondpublicnode.org":
             return httpx.Response(
                 status_code=500, json={}, text="Some internal server error"
             )
@@ -95,7 +97,7 @@ def test_partially_failed_get_instances_handled_gracefully(
             json=mocked_node_get_assessments_response,
         )
 
-    monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
+    monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
 
     response = test_app.get("/assessments")
 
@@ -118,7 +120,7 @@ def test_partially_failed_get_instances_handled_gracefully(
 def test_fully_failed_get_instances_handled_gracefully(
     test_app,
     monkeypatch,
-    mock_failed_connection_httpx_get,
+    mock_failed_connection_httpx_request,
     set_valid_test_federation_nodes,
     caplog,
 ):
@@ -127,7 +129,7 @@ def test_fully_failed_get_instances_handled_gracefully(
     the overall API get request still succeeds, but includes an overall failure status and all encountered errors in the response.
     """
     monkeypatch.setattr(
-        httpx.AsyncClient, "get", mock_failed_connection_httpx_get
+        httpx.AsyncClient, "get", mock_failed_connection_httpx_request
     )
 
     response = test_app.get("/assessments")

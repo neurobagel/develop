@@ -66,18 +66,11 @@ async def get_query(
         token = verify_token(token)
 
     response_dict = await crud.get(
-        query.min_age,
-        query.max_age,
-        query.sex,
-        query.diagnosis,
-        query.min_num_imaging_sessions,
-        query.min_num_phenotypic_sessions,
-        query.assessment,
-        query.image_modal,
-        query.pipeline_name,
-        query.pipeline_version,
-        query.node_url,
-        token,
+        # Remove fields set to None (default value) from the dict
+        # to avoid type validation errors of specific query parameters on the receiving nodes
+        # (e.g., the value an n-API receives for min_age must be a float and cannot be null/None)
+        query=query.dict(exclude_none=True),
+        token=token,
     )
 
     if response_dict["errors"]:

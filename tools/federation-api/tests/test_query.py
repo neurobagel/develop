@@ -26,10 +26,10 @@ def test_partial_node_failure_responses_handled_gracefully(
     the successful responses are returned along with a list of the encountered errors, and the failed nodes are logged to the console.
     """
 
-    async def mock_httpx_get(self, **kwargs):
+    async def mock_httpx_request(self, method, url, **kwargs):
         # The self parameter is necessary to match the signature of the method being mocked,
         # which is a class method of the httpx.AsyncClient class (see https://www.python-httpx.org/api/#asyncclient).
-        if kwargs["url"] == "https://firstpublicnode.org/query":
+        if url == "https://firstpublicnode.org/query":
             return httpx.Response(
                 status_code=200, json=[mocked_single_matching_dataset_result]
             )
@@ -38,7 +38,7 @@ def test_partial_node_failure_responses_handled_gracefully(
             status_code=500, json={}, text="Some internal server error"
         )
 
-    monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
+    monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
 
     response = test_app.get(
         "/query",
@@ -108,15 +108,15 @@ def test_partial_node_request_failures_handled_gracefully(
     the successful responses are returned along with a list of the encountered errors, and the failed nodes are logged to the console.
     """
 
-    async def mock_httpx_get(self, **kwargs):
-        if kwargs["url"] == "https://firstpublicnode.org/query":
+    async def mock_httpx_request(self, method, url, **kwargs):
+        if url == "https://firstpublicnode.org/query":
             return httpx.Response(
                 status_code=200, json=[mocked_single_matching_dataset_result]
             )
 
         raise error_to_raise
 
-    monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
+    monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
 
     response = test_app.get(
         "/query",
@@ -150,7 +150,7 @@ def test_partial_node_request_failures_handled_gracefully(
 def test_all_nodes_failure_handled_gracefully(
     monkeypatch,
     test_app,
-    mock_failed_connection_httpx_get,
+    mock_failed_connection_httpx_request,
     mock_token,
     set_mock_verify_token,
     set_valid_test_federation_nodes,
@@ -161,7 +161,7 @@ def test_all_nodes_failure_handled_gracefully(
     but includes an overall failure status and all encountered errors in the response.
     """
     monkeypatch.setattr(
-        httpx.AsyncClient, "get", mock_failed_connection_httpx_get
+        httpx.AsyncClient, "get", mock_failed_connection_httpx_request
     )
 
     response = test_app.get(
@@ -199,12 +199,12 @@ def test_all_nodes_success_handled_gracefully(
     # pytest by default captures WARNING or above: https://docs.pytest.org/en/stable/how-to/logging.html#caplog-fixture
     caplog.set_level(logging.INFO)
 
-    async def mock_httpx_get(self, **kwargs):
+    async def mock_httpx_request(self, method, url, **kwargs):
         return httpx.Response(
             status_code=200, json=[mocked_single_matching_dataset_result]
         )
 
-    monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
+    monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
 
     response = test_app.get(
         "/query",
@@ -231,12 +231,12 @@ def test_query_without_token_succeeds_when_auth_disabled(
     Test that when authentication is disabled, a federated query request without a token succeeds.
     """
 
-    async def mock_httpx_get(self, **kwargs):
+    async def mock_httpx_request(self, method, url, **kwargs):
         return httpx.Response(
             status_code=200, json=[mocked_single_matching_dataset_result]
         )
 
-    monkeypatch.setattr(httpx.AsyncClient, "get", mock_httpx_get)
+    monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
 
     response = test_app.get("/query")
 

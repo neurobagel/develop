@@ -212,6 +212,7 @@ def check_nodes_are_recognized(node_urls: list):
         )
 
 
+# TODO: Remove once we deprecate the GET /query endpoint
 def validate_query_node_url_list(node_urls: list) -> list:
     """
     Format and validate node URLs passed as values to the query endpoint,
@@ -230,21 +231,57 @@ def validate_query_node_url_list(node_urls: list) -> list:
     return node_urls
 
 
-async def send_get_request(
+def validate_queried_nodes(nodes: list[dict] | None) -> list[dict]:
+    """
+    Format and validate the node URLs in the list of nodes passed to POST /subjects endpoint,
+    including setting a default list of node URLs when none are provided.
+    """
+    if nodes:
+        nodes_to_query = []
+        cleaned_node_urls = []
+        for node in nodes:
+            node["node_url"] = add_trailing_slash(node["node_url"])
+            nodes_to_query.append(node)
+            if node["node_url"] in cleaned_node_urls:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Duplicate node URL found in request body: {node['node_url']}. "
+                    "Ensure each node is only listed once.",
+                )
+            cleaned_node_urls.append(node["node_url"])
+
+        # TODO: Revisit once we deprecate GET /query.
+        # We currently check that all node URLs are recognized together (rather than one by one above)
+        # to emit a single error message listing all unrecognized nodes,
+        # and to avoid duplicating validation logic across the GET /query and POST /subjects endpoints.
+        check_nodes_are_recognized(cleaned_node_urls)
+    else:
+        nodes_to_query = [
+            {"node_url": node_url} for node_url in FEDERATION_NODES
+        ]
+
+    return nodes_to_query
+
+
+async def send_request(
+    method: str,
     url: str,
-    params: list | None = None,
+    params: dict | None = None,
+    body: dict | None = None,
     token: str | None = None,
     timeout: float | None = None,
 ) -> dict:
     """
-    Makes a GET request to one or more Neurobagel nodes.
+    Makes a request to one or more Neurobagel nodes.
 
     Parameters
     ----------
     url : str
         URL of Neurobagel node API.
-    params : list, optional
-        Neurobagel query parameters, by default None.
+    params : dict, optional
+        Neurobagel query parameters as request query parameters, by default None.
+    body : dict, optional
+        Neurobagel query parameters as a request body, by default None.
     token : str, optional
         Authorization token for the request, by default None.
     timeout : float, optional
@@ -267,9 +304,11 @@ async def send_get_request(
             **({"Authorization": f"Bearer {token}"} if token else {}),
         }
         try:
-            response = await client.get(
+            response = await client.request(
+                method=method,
                 url=url,
-                params=params,
+                params=params,  # used for GET, ignored for POST
+                json=body,  # used for POST, ignored for GET
                 headers=headers,
                 timeout=timeout,
                 # Enable redirect following (off by default) so

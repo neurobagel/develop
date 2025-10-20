@@ -159,6 +159,84 @@ def test_validate_query_node_url_list(
 
 
 @pytest.mark.parametrize(
+    "raw_nodes, expected_nodes",
+    [
+        (
+            [
+                {
+                    "node_url": "https://firstknownnode.org/node",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/12345",
+                        "http://neurobagel.org/vocab/67890",
+                    ],
+                },
+                {
+                    "node_url": "https://secondknownnode.org/node",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/23456",
+                        "http://neurobagel.org/vocab/34567",
+                    ],
+                },
+            ],
+            [
+                {
+                    "node_url": "https://firstknownnode.org/node/",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/12345",
+                        "http://neurobagel.org/vocab/67890",
+                    ],
+                },
+                {
+                    "node_url": "https://secondknownnode.org/node/",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/23456",
+                        "http://neurobagel.org/vocab/34567",
+                    ],
+                },
+            ],
+        ),
+        (
+            [],
+            [
+                {
+                    "node_url": "https://firstknownnode.org/node/",
+                },
+                {
+                    "node_url": "https://secondknownnode.org/node/",
+                },
+            ],
+        ),
+        (
+            None,
+            [
+                {
+                    "node_url": "https://firstknownnode.org/node/",
+                },
+                {
+                    "node_url": "https://secondknownnode.org/node/",
+                },
+            ],
+        ),
+    ],
+)
+def test_validate_queried_nodes(monkeypatch, raw_nodes, expected_nodes):
+    """
+    Test that a trailing slash is added to node URLs, dataset UUIDs are preserved (when provided),
+    and the default list of all known federation nodes is used if none are specified.
+    """
+    monkeypatch.setattr(
+        util,
+        "FEDERATION_NODES",
+        {
+            "https://firstknownnode.org/node/": "My First Node",
+            "https://secondknownnode.org/node/": "My Second Node",
+        },
+    )
+
+    assert util.validate_queried_nodes(raw_nodes) == expected_nodes
+
+
+@pytest.mark.parametrize(
     "set_nodes,expected_nodes",
     [
         (

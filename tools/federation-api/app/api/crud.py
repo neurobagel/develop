@@ -8,6 +8,10 @@ from fastapi import HTTPException
 from . import utility as util
 
 
+# TODO: Consider removing in future -
+# this utility function is currently used by several CRUD functions,
+# but could be removed if we switched to using for loops instead of list comprehensions
+# when building request tasks.
 def build_node_request_urls(node_urls: list, path: str) -> list:
     """
     Return a list of URLs for the current request for the specified set of Neurobagel nodes.
@@ -42,90 +46,10 @@ def build_combined_response(
     return content
 
 
-async def get(
-    min_age: float,
-    max_age: float,
-    sex: str,
-    diagnosis: str,
-    min_num_imaging_sessions: int,
-    min_num_phenotypic_sessions: int,
-    assessment: str,
-    image_modal: str,
-    pipeline_name: str,
-    pipeline_version: str,
-    node_urls: list[str],
-    token: str | None = None,
-) -> dict:
-    """
-    Makes GET requests to one or more Neurobagel node APIs using send_get_request utility function where the parameters are Neurobagel query parameters.
-
-    Parameters
-    ----------
-    min_age : float
-        Minimum age of subject.
-    max_age : float
-        Maximum age of subject.
-    sex : str
-        Sex of subject.
-    diagnosis : str
-        Subject diagnosis.
-    min_num_imaging_sessions : int
-        Subject minimum number of imaging sessions.
-    min_num_phenotypic_sessions : int
-        Subject minimum number of phenotypic sessions.
-    assessment : str
-        Non-imaging assessment completed by subjects.
-    image_modal : str
-        Imaging modality of subject scans.
-    pipeline_name : str
-        Name of pipeline run on subject scans.
-    pipeline_version : str
-        Version of pipeline run on subject scans.
-    node_urls : list[str]
-        List of Neurobagel nodes to send the query to.
-    token : str, optional
-        ID token for authentication, by default None
-
-    Returns
-    -------
-    httpx.response
-        Response of the POST request.
-
-    """
+def gather_node_query_responses(node_urls: list, responses: list):
+    """Gather results and errors from a list of cohort query responses from multiple nodes."""
     cross_node_results = []
     node_errors = []
-
-    node_urls = util.validate_query_node_url_list(node_urls)
-
-    # Node API query parameters
-    params = {}
-    if min_age:
-        params["min_age"] = min_age
-    if max_age:
-        params["max_age"] = max_age
-    if sex:
-        params["sex"] = sex
-    if diagnosis:
-        params["diagnosis"] = diagnosis
-    if min_num_imaging_sessions:
-        params["min_num_imaging_sessions"] = min_num_imaging_sessions
-    if min_num_phenotypic_sessions:
-        params["min_num_phenotypic_sessions"] = min_num_phenotypic_sessions
-    if assessment:
-        params["assessment"] = assessment
-    if image_modal:
-        params["image_modal"] = image_modal
-    if pipeline_name:
-        params["pipeline_name"] = pipeline_name
-    if pipeline_version:
-        params["pipeline_version"] = pipeline_version
-
-    tasks = [
-        util.send_get_request(node_request_url, params, token)
-        for node_request_url in build_node_request_urls(node_urls, "query")
-    ]
-    responses = await asyncio.gather(*tasks, return_exceptions=True)
-
     for node_url, response in zip(node_urls, responses):
         node_name = util.FEDERATION_NODES[node_url]
         if isinstance(response, HTTPException):
@@ -139,9 +63,102 @@ async def get(
             for result in response:
                 result["node_name"] = node_name
             cross_node_results.extend(response)
+    return cross_node_results, node_errors
+
+
+async def get(
+    query: dict,
+    token: str | None = None,
+) -> dict:
+    """
+    Makes GET requests to one or more Neurobagel node APIs where the parameters are Neurobagel query parameters.
+
+    Parameters
+    ----------
+    query : dict
+        Dictionary of Neurobagel query parameters, including a node_url list.
+    token : str, optional
+        ID token for authentication, by default None
+
+    Returns
+    -------
+    httpx.response
+        Response of the GET request.
+
+    """
+    cross_node_results = []
+    node_errors = []
+
+    node_urls = util.validate_query_node_url_list(query.get("node_url"))
+
+    query.pop("node_url", None)
+
+    tasks = [
+        util.send_request(
+            method="GET", url=node_request_url, params=query, token=token
+        )
+        for node_request_url in build_node_request_urls(node_urls, "query")
+    ]
+    responses = await asyncio.gather(*tasks, return_exceptions=True)
+
+    cross_node_results, node_errors = gather_node_query_responses(
+        node_urls, responses
+    )
 
     return build_combined_response(
         total_nodes=len(node_urls),
+        cross_node_results=cross_node_results,
+        node_errors=node_errors,
+    )
+
+
+async def post_subjects(
+    # We accept a dict instead of a Pydantic model to make it more flexible to inspect
+    # and modify the node list as a list of dictionaries (rather than NodeDatasets model instances)
+    query: dict,
+    token: str | None = None,
+):
+    """
+    Makes POST requests to the /subjects route of one or more Neurobagel node APIs.
+
+    Parameters
+    ----------
+    query : dict
+        Dictionary of Neurobagel query parameters,
+        including a "nodes" list of dictionaries of node URLs and specific dataset UUIDs.
+    token : str, optional
+        ID token for authentication, by default None
+
+    Returns
+    -------
+    httpx.response
+        Response of the POST request.
+
+    """
+    nodes = util.validate_queried_nodes(query.get("nodes"))
+    node_urls = [node["node_url"] for node in nodes]
+
+    query.pop("nodes", None)
+
+    tasks = []
+    # NOTE: Nodes in a single request can only be ALL dicts
+    for node in nodes:
+        node_request_url = node["node_url"] + "subjects"
+        query["datasets"] = node.get("dataset_uuids")
+        tasks.append(
+            util.send_request(
+                method="POST", url=node_request_url, body=query, token=token
+            )
+        )
+
+    responses = await asyncio.gather(*tasks, return_exceptions=True)
+
+    cross_node_results, node_errors = gather_node_query_responses(
+        node_urls, responses
+    )
+
+    return build_combined_response(
+        total_nodes=len(nodes),
         cross_node_results=cross_node_results,
         node_errors=node_errors,
     )
@@ -169,7 +186,7 @@ async def get_instances(attribute_path: str):
     attribute_uri = util.RESOURCE_URI_MAP[attribute_path]
 
     tasks = [
-        util.send_get_request(url=node_request_url)
+        util.send_request(method="GET", url=node_request_url)
         for node_request_url in build_node_request_urls(
             util.FEDERATION_NODES, attribute_path
         )
@@ -221,7 +238,7 @@ async def get_pipeline_versions(pipeline_term: str):
     all_pipe_versions = []
 
     tasks = [
-        util.send_get_request(node_request_url)
+        util.send_request(method="GET", url=node_request_url)
         for node_request_url in build_node_request_urls(
             util.FEDERATION_NODES, f"pipelines/{pipeline_term}/versions"
         )
