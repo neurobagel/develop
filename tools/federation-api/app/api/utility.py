@@ -6,6 +6,7 @@ import os
 import warnings
 from collections import namedtuple
 from pathlib import Path
+from typing import Any
 
 import httpx
 import jsonschema
@@ -345,3 +346,20 @@ async def send_request(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"An unexpected error was encountered: {exc}",
             ) from exc
+
+
+def is_valid_dict_response(
+    response: Any, find_key: str | None = None
+) -> tuple[bool, str]:
+    """
+    Check if a response from a node is a dict and has a specific key,
+    and return an informative error if not.
+    """
+    if isinstance(response, dict):
+        if find_key is None:
+            return True, ""
+        if response.get(find_key) is not None:
+            return True, ""
+    if isinstance(response, HTTPException):
+        return False, response.detail
+    return False, "Unexpected response format received from node"

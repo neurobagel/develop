@@ -342,3 +342,48 @@ async def test_federate_only_local_nodes(tmp_path, monkeypatch):
     await util.create_federation_node_index()
 
     assert util.FEDERATION_NODES == local_nodes
+
+
+@pytest.mark.parametrize(
+    "node_response, expected_is_valid_result, expected_error",
+    [
+        ({"nb:Assessment": []}, True, ""),
+        (
+            HTTPException(status_code=404, detail="Not found"),
+            False,
+            "Not found",
+        ),
+        (
+            {
+                "nb:Assessment": [
+                    {
+                        "TermURL": "snomed:273640001",
+                        "Label": "National adult reading test",
+                    },
+                    {
+                        "TermURL": "snomed:859351000000102",
+                        "Label": "Montreal cognitive assessment",
+                    },
+                ]
+            },
+            True,
+            "",
+        ),
+        ([], False, "Unexpected response format received from node"),
+        (
+            {"nb:WrongKey": []},
+            False,
+            "Unexpected response format received from node",
+        ),
+    ],
+)
+def test_is_valid_dict_response(
+    node_response, expected_is_valid_result, expected_error
+):
+    """
+    Test that node responses are correctly validated for expected keys,
+    with appropriate messages for unexpected responses or errors.
+    """
+    assert util.is_valid_dict_response(
+        response=node_response, find_key="nb:Assessment"
+    ) == (expected_is_valid_result, expected_error)
