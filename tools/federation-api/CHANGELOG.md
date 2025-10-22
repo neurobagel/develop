@@ -1,3 +1,21 @@
+# v0.6.0 (Wed Oct 22 2025)
+
+#### 🚀 Enhancements
+
+- [ENH] Added `POST /datasets` endpoint [#201](https://github.com/neurobagel/federation-api/pull/201) ([@rmanaem](https://github.com/rmanaem))
+- [ENH] Add `POST /subjects` endpoint [#196](https://github.com/neurobagel/federation-api/pull/196) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Better handle invalid node responses to variable instance or pipeline version requests [#200](https://github.com/neurobagel/federation-api/pull/200) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+
+---
+
 # v0.5.0 (Thu Sep 11 2025)
 
 #### 💥 Breaking Changes
