@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2
 
 from .. import crud, security
-from ..models import CombinedQueryResponse, QueryModel
+from ..models import CombinedSubjectsQueryResponse, QueryModel
 from ..security import verify_token
 
 # from fastapi.security import open_id_connect_url
@@ -36,7 +36,7 @@ oauth2_scheme = OAuth2(
 # TODO: if our response model for fully successful vs. not fully successful responses grows more complex in the future,
 # consider additionally using https://fastapi.tiangolo.com/advanced/additional-responses/#additional-response-with-model to document
 # example responses for different status codes in the OpenAPI docs (less relevant for now since there is only one response model).
-@router.get("", response_model=CombinedQueryResponse)
+@router.get("", response_model=CombinedSubjectsQueryResponse)
 async def get_query(
     response: Response,
     query: QueryModel = Depends(QueryModel),

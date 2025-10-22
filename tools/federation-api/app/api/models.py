@@ -54,13 +54,25 @@ class NodeDatasets(BaseModel):
 
 
 class SubjectsQueryModel(BaseQueryModel):
-    """Data model a for POST /subjects query"""
+    """Data model a for POST /subjects query."""
 
     nodes: list[NodeDatasets] | None = None
 
 
-class SubjectsQueryResponse(BaseModel):
-    """Data model for subject-level results for one dataset matching a given query."""
+class NodeUrl(BaseModel):
+    """Data model for specifying a single node URL."""
+
+    node_url: str
+
+
+class DatasetsQueryModel(BaseQueryModel):
+    """Data model for a POST /datasets query."""
+
+    nodes: list[NodeUrl] | None = None
+
+
+class DatasetsQueryResponse(BaseModel):
+    """Data model for dataset-level results for one dataset matching a given query."""
 
     node_name: str
     dataset_uuid: str
@@ -70,9 +82,14 @@ class SubjectsQueryResponse(BaseModel):
     dataset_total_subjects: int
     records_protected: bool
     num_matching_subjects: int
-    subject_data: Union[list[dict], str]
     image_modals: list
     available_pipelines: dict
+
+
+class SubjectsQueryResponse(DatasetsQueryResponse):
+    """Data model for subject-level results for one dataset matching a given query."""
+
+    subject_data: Union[list[dict], str]
 
 
 class NodesResponseStatus(str, Enum):
@@ -90,12 +107,23 @@ class NodeError(BaseModel):
     error: str
 
 
-class CombinedQueryResponse(BaseModel):
-    """Data model for the combined query results of all matching datasets across all queried nodes."""
+class BaseCombinedQueryResponse(BaseModel):
+    """Base data model for combined query results across all queried nodes."""
 
     errors: list[NodeError]
-    responses: list[SubjectsQueryResponse]
     nodes_response_status: NodesResponseStatus
+
+
+class CombinedSubjectsQueryResponse(BaseCombinedQueryResponse):
+    """Data model for the combined subjects query results of all matching datasets across all queried nodes."""
+
+    responses: list[SubjectsQueryResponse]
+
+
+class CombinedDatasetsQueryResponse(BaseCombinedQueryResponse):
+    """Data model for the combined dataset query results of all matching datasets across all queried nodes."""
+
+    responses: list[DatasetsQueryResponse]
 
 
 class CombinedAttributeResponse(BaseModel):

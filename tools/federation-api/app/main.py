@@ -12,6 +12,7 @@ from fastapi.responses import HTMLResponse, ORJSONResponse, RedirectResponse
 from .api import utility as util
 from .api.routers import (
     assessments,
+    datasets,
     diagnoses,
     nodes,
     pipelines,
@@ -146,6 +147,7 @@ def overridden_redoc(request: Request):
 
 app.include_router(query.router)
 app.include_router(subjects.router)
+app.include_router(datasets.router)
 app.include_router(assessments.router)
 app.include_router(diagnoses.router)
 app.include_router(pipelines.router)

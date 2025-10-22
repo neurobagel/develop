@@ -232,10 +232,22 @@ def validate_query_node_url_list(node_urls: list) -> list:
     return node_urls
 
 
-def validate_queried_nodes(nodes: list[dict] | None) -> list[dict]:
+def validate_queried_nodes(
+    nodes: list[dict] | None,
+) -> list[dict]:
     """
-    Format and validate the node URLs in the list of nodes passed to POST /subjects endpoint,
+    Format and validate the node URLs in the list of nodes passed to POST endpoints,
     including setting a default list of node URLs when none are provided.
+
+    Parameters
+    ----------
+    nodes : list[dict] | None
+        List of nodes to validate. Dicts with node_url keys (and optionally dataset_uuids).
+
+    Returns
+    -------
+    list[dict]
+        Validated nodes as list of dicts.
     """
     if nodes:
         nodes_to_query = []
@@ -256,12 +268,9 @@ def validate_queried_nodes(nodes: list[dict] | None) -> list[dict]:
         # to emit a single error message listing all unrecognized nodes,
         # and to avoid duplicating validation logic across the GET /query and POST /subjects endpoints.
         check_nodes_are_recognized(cleaned_node_urls)
+        return nodes_to_query
     else:
-        nodes_to_query = [
-            {"node_url": node_url} for node_url in FEDERATION_NODES
-        ]
-
-    return nodes_to_query
+        return [{"node_url": node_url} for node_url in FEDERATION_NODES]
 
 
 async def send_request(
