@@ -1,3 +1,15 @@
+# v0.6.1 (Mon Nov 03 2025)
+
+#### 🔩 Dependency Updates
+
+- [REF] Upgrade to Pydantic 2 [#202](https://github.com/neurobagel/federation-api/pull/202) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.6.0 (Wed Oct 22 2025)
 
 #### 🚀 Enhancements
