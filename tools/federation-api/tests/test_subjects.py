@@ -91,7 +91,7 @@ def test_valid_nodes_do_not_error(
                     "dataset_uuids": ["http://neurobagel.org/vocab/12345"],
                 },
             ],
-            "field required",
+            "Field required",
         ),
     ],
 )
@@ -99,14 +99,35 @@ def test_invalid_nodes_raise_error(
     test_app,
     disable_auth,
     set_valid_test_federation_nodes,
-    mocked_single_matching_dataset_result,
     invalid_nodes,
     expected_error,
-    monkeypatch,
-    caplog,
 ):
     """Test that when an invalid 'nodes' list is provided, POST /subjects raises a 422 error with an appropriate message."""
     response = test_app.post(ROUTE, json={"nodes": invalid_nodes})
 
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
     assert expected_error in response.text
+
+
+def test_extra_query_fields_raise_error(
+    test_app,
+    disable_auth,
+    set_valid_test_federation_nodes,
+):
+    """Test that when extra fields are provided in the query, POST /subjects raises a 422 error with an appropriate message."""
+    response = test_app.post(
+        ROUTE,
+        json={
+            "nodes": [
+                {
+                    "node_url": "https://firstpublicnode.org/",
+                }
+            ],
+            "invalid_extra_field": "unexpected_value",
+        },
+    )
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+    assert all(
+        msg in response.text for msg in ["invalid_extra_field", "Extra inputs"]
+    )

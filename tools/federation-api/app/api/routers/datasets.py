@@ -36,7 +36,7 @@ async def post_datasets_query(
         token = verify_token(token)
 
     response_dict = await crud.post_datasets(
-        query=query.dict(exclude_none=True),
+        query=query.model_dump(exclude_none=True),
         token=token,
     )
 

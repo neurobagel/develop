@@ -1,10 +1,8 @@
 """Data models."""
 
 from enum import Enum
-from typing import Optional, Union
 
-from fastapi import Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 CONTROLLED_TERM_REGEX = r"^[a-zA-Z]+[:]\S+$"
 
@@ -37,13 +35,13 @@ class BaseQueryModel(BaseModel):
         default=None, description="Version of pipeline run on subject scans."
     )
 
+    model_config = ConfigDict(extra="forbid")
+
 
 class QueryModel(BaseQueryModel):
-    # TODO: Revisit after addressing https://github.com/neurobagel/federation-api/issues/165
-    # After FastAPI v0.115.0+, we should no longer need this custom syntax to support a list query parameter in a GET request
-    # (and ensure the interactive docs work to specify a list)
-    # originally adapted from https://github.com/tiangolo/fastapi/issues/4445#issuecomment-1117632409
-    node_url: list[str] | None = Field(Query(default=[]))
+    node_url: list[str] = Field(
+        default=[], description="Specific nodes to query."
+    )
 
 
 class NodeDatasets(BaseModel):
@@ -51,6 +49,8 @@ class NodeDatasets(BaseModel):
 
     node_url: str
     dataset_uuids: list[str] | None = None
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class SubjectsQueryModel(BaseQueryModel):
@@ -63,6 +63,8 @@ class NodeUrl(BaseModel):
     """Data model for specifying a single node URL."""
 
     node_url: str
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class DatasetsQueryModel(BaseQueryModel):
@@ -78,7 +80,7 @@ class DatasetsQueryResponse(BaseModel):
     dataset_uuid: str
     # dataset_file_path: str  # TODO: Revisit this field once we have datasets without imaging info/sessions.
     dataset_name: str
-    dataset_portal_uri: Optional[str]
+    dataset_portal_uri: str | None
     dataset_total_subjects: int
     records_protected: bool
     num_matching_subjects: int
@@ -89,7 +91,7 @@ class DatasetsQueryResponse(BaseModel):
 class SubjectsQueryResponse(DatasetsQueryResponse):
     """Data model for subject-level results for one dataset matching a given query."""
 
-    subject_data: Union[list[dict], str]
+    subject_data: list[dict] | str
 
 
 class NodesResponseStatus(str, Enum):

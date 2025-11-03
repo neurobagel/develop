@@ -1,6 +1,8 @@
 """Router for query path operations."""
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.security import OAuth2
 
 from .. import crud, security
@@ -39,7 +41,7 @@ oauth2_scheme = OAuth2(
 @router.get("", response_model=CombinedSubjectsQueryResponse)
 async def get_query(
     response: Response,
-    query: QueryModel = Depends(QueryModel),
+    query: Annotated[QueryModel, Query()],
     token: str | None = Depends(oauth2_scheme),
 ):
     """When a GET request is sent, return list of dicts corresponding to subject-level metadata aggregated by dataset."""
@@ -69,7 +71,7 @@ async def get_query(
         # Remove fields set to None (default value) from the dict
         # to avoid type validation errors of specific query parameters on the receiving nodes
         # (e.g., the value an n-API receives for min_age must be a float and cannot be null/None)
-        query=query.dict(exclude_none=True),
+        query=query.model_dump(exclude_none=True),
         token=token,
     )
 

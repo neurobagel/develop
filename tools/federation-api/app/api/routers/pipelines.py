@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Response, status
-from pydantic import constr
+from fastapi import APIRouter, Path, Response, status
+from typing_extensions import Annotated
 
 from .. import crud
 from ..models import CONTROLLED_TERM_REGEX, CombinedAttributeResponse
@@ -21,7 +21,8 @@ router.add_api_route(
     "/{pipeline_term}/versions", response_model=CombinedAttributeResponse
 )
 async def get_pipeline_versions(
-    pipeline_term: constr(regex=CONTROLLED_TERM_REGEX), response: Response
+    pipeline_term: Annotated[str, Path(pattern=CONTROLLED_TERM_REGEX)],
+    response: Response,
 ):
     """
     When a GET request is sent, return a dict where the key is the pipeline term and the value
