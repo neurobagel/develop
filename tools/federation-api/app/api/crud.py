@@ -135,22 +135,27 @@ async def post_subjects(
         Response of the POST request.
 
     """
-    nodes = util.validate_queried_nodes(query.get("nodes"))
-    node_urls = [node["node_url"] for node in nodes]
+    # NOTE: The 'nodes' field in a single request can only be ALL dicts
+    # Normalize trailing slashes in specified node URLs for downstream requests
+    nodes_filter = util.validate_and_format_queried_nodes(query.get("nodes"))
+    node_urls = [node["node_url"] for node in nodes_filter]
 
-    query.pop("nodes", None)
+    node_requests = util.build_node_requests_for_query(
+        path="subjects",
+        nodes_filter=nodes_filter,
+        query=query,
+    )
 
     tasks = []
-    # NOTE: Nodes in a single request can only be ALL dicts
-    for node in nodes:
-        node_request_url = node["node_url"] + "subjects"
-        query["dataset_uuids"] = node.get("dataset_uuids")
+    for request_url, request_body in node_requests.items():
         tasks.append(
             util.send_request(
-                method="POST", url=node_request_url, body=query, token=token
+                method="POST",
+                url=request_url,
+                body=request_body,
+                token=token,
             )
         )
-
     responses = await asyncio.gather(*tasks, return_exceptions=True)
 
     cross_node_results, node_errors = gather_node_query_responses(
@@ -158,7 +163,7 @@ async def post_subjects(
     )
 
     return build_combined_response(
-        total_nodes=len(nodes),
+        total_nodes=len(nodes_filter),
         cross_node_results=cross_node_results,
         node_errors=node_errors,
     )
@@ -185,20 +190,27 @@ async def post_datasets(
         Response of the POST request.
 
     """
-    nodes = util.validate_queried_nodes(query.get("nodes"))
-    node_urls = [node["node_url"] for node in nodes]
+    nodes_filter = util.validate_and_format_queried_nodes(query.get("nodes"))
+    node_urls = [node["node_url"] for node in nodes_filter]
 
     query.pop("nodes", None)
 
-    tasks = [
-        util.send_request(
-            method="POST",
-            url=node_request_url,
-            body=query,
-            token=token,
+    node_requests = util.build_node_requests_for_query(
+        path="datasets",
+        nodes_filter=nodes_filter,
+        query=query,
+    )
+
+    tasks = []
+    for request_url, request_body in node_requests.items():
+        tasks.append(
+            util.send_request(
+                method="POST",
+                url=request_url,
+                body=request_body,
+                token=token,
+            )
         )
-        for node_request_url in build_node_request_urls(node_urls, "datasets")
-    ]
 
     responses = await asyncio.gather(*tasks, return_exceptions=True)
 

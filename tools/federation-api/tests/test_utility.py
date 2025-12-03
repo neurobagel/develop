@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 
 import httpx
 import pytest
@@ -233,7 +234,7 @@ def test_validate_queried_nodes(monkeypatch, raw_nodes, expected_nodes):
         },
     )
 
-    assert util.validate_queried_nodes(raw_nodes) == expected_nodes
+    assert util.validate_and_format_queried_nodes(raw_nodes) == expected_nodes
 
 
 @pytest.mark.parametrize(
@@ -387,3 +388,188 @@ def test_is_valid_dict_response(
     assert util.is_valid_dict_response(
         response=node_response, find_key="nb:Assessment"
     ) == (expected_is_valid_result, expected_error)
+
+
+@pytest.mark.parametrize(
+    "path,nodes_filter,query,expected_node_requests",
+    [
+        (
+            "datasets",
+            [
+                {"node_url": "https://firstnode.org/node/"},
+                {"node_url": "https://secondnode.org/node/"},
+            ],
+            {
+                "min_age": 16,
+                "max_age": 25,
+                "nodes": [
+                    {"node_url": "https://firstnode.org/node/"},
+                    {"node_url": "https://secondnode.org/node/"},
+                ],
+            },
+            {
+                "https://firstnode.org/node/datasets": {
+                    "min_age": 16,
+                    "max_age": 25,
+                },
+                "https://secondnode.org/node/datasets": {
+                    "min_age": 16,
+                    "max_age": 25,
+                },
+            },
+        ),
+        (
+            "subjects",
+            [
+                {
+                    "node_url": "https://firstnode.org/node/",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-001",
+                        "http://neurobagel.org/vocab/ds-002",
+                    ],
+                },
+                {
+                    "node_url": "https://secondnode.org/node/",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-003",
+                    ],
+                },
+            ],
+            {
+                "min_age": 16,
+                "max_age": 25,
+                "nodes": [
+                    {
+                        "node_url": "https://firstnode.org/node/",
+                        "dataset_uuids": [
+                            "http://neurobagel.org/vocab/ds-001",
+                            "http://neurobagel.org/vocab/ds-002",
+                        ],
+                    },
+                    {
+                        "node_url": "https://secondnode.org/node/",
+                        "dataset_uuids": [
+                            "http://neurobagel.org/vocab/ds-003",
+                        ],
+                    },
+                ],
+            },
+            {
+                "https://firstnode.org/node/subjects": {
+                    "min_age": 16,
+                    "max_age": 25,
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-001",
+                        "http://neurobagel.org/vocab/ds-002",
+                    ],
+                },
+                "https://secondnode.org/node/subjects": {
+                    "min_age": 16,
+                    "max_age": 25,
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-003",
+                    ],
+                },
+            },
+        ),
+        (
+            "subjects",
+            [
+                {
+                    "node_url": "https://firstnode.org/node/",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-001",
+                        "http://neurobagel.org/vocab/ds-002",
+                    ],
+                },
+                {
+                    "node_url": "https://secondnode.org/node/",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-003",
+                    ],
+                },
+            ],
+            {
+                "nodes": [
+                    {
+                        "node_url": "https://firstnode.org/node/",
+                        "dataset_uuids": [
+                            "http://neurobagel.org/vocab/ds-001",
+                            "http://neurobagel.org/vocab/ds-002",
+                        ],
+                    },
+                    {
+                        "node_url": "https://secondnode.org/node/",
+                        "dataset_uuids": [
+                            "http://neurobagel.org/vocab/ds-003",
+                        ],
+                    },
+                ]
+            },
+            {
+                "https://firstnode.org/node/subjects": {
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-001",
+                        "http://neurobagel.org/vocab/ds-002",
+                    ],
+                },
+                "https://secondnode.org/node/subjects": {
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-003",
+                    ],
+                },
+            },
+        ),
+    ],
+)
+def test_build_node_requests_for_query(
+    path, nodes_filter, query, expected_node_requests
+):
+    """
+    Test that each node request for a federated query to /subjects or /datasets contains the
+    - correct base query parameters
+    - specific dataset_uuids (where applicable)
+    - and does not include the raw 'nodes' field
+    """
+    assert (
+        util.build_node_requests_for_query(
+            path=path,
+            nodes_filter=nodes_filter,
+            query=query,
+        )
+        == expected_node_requests
+    )
+
+
+def test_raw_subjects_query_not_mutated_by_node_requests():
+    """Test that a query sent to /subjects is not mutated by build_node_requests_for_query."""
+    original_query = {
+        "min_age": 18,
+        "max_age": 25,
+        "nodes": [
+            {
+                "node_url": "https://firstnode.org/node",
+                "dataset_uuids": [
+                    "http://neurobagel.org/vocab/ds-001",
+                ],
+            },
+        ],
+    }
+    original_query_nodes = [
+        {
+            "node_url": "https://firstnode.org/node/",
+            "dataset_uuids": [
+                "http://neurobagel.org/vocab/ds-001",
+            ],
+        },
+    ]
+
+    query_copy = deepcopy(original_query)
+
+    util.build_node_requests_for_query(
+        path="subjects",
+        nodes_filter=original_query_nodes,
+        query=original_query,
+    )
+
+    assert original_query == query_copy
