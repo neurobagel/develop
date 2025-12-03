@@ -1,3 +1,15 @@
+# v0.6.2 (Wed Dec 03 2025)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Ensure each node API receives its intended dataset UUIDs for `POST /subjects` [#209](https://github.com/neurobagel/federation-api/pull/209) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.6.1 (Mon Nov 03 2025)
 
 #### 🔩 Dependency Updates
