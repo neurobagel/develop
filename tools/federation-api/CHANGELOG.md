@@ -1,3 +1,15 @@
+# v0.7.0 (Thu Dec 11 2025)
+
+#### 🚀 Enhancements
+
+- [ENH] Add `GET /imaging-modalities` for querying unique available imaging modalities across nodes [#213](https://github.com/neurobagel/federation-api/pull/213) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.6.2 (Wed Dec 03 2025)
 
 #### 🐛 Bug Fixes
