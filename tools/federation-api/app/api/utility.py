@@ -62,6 +62,7 @@ RESOURCE_URI_MAP = {
     "assessments": "nb:Assessment",
     "diagnoses": "nb:Diagnosis",
     "pipelines": "nb:Pipeline",
+    "imaging-modalities": "nb:Image",
 }
 
 

@@ -13,13 +13,18 @@ from .. import crud
 def create_get_instances_handler(attributes_base_path: str):
     """
     Create the handler (path function) for a federated GET request to the base subpath of
-    a given attribute router, e.g. /assesssments.
+    a given attribute router, e.g. /assessments
     """
 
-    async def get_instances(response: Response):
+    async def get_instances(response: Response) -> dict:
         """
-        When a GET request is sent, return a list of dicts with the only key corresponding to controlled term of a Neurobagel class,
-        and the value corresponding to all available instances from all known nodes.
+        When a GET request is sent, return a dict containing the responses from all known federation nodes
+        to a request for all available instances of a given Neurobagel class.
+
+        The returned dict contains:
+        - "errors": a list of any error messages encountered from nodes
+        - "responses": a dict containing the unique aggregated instances (and corresponding term metadata)
+          from all nodes
         """
         response_dict = await crud.get_instances(attributes_base_path)
 

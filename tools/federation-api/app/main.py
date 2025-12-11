@@ -14,6 +14,7 @@ from .api.routers import (
     assessments,
     datasets,
     diagnoses,
+    imaging_modalities,
     nodes,
     pipelines,
     query,
@@ -151,6 +152,7 @@ app.include_router(datasets.router)
 app.include_router(assessments.router)
 app.include_router(diagnoses.router)
 app.include_router(pipelines.router)
+app.include_router(imaging_modalities.router)
 app.include_router(nodes.router)
 
 # Automatically start uvicorn server on execution of main.py

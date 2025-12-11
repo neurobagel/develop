@@ -241,7 +241,8 @@ async def get_instances(attribute_path: str):
     """
     node_errors = []
     unique_terms_dict = {}
-    # We want to always provide the URI of the requested attribute in a successful federated response,
+    # We want to always provide the URI of the requested attribute (e.g., "nb:Assessment")
+    # in a successful federated response,
     # but cannot rely on it always being available in the node responses (e.g., if all nodes fail),
     # so we define it locally based on the requested attribute path.
     attribute_uri = util.RESOURCE_URI_MAP[attribute_path]
@@ -257,13 +258,14 @@ async def get_instances(attribute_path: str):
     for (node_url, node_name), response in zip(
         util.FEDERATION_NODES.items(), responses
     ):
-        response_valid, node_error = util.is_valid_dict_response(
+        is_response_valid, node_error = util.is_valid_dict_response(
             response=response, find_key=attribute_uri
         )
-        if response_valid:
-            # NOTE: We return only the unique attribute instances from all nodes, based on the instance's *term URL*.
-            # This means that if the same instance term appears in multiple nodes with potentially different human-readable labels,
-            # only one version (term-label pairing) will be included in the response.
+        if is_response_valid:
+            # NOTE: We return only the unique attribute instances from all nodes, with uniqueness determined
+            # based on the instance's *term URL*.
+            # This means that if the same term appears in multiple nodes with potentially different human-readable labels,
+            # only the last instance (+ term metadata) received from the nodes will be included in the response.
             for term_dict in response.get(attribute_uri):
                 unique_terms_dict[term_dict["TermURL"]] = term_dict
         else:
