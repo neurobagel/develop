@@ -1,3 +1,15 @@
+# v0.7.1 (Tue Dec 23 2025)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Add back missing configured root path to docs link in root UI [#216](https://github.com/neurobagel/federation-api/pull/216) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.7.0 (Thu Dec 11 2025)
 
 #### 🚀 Enhancements
