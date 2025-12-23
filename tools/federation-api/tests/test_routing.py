@@ -6,21 +6,25 @@ from app.main import app
 
 
 @pytest.mark.parametrize(
-    "route",
-    ["/", ""],
+    "root_path",
+    ["", "/federate"],
 )
-def test_root(test_app, set_valid_test_federation_nodes, route, monkeypatch):
-    """Given a GET request to the root endpoint, Check for 200 status and expected content."""
+def test_root(
+    test_app, set_valid_test_federation_nodes, root_path, monkeypatch
+):
+    """
+    Given a GET request to the root endpoint as defined by the root_path,
+    check for 200 status and expected content.
+    """
 
-    monkeypatch.setattr(app, "root_path", "")
-    response = test_app.get(route, follow_redirects=False)
-
+    monkeypatch.setattr(app, "root_path", root_path)
+    response = test_app.get(root_path + "/", follow_redirects=False)
     assert response.status_code == status.HTTP_200_OK
     assert all(
         substring in response.text
         for substring in [
             "<h1>Welcome to the Neurobagel Federation API!</h1>",
-            '<a href="/docs">API documentation</a>',
+            f'<a href="{root_path}/docs">API documentation</a>',
         ]
     )
 
