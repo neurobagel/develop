@@ -2,8 +2,8 @@
   "@context": {
     "nb": "http://neurobagel.org/vocab/",
     "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
-    "ncit": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#",
     "nidm": "http://purl.org/nidash/nidm#",
+    "ncit": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#",
     "np": "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/",
     "Acquisition": "nb:Acquisition",
     "identifier": "@id",
@@ -25,6 +25,30 @@
     "Dataset": "nb:Dataset",
     "hasLabel": {
       "@id": "nb:hasLabel"
+    },
+    "hasAuthors": {
+      "@id": "nb:hasAuthors"
+    },
+    "hasReferencesAndLinks": {
+      "@id": "nb:hasReferencesAndLinks"
+    },
+    "hasKeywords": {
+      "@id": "nb:hasKeywords"
+    },
+    "hasRepositoryURL": {
+      "@id": "nb:hasRepositoryURL"
+    },
+    "hasAccessInstructions": {
+      "@id": "nb:hasAccessInstructions"
+    },
+    "hasAccessType": {
+      "@id": "nb:hasAccessType"
+    },
+    "hasAccessEmail": {
+      "@id": "nb:hasAccessEmail"
+    },
+    "hasAccessLink": {
+      "@id": "nb:hasAccessLink"
     },
     "hasPortalURI": {
       "@id": "nb:hasPortalURI"
@@ -69,16 +93,31 @@
     },
     "SubjectGroup": "nb:SubjectGroup"
   },
-  "identifier": "nb:313fb234-22b8-4b5b-8690-64bd8b08b7d0",
+  "identifier": "nb:81b969c4-64a1-45dd-be65-aee0cb30c056",
   "hasLabel": "BIDS synthetic",
-  "hasPortalURI": "https://github.com/bids-standard/bids-examples",
+  "hasAuthors": [
+    "Markiewicz, C. J.",
+    "Gau, Rémi"
+  ],
+  "hasReferencesAndLinks": [
+    "https://bids-website.readthedocs.io/en/latest/datasets/examples.html#mri"
+  ],
+  "hasKeywords": [
+    "synthetic",
+    "nback"
+  ],
+  "hasRepositoryURL": "https://github.com/bids-standard/bids-examples.git",
+  "hasAccessInstructions": "Clone the git repository. The dataset is located in the 'synthetic' subdirectory.",
+  "hasAccessType": "public",
+  "hasAccessEmail": "bids.curator@gmail.com",
+  "hasAccessLink": "https://github.com/bids-standard/bids-examples.git",
   "hasSamples": [
     {
-      "identifier": "nb:43cbb6ee-4b3a-415b-a12c-8384b9a96ad7",
+      "identifier": "nb:bce258d2-045e-40d0-9df1-2b5e713102aa",
       "hasLabel": "sub-01",
       "hasSession": [
         {
-          "identifier": "nb:c302a421-5626-4e22-bb84-ca08bfcb933c",
+          "identifier": "nb:0e7f571c-de35-4c91-9a48-faead9470703",
           "hasLabel": "ses-01",
           "hasAge": 34.1,
           "hasSex": {
@@ -104,7 +143,7 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:bf60f021-78a7-4931-9a6d-052b07ec4bc4",
+          "identifier": "nb:6fa192e1-b0cb-4349-a5dc-50f0253125ae",
           "hasLabel": "ses-02",
           "hasAge": 35.3,
           "hasSex": {
@@ -133,11 +172,11 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:3a4e9074-bb8c-4fc3-bfa8-fa61429319fe",
+      "identifier": "nb:d789cb8a-4f8f-4a5c-b390-89de9fd86fb5",
       "hasLabel": "sub-02",
       "hasSession": [
         {
-          "identifier": "nb:18dd852d-5313-411b-9a94-894a4a382122",
+          "identifier": "nb:694ae330-e651-4b13-949c-5d4396ee33cd",
           "hasLabel": "ses-01",
           "hasSex": {
             "identifier": "snomed:248153007",
@@ -162,7 +201,7 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:ab344278-c912-417b-b8ad-a8406713ac7d",
+          "identifier": "nb:b0c8119a-e76a-4e10-a453-af0465180395",
           "hasLabel": "ses-02",
           "hasAge": 39.0,
           "hasSex": {
@@ -191,11 +230,11 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:36a86808-a12f-44e4-9eff-dbc8a2896c09",
+      "identifier": "nb:80109949-f21b-43f7-a73d-7165cd82b994",
       "hasLabel": "sub-03",
       "hasSession": [
         {
-          "identifier": "nb:fcbee62d-a87b-4f84-bff6-d23a2c558279",
+          "identifier": "nb:9771c95c-6235-416c-abd8-7c959ff1c982",
           "hasLabel": "ses-01",
           "hasAge": 22.1,
           "hasAssessment": [
@@ -207,7 +246,7 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:e561a2a1-14bd-4c2a-8f2e-c6a7727dc0f2",
+          "identifier": "nb:9be7c0ce-e194-483f-b1b8-a2da2ceea567",
           "hasLabel": "ses-02",
           "hasAge": 23.2,
           "hasDiagnosis": [
@@ -232,11 +271,11 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:e06282c4-653d-4147-8eca-e9fb0c069cb3",
+      "identifier": "nb:bd781029-cf2a-4561-acf0-7ca289e1ac71",
       "hasLabel": "sub-04",
       "hasSession": [
         {
-          "identifier": "nb:ba1f2bfd-6787-4ec3-a08b-d607f89f82f5",
+          "identifier": "nb:63fe3ab1-a66a-44f3-98d9-1a9e98f3e96a",
           "hasLabel": "ses-01",
           "hasAge": 21.1,
           "hasSex": {
@@ -258,7 +297,7 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:d1ed43d4-7196-4bb8-b08e-790e39873f77",
+          "identifier": "nb:3bc7ac46-33ba-4050-a7aa-21932ef7f1d9",
           "hasLabel": "ses-02",
           "hasAge": 22.3,
           "hasSex": {
@@ -287,11 +326,11 @@
       "schemaKey": "Subject"
     },
     {
-      "identifier": "nb:ad9bd63c-8ffe-4f82-817a-ac44c3491253",
+      "identifier": "nb:d2d653b9-c63a-4e93-84a3-423cde407da5",
       "hasLabel": "sub-05",
       "hasSession": [
         {
-          "identifier": "nb:495155da-ed84-4726-8a39-11fb390e1362",
+          "identifier": "nb:1f9c91d7-6a21-4803-9841-6cde737a01ad",
           "hasLabel": "ses-01",
           "hasAge": 42.5,
           "hasSex": {
@@ -317,7 +356,7 @@
           "schemaKey": "PhenotypicSession"
         },
         {
-          "identifier": "nb:8addd5a6-f87e-42f2-93ac-ac139c63d51b",
+          "identifier": "nb:d8ef02e4-916d-4b7b-acce-08778292f7f7",
           "hasLabel": "ses-02",
           "hasAge": 43.2,
           "hasSex": {
