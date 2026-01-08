@@ -1,5 +1,3 @@
-import logging
-
 import httpx
 import pytest
 from fastapi import status
@@ -30,7 +28,6 @@ def test_valid_nodes_do_not_error(
     """
     Smoke test that when a valid 'nodes' list is provided, POST /datasets does not raise an error and returns a combined response with the correct fields.
     """
-    caplog.set_level(logging.INFO)
 
     async def mock_httpx_request(self, method, url, **kwargs):
         return httpx.Response(

@@ -1,3 +1,5 @@
+import logging
+
 import httpx
 import pytest
 from starlette.testclient import TestClient
@@ -10,6 +12,12 @@ from app.main import app
 def test_app():
     client = TestClient(app)
     yield client
+
+
+@pytest.fixture(autouse=True, scope="session")
+def silence_httpx_info_logs():
+    """Silence httpx info-level logs during tests to reduce noise."""
+    logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 @pytest.fixture()

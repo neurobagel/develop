@@ -1,5 +1,4 @@
 import json
-import logging
 
 import httpx
 import pytest
@@ -195,9 +194,6 @@ def test_all_nodes_success_handled_gracefully(
     """
     Test that when queries sent to all nodes succeed, the federation API response includes an overall success status and no errors.
     """
-    # Need to set the logging level to INFO so that the success message is captured
-    # pytest by default captures WARNING or above: https://docs.pytest.org/en/stable/how-to/logging.html#caplog-fixture
-    caplog.set_level(logging.INFO)
 
     async def mock_httpx_request(self, method, url, **kwargs):
         return httpx.Response(

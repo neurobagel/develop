@@ -191,7 +191,7 @@ def test_no_available_nodes_raises_error(
             pass
 
     # Two warnings are expected:
-    # one via logging.warning for the failed GET request for public nodes, and
+    # one via logger.warning for the failed GET request for public nodes, and
     # one via warnings.warn for the lack of local nodes (because User error).
     assert len(w) == 1
     assert len(caplog.records) == 1

@@ -22,11 +22,13 @@ from .api.routers import (
 )
 from .api.security import check_client_id
 
-logger = logging.getLogger("nb-f-API")
-stdout_handler = logging.StreamHandler()
-
-logger.setLevel(logging.INFO)
-logger.addHandler(stdout_handler)
+# Configure root logging once so all loggers (including the httpx logger and custom app logger)
+# inherit same formatting
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    datefmt="[%Y-%m-%d %H:%M:%S]",
+)
 
 favicon_url = "https://raw.githubusercontent.com/neurobagel/documentation/main/docs/imgs/logo/neurobagel_favicon.png"
 
