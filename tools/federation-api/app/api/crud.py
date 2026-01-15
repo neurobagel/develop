@@ -2,12 +2,17 @@
 
 import asyncio
 import logging
+from typing import TypeVar
 
 from fastapi import HTTPException
+from pydantic import BaseModel
 
+from . import models
 from . import utility as util
 
 logger = logging.getLogger(__name__)
+
+QueryResponseT = TypeVar("QueryResponseT", bound=BaseModel)
 
 
 # TODO: Consider removing in future -
@@ -48,23 +53,26 @@ def build_combined_response(
     return content
 
 
-def gather_node_query_responses(node_urls: list, responses: list):
+def gather_node_query_responses(
+    node_urls: list, responses: list, response_cls: type[QueryResponseT]
+) -> tuple[list[QueryResponseT], list[dict]]:
     """Gather results and errors from a list of cohort query responses from multiple nodes."""
     cross_node_results = []
     node_errors = []
-    for node_url, response in zip(node_urls, responses):
+    for node_url, node_response in zip(node_urls, responses):
         node_name = util.FEDERATION_NODES[node_url]
-        if isinstance(response, HTTPException):
+        if isinstance(node_response, HTTPException):
             node_errors.append(
-                {"node_name": node_name, "error": response.detail}
+                {"node_name": node_name, "error": node_response.detail}
             )
             logger.warning(
-                f"Request to node {node_name} ({node_url}) did not succeed: {response.detail}"
+                f"Request to node {node_name} ({node_url}) did not succeed: {node_response.detail}"
             )
         else:
-            for result in response:
-                result["node_name"] = node_name
-            cross_node_results.extend(response)
+            for dataset_response in node_response:
+                dataset_response["node_name"] = node_name
+                dataset_result = response_cls.model_validate(dataset_response)
+                cross_node_results.append(dataset_result)
     return cross_node_results, node_errors
 
 
@@ -84,8 +92,8 @@ async def get(
 
     Returns
     -------
-    httpx.response
-        Response of the GET request.
+    dict
+        A combined response containing all nodes' responses and errors.
 
     """
     cross_node_results = []
@@ -104,7 +112,9 @@ async def get(
     responses = await asyncio.gather(*tasks, return_exceptions=True)
 
     cross_node_results, node_errors = gather_node_query_responses(
-        node_urls, responses
+        node_urls=node_urls,
+        responses=responses,
+        response_cls=models.CohortQueryResponse,
     )
 
     return build_combined_response(
@@ -119,7 +129,7 @@ async def post_subjects(
     # and modify the node list as a list of dictionaries (rather than NodeDatasets model instances)
     query: dict,
     token: str | None = None,
-):
+) -> dict:
     """
     Makes POST requests to the /subjects route of one or more Neurobagel node APIs.
 
@@ -133,8 +143,8 @@ async def post_subjects(
 
     Returns
     -------
-    httpx.response
-        Response of the POST request.
+    dict
+        A combined response containing all nodes' responses and errors.
 
     """
     # NOTE: The 'nodes' field in a single request can only be ALL dicts
@@ -161,7 +171,9 @@ async def post_subjects(
     responses = await asyncio.gather(*tasks, return_exceptions=True)
 
     cross_node_results, node_errors = gather_node_query_responses(
-        node_urls, responses
+        node_urls=node_urls,
+        responses=responses,
+        response_cls=models.SubjectsQueryResponse,
     )
 
     return build_combined_response(
@@ -174,7 +186,7 @@ async def post_subjects(
 async def post_datasets(
     query: dict,
     token: str | None = None,
-):
+) -> dict:
     """
     Makes POST requests to the /datasets route of one or more Neurobagel node APIs.
 
@@ -188,8 +200,8 @@ async def post_datasets(
 
     Returns
     -------
-    httpx.response
-        Response of the POST request.
+    dict
+        A combined response containing all nodes' responses and errors.
 
     """
     nodes_filter = util.validate_and_format_queried_nodes(query.get("nodes"))
@@ -217,7 +229,9 @@ async def post_datasets(
     responses = await asyncio.gather(*tasks, return_exceptions=True)
 
     cross_node_results, node_errors = gather_node_query_responses(
-        node_urls, responses
+        node_urls=node_urls,
+        responses=responses,
+        response_cls=models.DatasetsQueryResponse,
     )
 
     return build_combined_response(
@@ -227,7 +241,7 @@ async def post_datasets(
     )
 
 
-async def get_instances(attribute_path: str):
+async def get_instances(attribute_path: str) -> dict:
     """
     Makes a GET request to the root subpath of the specified attribute router of all available Neurobagel n-APIs.
 
@@ -285,7 +299,7 @@ async def get_instances(attribute_path: str):
     )
 
 
-async def get_pipeline_versions(pipeline_term: str):
+async def get_pipeline_versions(pipeline_term: str) -> dict:
     """
     Make a GET request to all available node APIs for available versions of a specified pipeline.
 

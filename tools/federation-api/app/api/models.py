@@ -74,11 +74,45 @@ class DatasetsQueryModel(BaseQueryModel):
 
 
 class DatasetsQueryResponse(BaseModel):
-    """Data model for dataset-level results for one dataset matching a given query."""
+    """Data model for dataset-level metadata for one dataset matching a given query."""
 
     node_name: str
     dataset_uuid: str
-    # dataset_file_path: str  # TODO: Revisit this field once we have datasets without imaging info/sessions.
+    dataset_name: str
+    authors: list[str] = Field(default_factory=list)
+    homepage: str | None = None
+    references_and_links: list[str] = Field(default_factory=list)
+    keywords: list[str] = Field(default_factory=list)
+    repository_url: str | None = None
+    access_instructions: str | None = None
+    access_type: str | None = None
+    access_email: str | None = None
+    access_link: str | None = None
+    dataset_total_subjects: int
+    records_protected: bool
+    num_matching_subjects: int
+    image_modals: list
+    available_pipelines: dict
+
+    model_config = ConfigDict(extra="ignore")
+
+
+class SubjectsQueryResponse(BaseModel):
+    """Data model for subject-level results for one dataset matching a given query."""
+
+    node_name: str
+    dataset_uuid: str
+    subject_data: list[dict] | str
+
+    model_config = ConfigDict(extra="ignore")
+
+
+class CohortQueryResponse(SubjectsQueryResponse):
+    """
+    Data model for a legacy GET /query endpoint response from a single node,
+    for backwards-compatibility only.
+    """
+
     dataset_name: str
     dataset_portal_uri: str | None
     dataset_total_subjects: int
@@ -86,12 +120,6 @@ class DatasetsQueryResponse(BaseModel):
     num_matching_subjects: int
     image_modals: list
     available_pipelines: dict
-
-
-class SubjectsQueryResponse(DatasetsQueryResponse):
-    """Data model for subject-level results for one dataset matching a given query."""
-
-    subject_data: list[dict] | str
 
 
 class NodesResponseStatus(str, Enum):
@@ -116,14 +144,27 @@ class BaseCombinedQueryResponse(BaseModel):
     nodes_response_status: NodesResponseStatus
 
 
+class CombinedCohortQueryResponse(BaseCombinedQueryResponse):
+    """
+    Data model for the combined cohort query results (GET /query) across all queried nodes.
+    For backwards-compatibility only.
+    """
+
+    responses: list[CohortQueryResponse]
+
+
 class CombinedSubjectsQueryResponse(BaseCombinedQueryResponse):
-    """Data model for the combined subjects query results of all matching datasets across all queried nodes."""
+    """
+    Data model for the combined subjects query results of all matching datasets (POST /subjects) across all queried nodes.
+    """
 
     responses: list[SubjectsQueryResponse]
 
 
 class CombinedDatasetsQueryResponse(BaseCombinedQueryResponse):
-    """Data model for the combined dataset query results of all matching datasets across all queried nodes."""
+    """
+    Data model for the combined dataset query results of all matching datasets (POST /datasets) across all queried nodes.
+    """
 
     responses: list[DatasetsQueryResponse]
 

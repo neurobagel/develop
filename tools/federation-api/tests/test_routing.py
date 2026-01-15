@@ -37,7 +37,7 @@ def test_request_without_trailing_slash_not_redirected(
     test_app,
     monkeypatch,
     set_valid_test_federation_nodes,
-    mocked_single_matching_dataset_result,
+    mocked_cohort_query_response_for_single_dataset,
     disable_auth,
     valid_route,
 ):
@@ -45,7 +45,8 @@ def test_request_without_trailing_slash_not_redirected(
 
     async def mock_httpx_request(self, method, url, **kwargs):
         return httpx.Response(
-            status_code=200, json=[mocked_single_matching_dataset_result]
+            status_code=200,
+            json=[mocked_cohort_query_response_for_single_dataset],
         )
 
     monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)

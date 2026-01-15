@@ -82,8 +82,8 @@ def mock_failed_connection_httpx_request():
 
 
 @pytest.fixture()
-def mocked_single_matching_dataset_result():
-    """Valid aggregate query result for a single matching dataset."""
+def mocked_cohort_query_response_for_single_dataset():
+    """Valid aggregate query response for a single matching dataset from a request to GET /query."""
     return {
         "dataset_uuid": "http://neurobagel.org/vocab/12345",
         "dataset_name": "QPN",
@@ -92,6 +92,48 @@ def mocked_single_matching_dataset_result():
         "num_matching_subjects": 5,
         "records_protected": True,
         "subject_data": "protected",
+        "image_modals": [
+            "http://purl.org/nidash/nidm#T1Weighted",
+            "http://purl.org/nidash/nidm#T2Weighted",
+        ],
+        "available_pipelines": {
+            "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/fmriprep": [
+                "23.1.3"
+            ],
+            "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/freesurfer": [
+                "7.3.2"
+            ],
+        },
+    }
+
+
+@pytest.fixture()
+def mocked_subjects_query_response_for_single_dataset():
+    """Valid aggregate query response for a single matching dataset from a request to POST /subjects."""
+    return {
+        "dataset_uuid": "http://neurobagel.org/vocab/12345",
+        "subject_data": "protected",
+    }
+
+
+@pytest.fixture()
+def mocked_datasets_query_response_for_single_dataset():
+    """Valid aggregate query response for a single matching dataset from a request to POST /datasets."""
+    return {
+        "dataset_uuid": "http://neurobagel.org/vocab/12345",
+        "dataset_name": "QPN",
+        "authors": ["First Author", "Second Author"],
+        "homepage": "https://rpq-qpn.ca/en/home/",
+        "references_and_links": [],
+        "keywords": ["Parkinson's disease", "Neuroimaging"],
+        "repository_url": None,
+        "access_instructions": None,
+        "access_type": "restricted",
+        "access_email": None,
+        "access_link": "https://rpq-qpn.ca/en/researchers-section/databases/",
+        "dataset_total_subjects": 200,
+        "num_matching_subjects": 5,
+        "records_protected": True,
         "image_modals": [
             "http://purl.org/nidash/nidm#T1Weighted",
             "http://purl.org/nidash/nidm#T2Weighted",

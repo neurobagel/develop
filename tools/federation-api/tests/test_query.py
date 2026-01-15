@@ -15,7 +15,7 @@ def test_partial_node_failure_responses_handled_gracefully(
     monkeypatch,
     test_app,
     set_valid_test_federation_nodes,
-    mocked_single_matching_dataset_result,
+    mocked_cohort_query_response_for_single_dataset,
     mock_token,
     set_mock_verify_token,
     caplog,
@@ -30,7 +30,8 @@ def test_partial_node_failure_responses_handled_gracefully(
         # which is a class method of the httpx.AsyncClient class (see https://www.python-httpx.org/api/#asyncclient).
         if url == "https://firstpublicnode.org/query":
             return httpx.Response(
-                status_code=200, json=[mocked_single_matching_dataset_result]
+                status_code=200,
+                json=[mocked_cohort_query_response_for_single_dataset],
             )
 
         return httpx.Response(
@@ -54,7 +55,7 @@ def test_partial_node_failure_responses_handled_gracefully(
         ],
         "responses": [
             {
-                **mocked_single_matching_dataset_result,
+                **mocked_cohort_query_response_for_single_dataset,
                 "node_name": "First Public Node",
             },
         ],
@@ -95,7 +96,7 @@ def test_partial_node_request_failures_handled_gracefully(
     monkeypatch,
     test_app,
     set_valid_test_federation_nodes,
-    mocked_single_matching_dataset_result,
+    mocked_cohort_query_response_for_single_dataset,
     mock_token,
     set_mock_verify_token,
     error_to_raise,
@@ -110,7 +111,8 @@ def test_partial_node_request_failures_handled_gracefully(
     async def mock_httpx_request(self, method, url, **kwargs):
         if url == "https://firstpublicnode.org/query":
             return httpx.Response(
-                status_code=200, json=[mocked_single_matching_dataset_result]
+                status_code=200,
+                json=[mocked_cohort_query_response_for_single_dataset],
             )
 
         raise error_to_raise
@@ -127,7 +129,7 @@ def test_partial_node_request_failures_handled_gracefully(
     response = response.json()
     assert response["responses"] == [
         {
-            **mocked_single_matching_dataset_result,
+            **mocked_cohort_query_response_for_single_dataset,
             "node_name": "First Public Node",
         },
     ]
@@ -187,7 +189,7 @@ def test_all_nodes_success_handled_gracefully(
     test_app,
     caplog,
     set_valid_test_federation_nodes,
-    mocked_single_matching_dataset_result,
+    mocked_cohort_query_response_for_single_dataset,
     mock_token,
     set_mock_verify_token,
 ):
@@ -197,7 +199,8 @@ def test_all_nodes_success_handled_gracefully(
 
     async def mock_httpx_request(self, method, url, **kwargs):
         return httpx.Response(
-            status_code=200, json=[mocked_single_matching_dataset_result]
+            status_code=200,
+            json=[mocked_cohort_query_response_for_single_dataset],
         )
 
     monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
@@ -220,7 +223,7 @@ def test_query_without_token_succeeds_when_auth_disabled(
     monkeypatch,
     test_app,
     set_valid_test_federation_nodes,
-    mocked_single_matching_dataset_result,
+    mocked_cohort_query_response_for_single_dataset,
     disable_auth,
 ):
     """
@@ -229,7 +232,8 @@ def test_query_without_token_succeeds_when_auth_disabled(
 
     async def mock_httpx_request(self, method, url, **kwargs):
         return httpx.Response(
-            status_code=200, json=[mocked_single_matching_dataset_result]
+            status_code=200,
+            json=[mocked_cohort_query_response_for_single_dataset],
         )
 
     monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
