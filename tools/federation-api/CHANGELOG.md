@@ -1,3 +1,19 @@
+# v0.8.0 (Thu Jan 15 2026)
+
+#### 💥 Breaking Changes
+
+- [ENH] Return expanded dataset metadata for `POST /datasets` only [#218](https://github.com/neurobagel/federation-api/pull/218) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Use named logger instead of root logging for logs [#217](https://github.com/neurobagel/federation-api/pull/217) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.7.1 (Tue Dec 23 2025)
 
 #### 🐛 Bug Fixes
