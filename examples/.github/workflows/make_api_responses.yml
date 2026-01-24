@@ -40,7 +40,7 @@ jobs:
       - name: Get data for Test node 1
         run: |
           mkdir test_node1/openneuro_mini_data
-          cp test_node1/openneuro-annotations/ds000001.jsonld test_node1/openneuro-annotations/ds000002.jsonld test_node1/openneuro_mini_data
+          cp test_node1/openneuro-annotations/jsonld/ds000001_derivative.jsonld test_node1/openneuro-annotations/jsonld/ds000002_derivative.jsonld test_node1/openneuro_mini_data
 
       - name: Configure Test node 1
         working-directory: test_node1/recipes
@@ -66,14 +66,20 @@ jobs:
             sleep 1
           done
 
-      - name: Generate partial success result
+      - name: Generate partial success results from f-API
         run: |
-          curl -s http://localhost:8080/query | jq . > api-responses/fapi_query_partial_success_207.json
+          curl -s -X POST http://localhost:8080/datasets -H "Content-Type: application/json" -d '{}' \
+            | jq . > api-responses/fapi_post_datasets_partial_success_207.json
+          curl -s -X POST http://localhost:8080/subjects -H "Content-Type: application/json" -d '{}' \
+            | jq . > api-responses/fapi_post_subjects_partial_success_207.json
 
-      - name: Generate a fail result
+      - name: Generate fail results from f-API
         run: |
           docker stop neurobagel_node-api-1
-          curl -s http://localhost:8080/query | jq . > api-responses/fapi_query_fail_207.json
+          curl -s -X POST http://localhost:8080/datasets -H "Content-Type: application/json" -d '{}' \
+            | jq . > api-responses/fapi_post_datasets_fail_207.json
+          curl -s -X POST http://localhost:8080/subjects -H "Content-Type: application/json" -d '{}' \
+            | jq . > api-responses/fapi_post_subjects_fail_207.json
 
       - name: Get recipes for Test node 2
         uses: actions/checkout@v6
@@ -107,16 +113,25 @@ jobs:
           # Add second n-API to the network of the first node, so that the f-API can access the second n-API by container name
           docker network connect neurobagel_node_default neurobagel_node2-api-1
       
-      - name: Generate full success result
+      - name: Generate full success results from f-API
         run: |
-          curl -s http://localhost:8080/query | jq . > api-responses/fapi_query_success_200.json
+          curl -s -X POST http://localhost:8080/datasets -H "Content-Type: application/json" -d '{}' \
+            | jq . > api-responses/fapi_post_datasets_success_200.json
+          curl -s -X POST http://localhost:8080/subjects -H "Content-Type: application/json" -d '{}' \
+            | jq . > api-responses/fapi_post_subjects_success_200.json
 
-      - name: Generate protected and open n-API results
+      - name: Generate n-API results with counts and records from POST /datasets and /subjects
         run: |
           # Test node 1
-          curl -s http://localhost:8000/query | jq . > api-responses/napi_query_aggregated_results.json
+          curl -s -X POST http://localhost:8000/subjects -H "Content-Type: application/json" -d '{}' \
+            | jq . > api-responses/napi_post_subjects_counts_results.json
+
           # Test node 2
-          curl -s http://localhost:8001/query | jq . > api-responses/napi_query_unaggregated_results.json
+          curl -s -X POST http://localhost:8001/subjects -H "Content-Type: application/json" -d '{}' \
+            | jq . > api-responses/napi_post_subjects_records_results.json
+          # Only need POST /datasets from one n-API, as the shape will be the same regardless of response granularity
+          curl -s -X POST http://localhost:8000/datasets -H "Content-Type: application/json" -d '{}' \
+            | jq . > api-responses/napi_post_datasets_results.json
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8
