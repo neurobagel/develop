@@ -1,3 +1,16 @@
+# v0.8.1 (Wed Mar 04 2026)
+
+#### 🚀 Enhancements
+
+- [MNT] Disable authentication by default [#229](https://github.com/neurobagel/federation-api/pull/229) ([@alyssadai](https://github.com/alyssadai))
+- [MNT] Standardize warnings and error logging using logger [#228](https://github.com/neurobagel/federation-api/pull/228) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.8.0 (Thu Jan 15 2026)
 
 #### 💥 Breaking Changes
