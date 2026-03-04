@@ -1,7 +1,18 @@
 import pytest
 from fastapi import HTTPException
 
+from app.api import security
 from app.api.security import extract_token, verify_token
+
+
+def test_default_auth_settings():
+    """
+    Test that by default, authentication is disabled and the client ID is not set.
+
+    TODO: This test will be made more robust as part of addressing https://github.com/neurobagel/federation-api/issues/166.
+    """
+    assert security.AUTH_ENABLED is False
+    assert security.CLIENT_ID is None
 
 
 def test_missing_client_id_raises_error_when_auth_enabled(
@@ -20,10 +31,6 @@ def test_missing_client_id_raises_error_when_auth_enabled(
     assert "NB_QUERY_CLIENT_ID is not set" in str(exc_info.value)
 
 
-# Ignore startup warning that is unrelated to the current test
-@pytest.mark.filterwarnings(
-    "ignore:No local Neurobagel nodes defined or found"
-)
 def test_missing_client_id_ignored_when_auth_disabled(monkeypatch, test_app):
     """Test that a missing client ID does not raise an error when authentication is disabled."""
     monkeypatch.setattr("app.api.security.CLIENT_ID", None)

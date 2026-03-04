@@ -7,7 +7,7 @@ from jwt import PyJWKClient, PyJWTError
 
 from .logger import get_logger, log_and_raise_error
 
-AUTH_ENABLED = os.environ.get("NB_ENABLE_AUTH", "True").lower() == "true"
+AUTH_ENABLED = os.environ.get("NB_ENABLE_AUTH", "False").lower() == "true"
 CLIENT_ID = os.environ.get("NB_QUERY_CLIENT_ID", None)
 
 KEYS_URL = "https://neurobagel.ca.auth0.com/.well-known/jwks.json"
