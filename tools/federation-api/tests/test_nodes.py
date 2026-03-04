@@ -97,7 +97,9 @@ def test_failed_public_nodes_fetching_raises_warning(
         assert warn_substr in caplog.text
 
 
-def test_unset_local_nodes_raises_warning(test_app, monkeypatch, disable_auth):
+def test_unset_local_nodes_raises_warning(
+    test_app, monkeypatch, disable_auth, caplog
+):
     """Test that when no local nodes are set, an informative warning is raised and the federation node index only includes remote nodes."""
 
     def mock_parse_nodes_as_dict(path):
@@ -121,26 +123,33 @@ def test_unset_local_nodes_raises_warning(test_app, monkeypatch, disable_auth):
     monkeypatch.setattr(util, "parse_nodes_as_dict", mock_parse_nodes_as_dict)
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
 
-    with pytest.warns(UserWarning) as w:
-        with test_app:
-            response = test_app.get("/nodes")
-            assert util.FEDERATION_NODES == {
-                "https://firstpublicnode.org/": "First Public Node",
-                "https://secondpublicnode.org/": "Second Public Node",
-            }
-            assert response.json() == [
-                {
-                    "NodeName": "First Public Node",
-                    "ApiURL": "https://firstpublicnode.org/",
-                },
-                {
-                    "NodeName": "Second Public Node",
-                    "ApiURL": "https://secondpublicnode.org/",
-                },
-            ]
+    with test_app:
+        response = test_app.get("/nodes")
 
-    assert len(w) == 1
-    assert "No local Neurobagel nodes defined or found" in w[0].message.args[0]
+        assert util.FEDERATION_NODES == {
+            "https://firstpublicnode.org/": "First Public Node",
+            "https://secondpublicnode.org/": "Second Public Node",
+        }
+        assert response.json() == [
+            {
+                "NodeName": "First Public Node",
+                "ApiURL": "https://firstpublicnode.org/",
+            },
+            {
+                "NodeName": "Second Public Node",
+                "ApiURL": "https://secondpublicnode.org/",
+            },
+        ]
+
+    warnings = [
+        record for record in caplog.records if record.levelname == "WARNING"
+    ]
+
+    assert len(warnings) == 1
+    assert (
+        "No local Neurobagel nodes defined or found"
+        in warnings[0].getMessage()
+    )
 
 
 def test_local_nodes_directory_does_not_raise_error(tmp_path):
@@ -171,7 +180,10 @@ def test_missing_local_nodes_file_does_not_raise_error(tmp_path):
 def test_no_available_nodes_raises_error(
     monkeypatch, test_app, disable_auth, caplog
 ):
-    """Test that when no local or remote nodes are available, an informative error is raised."""
+    """Test that when no local or remote nodes are available, an informative error is both logged and raised."""
+    expected_err = (
+        "No local or public Neurobagel nodes available for federation"
+    )
 
     def mock_parse_nodes_as_dict(path):
         return {}
@@ -184,19 +196,14 @@ def test_no_available_nodes_raises_error(
     monkeypatch.setattr(util, "parse_nodes_as_dict", mock_parse_nodes_as_dict)
     monkeypatch.setattr(httpx, "get", mock_httpx_get)
 
-    with pytest.warns(UserWarning) as w, pytest.raises(
-        RuntimeError
-    ) as exc_info:
+    with pytest.raises(RuntimeError) as exc_info:
         with test_app:
             pass
 
-    # Two warnings are expected:
-    # one via logger.warning for the failed GET request for public nodes, and
-    # one via warnings.warn for the lack of local nodes (because User error).
-    assert len(w) == 1
-    assert len(caplog.records) == 1
-    any(record.levelname == "WARNING" for record in caplog.records)
-    assert (
-        "No local or public Neurobagel nodes available for federation"
-        in str(exc_info.value)
-    )
+    errors = [
+        record for record in caplog.records if record.levelname == "ERROR"
+    ]
+
+    assert len(errors) == 1
+    assert expected_err in errors[0].getMessage()
+    assert expected_err in str(exc_info.value)

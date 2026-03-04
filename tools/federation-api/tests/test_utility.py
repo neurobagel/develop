@@ -273,33 +273,41 @@ def test_validate_queried_nodes(monkeypatch, raw_nodes, expected_nodes):
     ],
 )
 def test_schema_invalid_nodes_raise_warning(
-    set_nodes, expected_nodes, tmp_path
+    set_nodes, expected_nodes, tmp_path, caplog
 ):
     """
     If the JSON is valid but parts of the schema are invalid, expect to raise a warning
     and only return the parts that fit the schema.
     """
-    # TODO: split this test into the warning and the output
     # First create a temporary input config file for the test to read
     with open(tmp_path / "local_nb_nodes.json", "w") as f:
         f.write(json.dumps(set_nodes, indent=2))
 
-    with pytest.warns(
-        UserWarning, match=r"Some of the nodes in the JSON are invalid.*"
-    ):
-        nodes = util.parse_nodes_as_dict(tmp_path / "local_nb_nodes.json")
+    nodes = util.parse_nodes_as_dict(tmp_path / "local_nb_nodes.json")
+    warnings = [
+        record for record in caplog.records if record.levelname == "WARNING"
+    ]
 
+    assert len(warnings) == 1
+    assert (
+        "Some of the nodes in the JSON are invalid" in warnings[0].getMessage()
+    )
     assert nodes == expected_nodes
 
 
-def test_invalid_json_raises_warning(tmp_path):
+def test_invalid_json_raises_warning(tmp_path, caplog):
     """Ensure that an invalid JSON file raises a warning but doesn't crash the app."""
 
     with open(tmp_path / "local_nb_nodes.json", "w") as f:
         f.write("this is not valid JSON")
 
-    with pytest.warns(UserWarning, match="You provided an invalid JSON"):
-        util.parse_nodes_as_dict(tmp_path / "local_nb_nodes.json")
+    util.parse_nodes_as_dict(tmp_path / "local_nb_nodes.json")
+
+    warnings = [
+        record for record in caplog.records if record.levelname == "WARNING"
+    ]
+    assert len(warnings) == 1
+    assert "invalid JSON file" in warnings[0].getMessage()
 
 
 def test_empty_json_does_not_error(tmp_path):

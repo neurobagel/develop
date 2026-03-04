@@ -1,9 +1,7 @@
 """Constants and utility functions for federation."""
 
 import json
-import logging
 import os
-import warnings
 from collections import namedtuple
 from copy import deepcopy
 from pathlib import Path
@@ -14,7 +12,9 @@ import jsonschema
 from fastapi import HTTPException, status
 from jsonschema import validate
 
-logger = logging.getLogger(__name__)
+from .logger import get_logger, log_and_raise_error
+
+logger = get_logger(__name__)
 
 EnvVar = namedtuple("EnvVar", ["name", "value"])
 
@@ -93,7 +93,7 @@ def parse_nodes_as_dict(path: Path) -> dict:
             with open(path, "r") as f:
                 local_nodes = json.load(f)
         except json.JSONDecodeError:
-            warnings.warn(f"You provided an invalid JSON file at {path}.")
+            logger.warning(f"You provided an invalid JSON file at {path}.")
             local_nodes = []
 
         # We wrap our input in a list if it isn't already to enable
@@ -120,7 +120,7 @@ def parse_nodes_as_dict(path: Path) -> dict:
                     invalid_nodes.append(node)
 
             if invalid_nodes:
-                warnings.warn(
+                logger.warning(
                     "Some of the nodes in the JSON are invalid:\n"
                     f"{json.dumps(invalid_nodes, indent=2)}"
                 )
@@ -145,7 +145,7 @@ async def create_federation_node_index():
     local_nodes = parse_nodes_as_dict(LOCAL_NODE_INDEX_PATH)
 
     if not local_nodes:
-        warnings.warn(
+        logger.warning(
             "No local Neurobagel nodes defined or found. Federation "
             " will be limited to nodes available from the "
             f"Neurobagel public node directory {node_directory_url}. "
@@ -185,11 +185,13 @@ async def create_federation_node_index():
                 )
             else:
                 logger.warning(failed_get_warning)
-                raise RuntimeError(
-                    "No local or public Neurobagel nodes available for federation."
+                log_and_raise_error(
+                    logger,
+                    RuntimeError,
+                    "No local or public Neurobagel nodes available for federation. "
                     "Please define at least one local node in "
                     "a 'local_nb_nodes.json' file in the "
-                    "current directory and try again."
+                    "current directory and try again.",
                 )
 
     # This step will remove any duplicate keys from the local and public node dicts, giving priority to the local nodes.

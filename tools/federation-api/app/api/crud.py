@@ -1,7 +1,6 @@
 """CRUD functions called by path operations."""
 
 import asyncio
-import logging
 from typing import TypeVar
 
 from fastapi import HTTPException
@@ -9,8 +8,9 @@ from pydantic import BaseModel
 
 from . import models
 from . import utility as util
+from .logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 QueryResponseT = TypeVar("QueryResponseT", bound=BaseModel)
 
