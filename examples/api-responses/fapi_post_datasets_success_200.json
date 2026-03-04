@@ -1,9 +1,46 @@
 {
   "errors": [],
+  "nodes_response_status": "success",
   "responses": [
     {
       "node_name": "2 OpenNeuro Datasets",
-      "dataset_uuid": "http://neurobagel.org/vocab/1c9a29d8-9ce7-4bb6-9c44-f33ac504bcb4",
+      "dataset_uuid": "http://neurobagel.org/vocab/1ea53a53-620f-406e-aa99-0a6564e05c95",
+      "dataset_name": "Classification learning",
+      "authors": [
+        "Aron, A.R.",
+        "Gluck, M.A.",
+        "Poldrack, R.A."
+      ],
+      "homepage": "https://openneuro.org/datasets/ds000002",
+      "references_and_links": [
+        "https://openneuro.org/datasets/ds000002",
+        "Aron, A.R., Gluck, M.A., Poldrack, R.A. (2006). Long-term test-retest reliability of functional MRI in a classification learning task. Neuroimage, 29(3):1000-6"
+      ],
+      "keywords": [],
+      "repository_url": "https://github.com/OpenNeuroDatasets-JSONLD/ds000002.git",
+      "access_instructions": null,
+      "access_type": "public",
+      "access_email": null,
+      "access_link": null,
+      "dataset_total_subjects": 17,
+      "records_protected": true,
+      "num_matching_subjects": 17,
+      "image_modals": [
+        "http://purl.org/nidash/nidm#T1Weighted",
+        "http://purl.org/nidash/nidm#FlowWeighted"
+      ],
+      "available_pipelines": {
+        "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/fmriprep": [
+          "21.0.2"
+        ],
+        "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/mriqc": [
+          "0.16.1"
+        ]
+      }
+    },
+    {
+      "node_name": "2 OpenNeuro Datasets",
+      "dataset_uuid": "http://neurobagel.org/vocab/46e5ead2-6b55-4318-a23b-8da8b40fe2c5",
       "dataset_name": "Balloon Analog Risk-taking Task",
       "authors": [
         "Tom Schonberg",
@@ -11,73 +48,54 @@
         "Craig Fox",
         "Russell A. Poldrack"
       ],
+      "homepage": "https://openneuro.org/datasets/ds000001",
       "references_and_links": [
+        "https://openneuro.org/datasets/ds000001",
         "Schonberg TS, Fox CR, Mumford JA, Congdon E, Trepel C, Poldrack RA (2012). Decreasing ventromedial prefrontal cortex activity during sequential risk-taking: An fMRI investigation of the Balloon Analogue Risk Task. Frontiers in Decision Neuroscience, 6:80 doi: 10.3389/fnins.2012.00080"
       ],
       "keywords": [],
+      "repository_url": "https://github.com/OpenNeuroDatasets-JSONLD/ds000001.git",
       "access_instructions": null,
-      "access_type": null,
+      "access_type": "public",
       "access_email": null,
       "access_link": null,
-      "homepage": "https://openneuro.org/datasets/ds000001",
-      "repository_url": "https://github.com/OpenNeuroDatasets-JSONLD/ds000001.git",
       "dataset_total_subjects": 16,
       "records_protected": true,
       "num_matching_subjects": 16,
       "image_modals": [
-        "http://purl.org/nidash/nidm#T2Weighted",
         "http://purl.org/nidash/nidm#T1Weighted",
         "http://purl.org/nidash/nidm#FlowWeighted"
       ],
-      "available_pipelines": {}
-    },
-    {
-      "node_name": "2 OpenNeuro Datasets",
-      "dataset_uuid": "http://neurobagel.org/vocab/c7bb6a5b-4066-4a59-b56c-3c6fe4d44b90",
-      "dataset_name": "Classification learning",
-      "authors":  [
-        "Aron, A.R.",
-        "Gluck, M.A.",
-        "Poldrack, R.A."
-      ],
-      "references_and_links": [
-        "Aron, A.R., Gluck, M.A., Poldrack, R.A. (2006). Long-term test-retest reliability of functional MRI in a classification learning task. Neuroimage, 29(3):1000-6"
-      ],
-      "keywords": [],
-      "access_instructions": null,
-      "access_type": null,
-      "access_email": null,
-      "access_link": null,
-      "homepage": "https://openneuro.org/datasets/ds000002",
-      "repository_url": "https://github.com/OpenNeuroDatasets-JSONLD/ds000002.git",
-      "dataset_total_subjects": 17,
-      "records_protected": true,
-      "num_matching_subjects": 17,
-      "image_modals": [
-        "http://purl.org/nidash/nidm#T2Weighted",
-        "http://purl.org/nidash/nidm#T1Weighted",
-        "http://purl.org/nidash/nidm#FlowWeighted"
-      ],
-      "available_pipelines": {}
+      "available_pipelines": {
+        "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/fmriprep": [
+          "21.0.1"
+        ],
+        "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/mriqc": [
+          "0.16.1"
+        ]
+      }
     },
     {
       "node_name": "BIDS Synthetic",
-      "dataset_uuid": "http://neurobagel.org/vocab/925a0d0c-7b16-47a2-8505-6fabcc18a68c",
+      "dataset_uuid": "http://neurobagel.org/vocab/81b969c4-64a1-45dd-be65-aee0cb30c056",
       "dataset_name": "BIDS synthetic",
-      "authors":  [
+      "authors": [
         "Markiewicz, C. J.",
         "Gau, Rémi"
       ],
-      "references_and_links":  [
+      "homepage": "https://bids-website.readthedocs.io/en/latest/datasets/examples.html#mri",
+      "references_and_links": [
         "https://bids-website.readthedocs.io/en/latest/datasets/examples.html#mri"
       ],
-      "keywords": ["synthetic", "nback"],
+      "keywords": [
+        "synthetic",
+        "nback"
+      ],
+      "repository_url": "https://github.com/bids-standard/bids-examples.git",
       "access_instructions": "Clone the git repository. The dataset is located in the 'synthetic' subdirectory.",
       "access_type": "public",
       "access_email": "bids.curator@gmail.com",
       "access_link": "https://github.com/bids-standard/bids-examples.git",
-      "homepage": "https://bids-website.readthedocs.io/en/latest/datasets/examples.html#mri",
-      "repository_url": "https://github.com/bids-standard/bids-examples.git",
       "dataset_total_subjects": 5,
       "records_protected": false,
       "num_matching_subjects": 5,
@@ -94,6 +112,5 @@
         ]
       }
     }
-  ],
-  "nodes_response_status": "success"
+  ]
 }

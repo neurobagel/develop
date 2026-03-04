@@ -1,0 +1,73 @@
+[
+  {
+    "dataset_uuid": "http://neurobagel.org/vocab/1ea53a53-620f-406e-aa99-0a6564e05c95",
+    "dataset_name": "Classification learning",
+    "authors": [
+      "Aron, A.R.",
+      "Gluck, M.A.",
+      "Poldrack, R.A."
+    ],
+    "homepage": "https://openneuro.org/datasets/ds000002",
+    "references_and_links": [
+      "https://openneuro.org/datasets/ds000002",
+      "Aron, A.R., Gluck, M.A., Poldrack, R.A. (2006). Long-term test-retest reliability of functional MRI in a classification learning task. Neuroimage, 29(3):1000-6"
+    ],
+    "keywords": [],
+    "repository_url": "https://github.com/OpenNeuroDatasets-JSONLD/ds000002.git",
+    "access_instructions": null,
+    "access_type": "public",
+    "access_email": null,
+    "access_link": null,
+    "dataset_total_subjects": 17,
+    "records_protected": true,
+    "num_matching_subjects": 17,
+    "image_modals": [
+      "http://purl.org/nidash/nidm#T1Weighted",
+      "http://purl.org/nidash/nidm#FlowWeighted"
+    ],
+    "available_pipelines": {
+      "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/fmriprep": [
+        "21.0.2"
+      ],
+      "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/mriqc": [
+        "0.16.1"
+      ]
+    }
+  },
+  {
+    "dataset_uuid": "http://neurobagel.org/vocab/46e5ead2-6b55-4318-a23b-8da8b40fe2c5",
+    "dataset_name": "Balloon Analog Risk-taking Task",
+    "authors": [
+      "Tom Schonberg",
+      "Christopher Trepel",
+      "Craig Fox",
+      "Russell A. Poldrack"
+    ],
+    "homepage": "https://openneuro.org/datasets/ds000001",
+    "references_and_links": [
+      "https://openneuro.org/datasets/ds000001",
+      "Schonberg TS, Fox CR, Mumford JA, Congdon E, Trepel C, Poldrack RA (2012). Decreasing ventromedial prefrontal cortex activity during sequential risk-taking: An fMRI investigation of the Balloon Analogue Risk Task. Frontiers in Decision Neuroscience, 6:80 doi: 10.3389/fnins.2012.00080"
+    ],
+    "keywords": [],
+    "repository_url": "https://github.com/OpenNeuroDatasets-JSONLD/ds000001.git",
+    "access_instructions": null,
+    "access_type": "public",
+    "access_email": null,
+    "access_link": null,
+    "dataset_total_subjects": 16,
+    "records_protected": true,
+    "num_matching_subjects": 16,
+    "image_modals": [
+      "http://purl.org/nidash/nidm#T1Weighted",
+      "http://purl.org/nidash/nidm#FlowWeighted"
+    ],
+    "available_pipelines": {
+      "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/fmriprep": [
+        "21.0.1"
+      ],
+      "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/mriqc": [
+        "0.16.1"
+      ]
+    }
+  }
+]
