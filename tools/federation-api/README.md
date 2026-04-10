@@ -61,3 +61,28 @@ docker run -d -v ${PWD}/local_nb_nodes.json:/usr/src/local_nb_nodes.json:ro \
     --name=federation -p 8080:8000 neurobagel/federation_api
 ```
 NOTE: You can replace the port number `8080` for the `-p` flag with any port on the host you wish to use for the API.
+
+## Setting up a local development environment
+
+We [use `uv`](https://docs.astral.sh/uv/getting-started/installation/)
+for our local dev environment.
+
+Once `uv` is installed, just run
+
+```bash
+uv sync --group dev
+```
+
+to set up the project in editable mode.
+
+And then launch the API with 
+
+```bash
+uv run uvicorn app.main:app
+```
+
+Also don't forget to set up pre-commit with
+
+```bash
+uv run pre-commit install
+```
