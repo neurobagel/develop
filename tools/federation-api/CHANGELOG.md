@@ -1,3 +1,21 @@
+# v0.9.0 (Thu Jun 04 2026)
+
+#### 🚀 Enhancements
+
+- [ENH] Support requests to catalog-mode nodes [#252](https://github.com/neurobagel/federation-api/pull/252) ([@rmanaem](https://github.com/rmanaem))
+
+#### 🏠 Internal
+
+- [MNT] Add uv for dependency management [#239](https://github.com/neurobagel/federation-api/pull/239) ([@surchs](https://github.com/surchs) [@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 3
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
 # v0.8.1 (Wed Mar 04 2026)
 
 #### 🚀 Enhancements
