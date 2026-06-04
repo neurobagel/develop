@@ -90,7 +90,7 @@ class DatasetsQueryResponse(BaseModel):
     access_link: str | None = None
     dataset_total_subjects: int
     records_protected: bool
-    num_matching_subjects: int
+    num_matching_subjects: int | None
     image_modals: list
     available_pipelines: dict
 

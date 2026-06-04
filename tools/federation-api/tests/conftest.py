@@ -147,3 +147,26 @@ def mocked_datasets_query_response_for_single_dataset():
             ],
         },
     }
+
+
+@pytest.fixture()
+def mocked_datasets_query_response_for_single_dataset_from_catalog_node():
+    """Valid aggregate query response for a single matching dataset from a catalog node from a request to POST /datasets."""
+    return {
+        "dataset_uuid": "http://neurobagel.org/vocab/12345",
+        "dataset_name": "QPN",
+        "authors": ["First Author", "Second Author"],
+        "homepage": "https://rpq-qpn.ca/en/home/",
+        "references_and_links": [],
+        "keywords": ["Parkinson's disease", "Neuroimaging"],
+        "repository_url": None,
+        "access_instructions": None,
+        "access_type": "restricted",
+        "access_email": None,
+        "access_link": "https://rpq-qpn.ca/en/researchers-section/databases/",
+        "dataset_total_subjects": 200,
+        "num_matching_subjects": None,
+        "records_protected": True,
+        "image_modals": [],
+        "available_pipelines": {},
+    }

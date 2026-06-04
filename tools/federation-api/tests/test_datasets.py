@@ -5,6 +5,7 @@ from fastapi import status
 ROUTE = "/datasets"
 
 
+@pytest.mark.parametrize("mock_node_type", ["subject-level", "catalog"])
 @pytest.mark.parametrize(
     "valid_nodes",
     [
@@ -21,7 +22,9 @@ def test_valid_nodes_query_does_not_error(
     disable_auth,
     set_valid_test_federation_nodes,
     mocked_datasets_query_response_for_single_dataset,
+    mocked_datasets_query_response_for_single_dataset_from_catalog_node,
     valid_nodes,
+    mock_node_type,
     monkeypatch,
     caplog,
 ):
@@ -30,9 +33,16 @@ def test_valid_nodes_query_does_not_error(
     """
 
     async def mock_httpx_request(self, method, url, **kwargs):
+        if mock_node_type == "subject-level":
+            return httpx.Response(
+                status_code=200,
+                json=[mocked_datasets_query_response_for_single_dataset],
+            )
         return httpx.Response(
             status_code=200,
-            json=[mocked_datasets_query_response_for_single_dataset],
+            json=[
+                mocked_datasets_query_response_for_single_dataset_from_catalog_node
+            ],
         )
 
     monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
@@ -86,6 +96,52 @@ def test_valid_nodes_query_returns_only_dataset_metadata(
         assert "subject_data" not in response
         assert "dataset_name" in response
         assert "access_type" in response
+
+
+@pytest.mark.parametrize(
+    "valid_nodes",
+    [
+        [
+            {"node_url": "https://firstpublicnode.org/"},
+            {"node_url": "https://secondpublicnode.org/"},
+        ],
+        [],
+        None,
+    ],
+)
+def test_valid_nodes_query_returns_only_catalog_metadata_from_catalog_nodes(
+    test_app,
+    disable_auth,
+    set_valid_test_federation_nodes,
+    mocked_datasets_query_response_for_single_dataset_from_catalog_node,
+    valid_nodes,
+    monkeypatch,
+):
+    """
+    Test that when a valid 'nodes' list is provided and all known nodes are in catalog mode, the POST /datasets response includes expected
+    dataset-level metadata fields and no subject, imaging, or derivative data.
+    """
+
+    async def mock_httpx_request(self, method, url, **kwargs):
+        return httpx.Response(
+            status_code=200,
+            json=[
+                mocked_datasets_query_response_for_single_dataset_from_catalog_node
+            ],
+        )
+
+    monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
+
+    response = test_app.post(ROUTE, json={"nodes": valid_nodes})
+
+    response = response.json()
+    for response in response["responses"]:
+        assert "subject_data" not in response
+        assert "dataset_name" in response
+        assert "access_type" in response
+        assert response.get("num_matching_subjects") is None
+        assert response.get("image_modals") == []
+        assert response.get("available_pipelines") == {}
 
 
 @pytest.mark.parametrize(
