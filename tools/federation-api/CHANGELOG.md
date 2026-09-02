@@ -1,3 +1,15 @@
+# v0.9.1 (Wed Sep 02 2026)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Limit timeout for instances endpoints to 5s [#265](https://github.com/neurobagel/federation-api/pull/265) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.9.0 (Thu Jun 04 2026)
 
 #### 🚀 Enhancements
