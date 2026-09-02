@@ -263,8 +263,11 @@ async def get_instances(attribute_path: str) -> dict:
     # so we define it locally based on the requested attribute path.
     attribute_uri = util.RESOURCE_URI_MAP[attribute_path]
 
+    # TODO: Revisit timeout when https://github.com/neurobagel/federation-api/issues/261 is addressed
+    # At the moment we set it to a low number to ensure instances can be fetched
+    # within a reasonable time by the query tool
     tasks = [
-        util.send_request(method="GET", url=node_request_url)
+        util.send_request(method="GET", url=node_request_url, timeout=5)
         for node_request_url in build_node_request_urls(
             util.FEDERATION_NODES, attribute_path
         )

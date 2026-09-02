@@ -302,7 +302,7 @@ async def send_request(
     token : str, optional
         Authorization token for the request, by default None.
     timeout : float, optional
-        Timeout for the request, by default None.
+        Timeout for the request in seconds, by default None.
 
     Returns
     -------

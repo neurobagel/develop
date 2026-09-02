@@ -161,6 +161,50 @@ def test_partially_failed_get_instances_handled_gracefully(
     assert response_object["nodes_response_status"] == "partial success"
 
 
+@pytest.mark.parametrize(
+    "timeout_exception",
+    [
+        httpx.ConnectTimeout("Connection timed out"),
+        httpx.ReadTimeout("Request timed out"),
+    ],
+)
+def test_instance_request_timeout_handled_gracefully(
+    test_app, monkeypatch, set_valid_test_federation_nodes, timeout_exception
+):
+    """
+    When a node request times out while getting term instances for an attribute (/assessments),
+    the overall API get request still succeeds.
+    """
+
+    async def mock_httpx_request(self, method, url, **kwargs):
+        if urlparse(url).hostname == "firstpublicnode.org":
+            raise timeout_exception
+        return httpx.Response(
+            status_code=200,
+            json={
+                "nb:Assessment": [
+                    {
+                        "TermURL": "cogatlas:trm_56a9137d9dce1",
+                        "Label": "behavioral approach/inhibition systems",
+                    },
+                ]
+            },
+        )
+
+    monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
+
+    response = test_app.get("/assessments")
+    response_object = response.json()
+
+    assert response.status_code == status.HTTP_207_MULTI_STATUS
+    assert len(response_object["errors"]) == 1
+
+    failed_node = response_object["errors"][0]
+    assert failed_node["node_name"] == "First Public Node"
+    assert "Request failed due to a timeout" in failed_node["error"]
+    assert response_object["responses"]["nb:Assessment"] != []
+
+
 def test_fully_failed_get_instances_handled_gracefully(
     test_app,
     monkeypatch,
