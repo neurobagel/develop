@@ -30,20 +30,19 @@ classifiers = [
 ]
 
 dependencies = [
-    "fastapi[standard]",
-    "pydantic>=2.10,<3",
-    "PyJWT",
-    "typing-extensions",
-	"jsonschema",
-    "orjson"
+  "fastapi[standard]",
+  "pydantic>=2.10,<3",
+  "PyJWT",
+  "typing-extensions",
+  "jsonschema",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest",
-    "pytest-cov",
-	"pytest-asyncio",
-	"pre-commit"
+  "pytest",
+  "pytest-cov",
+  "pytest-asyncio",
+  "pre-commit"
 ]
 
 [tool.hatch.version]
