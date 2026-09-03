@@ -1,4 +1,5 @@
 import json
+from urllib.parse import urlparse
 
 import httpx
 import pytest
@@ -15,23 +16,23 @@ def test_partial_node_failure_responses_handled_gracefully(
     monkeypatch,
     test_app,
     set_valid_test_federation_nodes,
-    mocked_cohort_query_response_for_single_dataset,
+    mocked_subjects_query_response_for_single_dataset,
     mock_token,
     set_mock_verify_token,
     caplog,
 ):
     """
-    Test that when queries to some nodes return unsuccessful responses, the overall API get request still succeeds,
+    Test that when queries to some nodes return unsuccessful responses, the overall API cohort query request still succeeds,
     the successful responses are returned along with a list of the encountered errors, and the failed nodes are logged to the console.
     """
 
     async def mock_httpx_request(self, method, url, **kwargs):
         # The self parameter is necessary to match the signature of the method being mocked,
         # which is a class method of the httpx.AsyncClient class (see https://www.python-httpx.org/api/#asyncclient).
-        if url == "https://firstpublicnode.org/query":
+        if urlparse(url).hostname == "firstpublicnode.org":
             return httpx.Response(
                 status_code=200,
-                json=[mocked_cohort_query_response_for_single_dataset],
+                json=[mocked_subjects_query_response_for_single_dataset],
             )
 
         return httpx.Response(
@@ -40,9 +41,10 @@ def test_partial_node_failure_responses_handled_gracefully(
 
     monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
 
-    response = test_app.get(
-        "/query",
+    response = test_app.post(
+        "/subjects",
         headers={"Authorization": mock_token},
+        json={},
     )
 
     assert response.status_code == status.HTTP_207_MULTI_STATUS
@@ -55,7 +57,7 @@ def test_partial_node_failure_responses_handled_gracefully(
         ],
         "responses": [
             {
-                **mocked_cohort_query_response_for_single_dataset,
+                **mocked_subjects_query_response_for_single_dataset,
                 "node_name": "First Public Node",
             },
         ],
@@ -96,7 +98,7 @@ def test_partial_node_request_failures_handled_gracefully(
     monkeypatch,
     test_app,
     set_valid_test_federation_nodes,
-    mocked_cohort_query_response_for_single_dataset,
+    mocked_subjects_query_response_for_single_dataset,
     mock_token,
     set_mock_verify_token,
     error_to_raise,
@@ -104,24 +106,25 @@ def test_partial_node_request_failures_handled_gracefully(
     caplog,
 ):
     """
-    Test that when requests to some nodes fail (so there is no response status code), the overall API get request still succeeds,
+    Test that when requests to some nodes fail (so there is no response status code), the overall API cohort query request still succeeds,
     the successful responses are returned along with a list of the encountered errors, and the failed nodes are logged to the console.
     """
 
     async def mock_httpx_request(self, method, url, **kwargs):
-        if url == "https://firstpublicnode.org/query":
+        if urlparse(url).hostname == "firstpublicnode.org":
             return httpx.Response(
                 status_code=200,
-                json=[mocked_cohort_query_response_for_single_dataset],
+                json=[mocked_subjects_query_response_for_single_dataset],
             )
 
         raise error_to_raise
 
     monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
 
-    response = test_app.get(
-        "/query",
+    response = test_app.post(
+        "/subjects",
         headers={"Authorization": mock_token},
+        json={},
     )
 
     assert response.status_code == status.HTTP_207_MULTI_STATUS
@@ -129,7 +132,7 @@ def test_partial_node_request_failures_handled_gracefully(
     response = response.json()
     assert response["responses"] == [
         {
-            **mocked_cohort_query_response_for_single_dataset,
+            **mocked_subjects_query_response_for_single_dataset,
             "node_name": "First Public Node",
         },
     ]
@@ -158,16 +161,17 @@ def test_all_nodes_failure_handled_gracefully(
     caplog,
 ):
     """
-    Test that when queries sent to all nodes fail, the federation API get request still succeeds,
+    Test that when queries sent to all nodes fail, the federation API cohort query request still succeeds,
     but includes an overall failure status and all encountered errors in the response.
     """
     monkeypatch.setattr(
-        httpx.AsyncClient, "get", mock_failed_connection_httpx_request
+        httpx.AsyncClient, "post", mock_failed_connection_httpx_request
     )
 
-    response = test_app.get(
-        "/query",
+    response = test_app.post(
+        "/subjects",
         headers={"Authorization": mock_token},
+        json={},
     )
 
     # We expect 3 logs here: one warning for each failed node, and one error for the overall failure
@@ -189,25 +193,26 @@ def test_all_nodes_success_handled_gracefully(
     test_app,
     caplog,
     set_valid_test_federation_nodes,
-    mocked_cohort_query_response_for_single_dataset,
+    mocked_subjects_query_response_for_single_dataset,
     mock_token,
     set_mock_verify_token,
 ):
     """
-    Test that when queries sent to all nodes succeed, the federation API response includes an overall success status and no errors.
+    Test that when queries sent to all nodes succeed, the federation API cohort query response includes an overall success status and no errors.
     """
 
     async def mock_httpx_request(self, method, url, **kwargs):
         return httpx.Response(
             status_code=200,
-            json=[mocked_cohort_query_response_for_single_dataset],
+            json=[mocked_subjects_query_response_for_single_dataset],
         )
 
     monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
 
-    response = test_app.get(
-        "/query",
+    response = test_app.post(
+        "/subjects",
         headers={"Authorization": mock_token},
+        json={},
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -223,7 +228,7 @@ def test_query_without_token_succeeds_when_auth_disabled(
     monkeypatch,
     test_app,
     set_valid_test_federation_nodes,
-    mocked_cohort_query_response_for_single_dataset,
+    mocked_subjects_query_response_for_single_dataset,
     disable_auth,
 ):
     """
@@ -233,11 +238,11 @@ def test_query_without_token_succeeds_when_auth_disabled(
     async def mock_httpx_request(self, method, url, **kwargs):
         return httpx.Response(
             status_code=200,
-            json=[mocked_cohort_query_response_for_single_dataset],
+            json=[mocked_subjects_query_response_for_single_dataset],
         )
 
     monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
 
-    response = test_app.get("/query")
+    response = test_app.post("/subjects", json={})
 
     assert response.status_code == status.HTTP_200_OK

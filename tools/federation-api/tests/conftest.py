@@ -49,7 +49,7 @@ def mock_verify_token():
 def set_mock_verify_token(monkeypatch, mock_verify_token):
     """Set the verify_token function to a mock that does not raise any exceptions."""
     monkeypatch.setattr(
-        "app.api.routers.query.verify_token",
+        "app.api.routers.subjects.verify_token",
         mock_verify_token,
     )
 
@@ -69,7 +69,7 @@ def set_valid_test_federation_nodes(monkeypatch):
 
 @pytest.fixture()
 def mock_failed_connection_httpx_request():
-    """Return a mock for the httpx.AsyncClient.get method that raises a ConnectError when called."""
+    """Return a mock for the httpx.AsyncClient.post method that raises a ConnectError when called."""
 
     async def _mock_httpx_request_with_connect_error(
         self, method, url, **kwargs
@@ -79,32 +79,6 @@ def mock_failed_connection_httpx_request():
         raise httpx.ConnectError("Some connection error")
 
     return _mock_httpx_request_with_connect_error
-
-
-@pytest.fixture()
-def mocked_cohort_query_response_for_single_dataset():
-    """Valid aggregate query response for a single matching dataset from a request to GET /query."""
-    return {
-        "dataset_uuid": "http://neurobagel.org/vocab/12345",
-        "dataset_name": "QPN",
-        "dataset_portal_uri": "https://rpq-qpn.ca/en/researchers-section/databases/",
-        "dataset_total_subjects": 200,
-        "num_matching_subjects": 5,
-        "records_protected": True,
-        "subject_data": "protected",
-        "image_modals": [
-            "http://purl.org/nidash/nidm#T1Weighted",
-            "http://purl.org/nidash/nidm#T2Weighted",
-        ],
-        "available_pipelines": {
-            "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/fmriprep": [
-                "23.1.3"
-            ],
-            "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/freesurfer": [
-                "7.3.2"
-            ],
-        },
-    }
 
 
 @pytest.fixture()

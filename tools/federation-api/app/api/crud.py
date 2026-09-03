@@ -76,54 +76,6 @@ def gather_node_query_responses(
     return cross_node_results, node_errors
 
 
-async def get(
-    query: dict,
-    token: str | None = None,
-) -> dict:
-    """
-    Makes GET requests to one or more Neurobagel node APIs where the parameters are Neurobagel query parameters.
-
-    Parameters
-    ----------
-    query : dict
-        Dictionary of Neurobagel query parameters, including a node_url list.
-    token : str, optional
-        ID token for authentication, by default None
-
-    Returns
-    -------
-    dict
-        A combined response containing all nodes' responses and errors.
-
-    """
-    cross_node_results = []
-    node_errors = []
-
-    node_urls = util.validate_query_node_url_list(query.get("node_url"))
-
-    query.pop("node_url", None)
-
-    tasks = [
-        util.send_request(
-            method="GET", url=node_request_url, params=query, token=token
-        )
-        for node_request_url in build_node_request_urls(node_urls, "query")
-    ]
-    responses = await asyncio.gather(*tasks, return_exceptions=True)
-
-    cross_node_results, node_errors = gather_node_query_responses(
-        node_urls=node_urls,
-        responses=responses,
-        response_cls=models.CohortQueryResponse,
-    )
-
-    return build_combined_response(
-        total_nodes=len(node_urls),
-        cross_node_results=cross_node_results,
-        node_errors=node_errors,
-    )
-
-
 async def post_subjects(
     # We accept a dict instead of a Pydantic model to make it more flexible to inspect
     # and modify the node list as a list of dictionaries (rather than NodeDatasets model instances)

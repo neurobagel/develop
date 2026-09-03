@@ -29,37 +29,30 @@ def test_root(
     )
 
 
-@pytest.mark.parametrize(
-    "valid_route",
-    ["/query", "/query?min_age=20", "/nodes"],
-)
 def test_request_without_trailing_slash_not_redirected(
     test_app,
     monkeypatch,
     set_valid_test_federation_nodes,
-    mocked_cohort_query_response_for_single_dataset,
+    mocked_subjects_query_response_for_single_dataset,
     disable_auth,
-    valid_route,
 ):
     """Test that a request to a route without a / is not redirected to have a trailing slash."""
 
     async def mock_httpx_request(self, method, url, **kwargs):
         return httpx.Response(
             status_code=200,
-            json=[mocked_cohort_query_response_for_single_dataset],
+            json=[mocked_subjects_query_response_for_single_dataset],
         )
 
     monkeypatch.setattr(httpx.AsyncClient, "request", mock_httpx_request)
 
-    response = test_app.get(valid_route, follow_redirects=False)
+    response = test_app.post("/subjects", json={}, follow_redirects=False)
     assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.parametrize(
     "invalid_route",
     [
-        "/query/",
-        "/query/?min_age=20",
         "/nodes/",
         "/attributes/",
         "/assessments/",

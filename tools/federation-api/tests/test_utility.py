@@ -28,34 +28,34 @@ def test_add_trailing_slash(url, expected_url):
     [
         (
             {
-                "ApiURL": "http://firstnode.neurobagel.org/query",
+                "ApiURL": "http://firstnode.neurobagel.org/",
                 "NodeName": "firstnode",
             },
-            {"http://firstnode.neurobagel.org/query/": "firstnode"},
+            {"http://firstnode.neurobagel.org/": "firstnode"},
         ),
         (
             [
                 {
-                    "ApiURL": "http://firstnode.neurobagel.org/query",
+                    "ApiURL": "http://firstnode.neurobagel.org/",
                     "NodeName": "firstnode",
                 }
             ],
-            {"http://firstnode.neurobagel.org/query/": "firstnode"},
+            {"http://firstnode.neurobagel.org/": "firstnode"},
         ),
         (
             [
                 {
-                    "ApiURL": "https://firstnode.neurobagel.org/query/",
+                    "ApiURL": "https://firstnode.neurobagel.org/",
                     "NodeName": "firstnode",
                 },
                 {
-                    "ApiURL": "https://secondnode.neurobagel.org/query",
+                    "ApiURL": "https://secondnode.neurobagel.org/",
                     "NodeName": "secondnode",
                 },
             ],
             {
-                "https://firstnode.neurobagel.org/query/": "firstnode",
-                "https://secondnode.neurobagel.org/query/": "secondnode",
+                "https://firstnode.neurobagel.org/": "firstnode",
+                "https://secondnode.neurobagel.org/": "secondnode",
             },
         ),
     ],
@@ -118,45 +118,6 @@ def test_unrecognized_query_nodes_raise_error(
         f"Unrecognized Neurobagel node URL(s): {unrecognized_urls}"
         in exc_info.value.detail
     )
-
-
-@pytest.mark.parametrize(
-    "raw_url_list, expected_url_list",
-    [
-        (["https://firstknownnode.org"], ["https://firstknownnode.org/"]),
-        (
-            ["https://firstknownnode.org", "https://secondknownnode.org/"],
-            ["https://firstknownnode.org/", "https://secondknownnode.org/"],
-        ),
-        (
-            ["", "https://secondknownnode.org"],
-            ["https://secondknownnode.org/"],
-        ),
-        (
-            [
-                "https://secondknownnode.org/",
-                "https://firstknownnode.org",
-                "https://secondknownnode.org/",
-            ],
-            ["https://secondknownnode.org/", "https://firstknownnode.org/"],
-        ),
-        ([], ["https://firstknownnode.org/", "https://secondknownnode.org/"]),
-    ],
-)
-def test_validate_query_node_url_list(
-    monkeypatch, raw_url_list, expected_url_list
-):
-    """Test that provided URLs are deduplicated, get a trailing slash, and default to FEDERATION_NODES if none are provided."""
-    monkeypatch.setattr(
-        util,
-        "FEDERATION_NODES",
-        {
-            "https://firstknownnode.org/": "My First Node",
-            "https://secondknownnode.org/": "My Second Node",
-        },
-    )
-
-    assert util.validate_query_node_url_list(raw_url_list) == expected_url_list
 
 
 @pytest.mark.parametrize(

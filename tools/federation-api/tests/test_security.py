@@ -67,14 +67,15 @@ def test_query_with_malformed_auth_header_fails(
     monkeypatch,
 ):
     """
-    Test that when authentication is enabled, a request to the /query route with a
+    Test that when authentication is enabled, a request to the /subjects route with a
     missing or malformed authorization header fails.
     """
     monkeypatch.setattr("app.api.security.CLIENT_ID", "foo.id")
 
-    response = test_app.get(
-        "/query",
+    response = test_app.post(
+        "/subjects",
         headers=invalid_auth_header,
+        json={},
     )
 
     assert response.status_code == 403

@@ -107,21 +107,6 @@ class SubjectsQueryResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
 
-class CohortQueryResponse(SubjectsQueryResponse):
-    """
-    Data model for a legacy GET /query endpoint response from a single node,
-    for backwards-compatibility only.
-    """
-
-    dataset_name: str
-    dataset_portal_uri: str | None
-    dataset_total_subjects: int
-    records_protected: bool
-    num_matching_subjects: int
-    image_modals: list
-    available_pipelines: dict
-
-
 class NodesResponseStatus(str, Enum):
     """Possible values for the status of the responses from the queried nodes."""
 
@@ -142,15 +127,6 @@ class BaseCombinedQueryResponse(BaseModel):
 
     errors: list[NodeError]
     nodes_response_status: NodesResponseStatus
-
-
-class CombinedCohortQueryResponse(BaseCombinedQueryResponse):
-    """
-    Data model for the combined cohort query results (GET /query) across all queried nodes.
-    For backwards-compatibility only.
-    """
-
-    responses: list[CohortQueryResponse]
 
 
 class CombinedSubjectsQueryResponse(BaseCombinedQueryResponse):
