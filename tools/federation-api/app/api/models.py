@@ -13,7 +13,9 @@ class BaseQueryModel(BaseModel):
     min_age: float = Field(default=None, description="Minimum age of subject.")
     max_age: float = Field(default=None, description="Maximum age of subject.")
     sex: str = Field(default=None, description="Sex of subject.")
-    diagnosis: str = Field(default=None, description="Subject diagnosis.")
+    diagnosis: list[str] = Field(
+        default_factory=list, description="Subject diagnosis."
+    )
     min_num_imaging_sessions: int = Field(
         default=None, description="Subject minimum number of imaging sessions."
     )
@@ -21,18 +23,16 @@ class BaseQueryModel(BaseModel):
         default=None,
         description="Subject minimum number of phenotypic sessions.",
     )
-    assessment: str = Field(
-        default=None,
+    assessment: list[str] = Field(
+        default_factory=list,
         description="Non-imaging assessment completed by subjects.",
     )
-    image_modal: str = Field(
-        default=None, description="Imaging modality of subject scans."
+    image_modal: list[str] = Field(
+        default_factory=list, description="Imaging modality of subject scans."
     )
-    pipeline_name: str = Field(
-        default=None, description="Name of pipeline run on subject scans."
-    )
-    pipeline_version: str = Field(
-        default=None, description="Version of pipeline run on subject scans."
+    pipeline: list[dict[str, str]] = Field(
+        default_factory=list,
+        description="Pipeline run on subject scans.",
     )
 
     model_config = ConfigDict(extra="forbid")
