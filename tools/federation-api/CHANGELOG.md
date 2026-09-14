@@ -1,3 +1,28 @@
+# v0.10.0 (Mon Sep 14 2026)
+
+#### 💥 Breaking Changes
+
+- [ENH] Support AND queries for categorical variables other than sex [#270](https://github.com/neurobagel/federation-api/pull/270) ([@alyssadai](https://github.com/alyssadai))
+- [REF] Remove legacy `/query` endpoint [#266](https://github.com/neurobagel/federation-api/pull/266) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [TST] Migrate tests in legacy test module `test_query.py` [#271](https://github.com/neurobagel/federation-api/pull/271) ([@alyssadai](https://github.com/alyssadai))
+
+####  🧪 Tests
+
+- [TST] Add test runners for Python 3.11-3.13 [#272](https://github.com/neurobagel/federation-api/pull/272) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🔩 Dependency Updates
+
+- [MNT] Remove deprecated `orjson` dependency [#268](https://github.com/neurobagel/federation-api/pull/268) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
 # v0.9.1 (Wed Sep 02 2026)
 
 #### 🐛 Bug Fixes
