@@ -1,0 +1,840 @@
+{
+  "@context": {
+    "nb": "http://neurobagel.org/vocab/",
+    "snomed": "http://purl.bioontology.org/ontology/SNOMEDCT/",
+    "nidm": "http://purl.org/nidash/nidm#",
+    "ncit": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#",
+    "np": "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/",
+    "Acquisition": "nb:Acquisition",
+    "identifier": "@id",
+    "hasContrastType": {
+      "@id": "nb:hasContrastType"
+    },
+    "schemaKey": "@type",
+    "Assessment": "nb:Assessment",
+    "Bagel": "nb:Bagel",
+    "BaseModel": "nb:BaseModel",
+    "CompletedPipeline": "nb:CompletedPipeline",
+    "hasPipelineVersion": {
+      "@id": "nb:hasPipelineVersion"
+    },
+    "hasPipelineName": {
+      "@id": "nb:hasPipelineName"
+    },
+    "ControlledTerm": "nb:ControlledTerm",
+    "Dataset": "nb:Dataset",
+    "hasLabel": {
+      "@id": "nb:hasLabel"
+    },
+    "hasAuthors": {
+      "@id": "nb:hasAuthors"
+    },
+    "hasReferencesAndLinks": {
+      "@id": "nb:hasReferencesAndLinks"
+    },
+    "hasKeywords": {
+      "@id": "nb:hasKeywords"
+    },
+    "hasRepositoryURL": {
+      "@id": "nb:hasRepositoryURL"
+    },
+    "hasAccessInstructions": {
+      "@id": "nb:hasAccessInstructions"
+    },
+    "hasAccessType": {
+      "@id": "nb:hasAccessType"
+    },
+    "hasAccessEmail": {
+      "@id": "nb:hasAccessEmail"
+    },
+    "hasAccessLink": {
+      "@id": "nb:hasAccessLink"
+    },
+    "hasPortalURI": {
+      "@id": "nb:hasPortalURI"
+    },
+    "hasSamples": {
+      "@id": "nb:hasSamples"
+    },
+    "Diagnosis": "nb:Diagnosis",
+    "Image": "nb:Image",
+    "ImagingSession": "nb:ImagingSession",
+    "hasFilePath": {
+      "@id": "nb:hasFilePath"
+    },
+    "hasAcquisition": {
+      "@id": "nb:hasAcquisition"
+    },
+    "hasCompletedPipeline": {
+      "@id": "nb:hasCompletedPipeline"
+    },
+    "PhenotypicSession": "nb:PhenotypicSession",
+    "hasAge": {
+      "@id": "nb:hasAge"
+    },
+    "hasSex": {
+      "@id": "nb:hasSex"
+    },
+    "isSubjectGroup": {
+      "@id": "nb:isSubjectGroup"
+    },
+    "hasDiagnosis": {
+      "@id": "nb:hasDiagnosis"
+    },
+    "hasAssessment": {
+      "@id": "nb:hasAssessment"
+    },
+    "Pipeline": "nb:Pipeline",
+    "Session": "nb:Session",
+    "Sex": "nb:Sex",
+    "Subject": "nb:Subject",
+    "hasSession": {
+      "@id": "nb:hasSession"
+    },
+    "SubjectGroup": "nb:SubjectGroup"
+  },
+  "identifier": "nb:81b969c4-64a1-45dd-be65-aee0cb30c056",
+  "hasLabel": "BIDS synthetic",
+  "hasAuthors": [
+    "Markiewicz, C. J.",
+    "Gau, Rémi"
+  ],
+  "hasReferencesAndLinks": [
+    "https://bids-website.readthedocs.io/en/latest/datasets/examples.html#mri"
+  ],
+  "hasKeywords": [
+    "synthetic",
+    "nback"
+  ],
+  "hasRepositoryURL": "https://github.com/bids-standard/bids-examples.git",
+  "hasAccessInstructions": "Clone the git repository. The dataset is located in the 'synthetic' subdirectory.",
+  "hasAccessType": "public",
+  "hasAccessEmail": "bids.curator@gmail.com",
+  "hasAccessLink": "https://github.com/bids-standard/bids-examples.git",
+  "hasSamples": [
+    {
+      "identifier": "nb:bce258d2-045e-40d0-9df1-2b5e713102aa",
+      "hasLabel": "sub-01",
+      "hasSession": [
+        {
+          "identifier": "nb:0e7f571c-de35-4c91-9a48-faead9470703",
+          "hasLabel": "ses-01",
+          "hasAge": 34.1,
+          "hasSex": {
+            "identifier": "snomed:248152002",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "ncit:C94342",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:6fa192e1-b0cb-4349-a5dc-50f0253125ae",
+          "hasLabel": "ses-02",
+          "hasAge": 35.3,
+          "hasSex": {
+            "identifier": "snomed:248152002",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "ncit:C94342",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:a3a2c1aa-562a-4a8a-b1ac-27dee135bc55",
+          "hasLabel": "ses-01",
+          "hasFilePath": "/data/neurobagel/synthetic/sub-01/ses-01",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:5c02d6aa-f4b8-49bc-b7e0-3b63f92f8c4d",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:a50a3c5c-4af7-4757-8c4e-8c3d1dc0ce5d",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:8ba6e4db-2c36-445c-a3ed-226ac7fcae70",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:33c3d7c9-fbbf-4dba-8562-654f96e6bb7d",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "hasCompletedPipeline": [
+            {
+              "identifier": "nb:073f8699-9e56-4741-9711-6f93bb865d4c",
+              "hasPipelineVersion": "23.1.3",
+              "hasPipelineName": {
+                "identifier": "np:fmriprep",
+                "schemaKey": "Pipeline"
+              },
+              "schemaKey": "CompletedPipeline"
+            },
+            {
+              "identifier": "nb:f6a53167-56d4-40f6-8893-cd8c8bf8f5ab",
+              "hasPipelineVersion": "7.3.2",
+              "hasPipelineName": {
+                "identifier": "np:freesurfer",
+                "schemaKey": "Pipeline"
+              },
+              "schemaKey": "CompletedPipeline"
+            }
+          ],
+          "schemaKey": "ImagingSession"
+        },
+        {
+          "identifier": "nb:66306597-3f65-40bb-91dd-ce4de0b69209",
+          "hasLabel": "ses-02",
+          "hasFilePath": "/data/neurobagel/synthetic/sub-01/ses-02",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:e72dabf9-a18f-4057-b5ec-995e9ee0c57e",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:8a872086-5bcd-452c-86d8-42c87020cab0",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:1cce015b-947c-41c9-baa4-c00a2528d2dd",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:48af013f-ddfa-4c8b-a4a6-c8ee3c79afca",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "ImagingSession"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "nb:d789cb8a-4f8f-4a5c-b390-89de9fd86fb5",
+      "hasLabel": "sub-02",
+      "hasSession": [
+        {
+          "identifier": "nb:694ae330-e651-4b13-949c-5d4396ee33cd",
+          "hasLabel": "ses-01",
+          "hasSex": {
+            "identifier": "snomed:248153007",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "snomed:406506008",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:b0c8119a-e76a-4e10-a453-af0465180395",
+          "hasLabel": "ses-02",
+          "hasAge": 39.0,
+          "hasSex": {
+            "identifier": "snomed:248153007",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "snomed:406506008",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:80297ce2-4b57-49fd-8947-046858d748b1",
+          "hasLabel": "ses-01",
+          "hasFilePath": "/data/neurobagel/synthetic/sub-02/ses-01",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:5ff9e427-eb81-4f48-9a9e-b114cade8d9b",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:39d9c0a3-8048-41d6-ae06-0d5c3fdd53f8",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:4429acd5-180d-4ab4-a91d-e387a03fafb2",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:365e0285-15d7-402e-a2d4-1b0e5042d0b5",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "hasCompletedPipeline": [
+            {
+              "identifier": "nb:773c06c1-8721-432e-b9fd-c8eff7d33765",
+              "hasPipelineVersion": "23.1.3",
+              "hasPipelineName": {
+                "identifier": "np:fmriprep",
+                "schemaKey": "Pipeline"
+              },
+              "schemaKey": "CompletedPipeline"
+            },
+            {
+              "identifier": "nb:b7dde59e-fb90-4ec2-bb3f-483079ed5080",
+              "hasPipelineVersion": "7.3.2",
+              "hasPipelineName": {
+                "identifier": "np:freesurfer",
+                "schemaKey": "Pipeline"
+              },
+              "schemaKey": "CompletedPipeline"
+            }
+          ],
+          "schemaKey": "ImagingSession"
+        },
+        {
+          "identifier": "nb:0245bf37-5193-4c73-aa92-6e99ae602173",
+          "hasLabel": "ses-02",
+          "hasFilePath": "/data/neurobagel/synthetic/sub-02/ses-02",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:a55045d9-e833-4016-9fd4-3f2b8af4bf50",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:da0ddf3c-ba5b-48ae-a771-2a9e39a38a5e",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:476f6dcf-77ff-4556-a6a3-9db26495cfeb",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:d777a1ef-bbd1-4d21-9ed9-1ce392e95b9a",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "hasCompletedPipeline": [
+            {
+              "identifier": "nb:12335c31-a24f-4e05-ab94-91aa64ec3937",
+              "hasPipelineVersion": "7.3.2",
+              "hasPipelineName": {
+                "identifier": "np:freesurfer",
+                "schemaKey": "Pipeline"
+              },
+              "schemaKey": "CompletedPipeline"
+            }
+          ],
+          "schemaKey": "ImagingSession"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "nb:80109949-f21b-43f7-a73d-7165cd82b994",
+      "hasLabel": "sub-03",
+      "hasSession": [
+        {
+          "identifier": "nb:9771c95c-6235-416c-abd8-7c959ff1c982",
+          "hasLabel": "ses-01",
+          "hasAge": 22.1,
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:9be7c0ce-e194-483f-b1b8-a2da2ceea567",
+          "hasLabel": "ses-02",
+          "hasAge": 23.2,
+          "hasDiagnosis": [
+            {
+              "identifier": "snomed:406506008",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:5cea378c-6944-439f-93ca-318fbf3ffc05",
+          "hasLabel": "ses-01",
+          "hasFilePath": "/data/neurobagel/synthetic/sub-03/ses-01",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:66bbc63b-3887-433e-9c06-a4ff49412c26",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:70f43b84-a892-45e3-9bab-099f296054a6",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:fd003c14-a7ca-4703-a9ac-2ae3c7e16eba",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:69efbb27-e15e-4135-9536-8a7b5b545b16",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "ImagingSession"
+        },
+        {
+          "identifier": "nb:1105729f-3c36-4294-8bb3-42da5e2e04ba",
+          "hasLabel": "ses-02",
+          "hasFilePath": "/data/neurobagel/synthetic/sub-03/ses-02",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:06cff063-9629-4ad8-82b9-987d7f7e051f",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:475e2fb9-4f48-4536-b7e6-3588f90bc531",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:6e2234ca-4d14-45e0-8d86-b27383a8ce85",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:65c9f2b8-eae4-49c5-b3dc-79580268bd69",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "ImagingSession"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "nb:bd781029-cf2a-4561-acf0-7ca289e1ac71",
+      "hasLabel": "sub-04",
+      "hasSession": [
+        {
+          "identifier": "nb:63fe3ab1-a66a-44f3-98d9-1a9e98f3e96a",
+          "hasLabel": "ses-01",
+          "hasAge": 21.1,
+          "hasSex": {
+            "identifier": "snomed:248152002",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "ncit:C94342",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:3bc7ac46-33ba-4050-a7aa-21932ef7f1d9",
+          "hasLabel": "ses-02",
+          "hasAge": 22.3,
+          "hasSex": {
+            "identifier": "snomed:248152002",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "ncit:C94342",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:753b0db8-6c18-4895-82dd-7d933d431915",
+          "hasLabel": "ses-01",
+          "hasFilePath": "/data/neurobagel/synthetic/sub-04/ses-01",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:d9261a8b-9fa4-46b0-afcd-675a8e94d6cb",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:f52bcea5-debe-4e2c-a24b-338f5297c4cb",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:6e5e330e-cff1-4f5b-a614-908e5d4dd1d7",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:681363c2-96bd-4144-9ef4-2dffc8fd5795",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "ImagingSession"
+        },
+        {
+          "identifier": "nb:88df1a2c-4931-447a-ae65-ae90d1215872",
+          "hasLabel": "ses-02",
+          "hasFilePath": "/data/neurobagel/synthetic/sub-04/ses-02",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:8c8ee4d2-bf1e-4445-9bde-8d0f5b7024cf",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:317fa6cc-3456-486e-b2dd-c88a90bc69cb",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:ff8ad5f4-6f89-4185-a50c-ae2111cf559b",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:9a3a98ca-35a5-4217-a077-e5b71c6c540f",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "ImagingSession"
+        }
+      ],
+      "schemaKey": "Subject"
+    },
+    {
+      "identifier": "nb:d2d653b9-c63a-4e93-84a3-423cde407da5",
+      "hasLabel": "sub-05",
+      "hasSession": [
+        {
+          "identifier": "nb:1f9c91d7-6a21-4803-9841-6cde737a01ad",
+          "hasLabel": "ses-01",
+          "hasAge": 42.5,
+          "hasSex": {
+            "identifier": "snomed:248153007",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "snomed:406506008",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:d8ef02e4-916d-4b7b-acce-08778292f7f7",
+          "hasLabel": "ses-02",
+          "hasAge": 43.2,
+          "hasSex": {
+            "identifier": "snomed:248153007",
+            "schemaKey": "Sex"
+          },
+          "hasDiagnosis": [
+            {
+              "identifier": "snomed:406506008",
+              "schemaKey": "Diagnosis"
+            }
+          ],
+          "hasAssessment": [
+            {
+              "identifier": "snomed:859351000000102",
+              "schemaKey": "Assessment"
+            },
+            {
+              "identifier": "snomed:342061000000106",
+              "schemaKey": "Assessment"
+            }
+          ],
+          "schemaKey": "PhenotypicSession"
+        },
+        {
+          "identifier": "nb:466440ef-1e6a-405d-8ee7-d7bde02e18b7",
+          "hasLabel": "ses-01",
+          "hasFilePath": "/data/neurobagel/synthetic/sub-05/ses-01",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:29d86fcf-62a7-4519-bf40-c49d65805e41",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:d76dca38-d283-4e29-b8a3-b182f28ae414",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:d2fa76de-38f2-47af-b599-70ea11650ea9",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:052d154a-22c6-44d7-8c2e-ad7e1eb0033a",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "ImagingSession"
+        },
+        {
+          "identifier": "nb:302b5dd4-b80e-4e58-bd39-6e37483408b3",
+          "hasLabel": "ses-02",
+          "hasFilePath": "/data/neurobagel/synthetic/sub-05/ses-02",
+          "hasAcquisition": [
+            {
+              "identifier": "nb:4b943dab-7bb7-48dc-a338-36cca4d20030",
+              "hasContrastType": {
+                "identifier": "nidm:T1Weighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:0c44dcf1-42d1-4b74-a28e-267ddf3e7fe6",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:7efdb250-7736-499a-8d84-dc3f2c600534",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            },
+            {
+              "identifier": "nb:1982320e-418a-45be-9c3d-f32c33d21b8d",
+              "hasContrastType": {
+                "identifier": "nidm:FlowWeighted",
+                "schemaKey": "Image"
+              },
+              "schemaKey": "Acquisition"
+            }
+          ],
+          "schemaKey": "ImagingSession"
+        }
+      ],
+      "schemaKey": "Subject"
+    }
+  ],
+  "schemaKey": "Dataset"
+}

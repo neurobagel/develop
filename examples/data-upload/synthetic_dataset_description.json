@@ -1,0 +1,16 @@
+{
+	"Name": "BIDS synthetic",
+	"Authors": [
+		"Markiewicz, C. J.",
+		"Gau, Rémi"
+	],
+	"ReferencesAndLinks": [
+		"https://bids-website.readthedocs.io/en/latest/datasets/examples.html#mri"
+	],
+	"Keywords": ["synthetic", "nback"],
+	"RepositoryURL": "https://github.com/bids-standard/bids-examples.git",
+	"AccessInstructions": "Clone the git repository. The dataset is located in the 'synthetic' subdirectory.",
+	"AccessType": "public",
+	"AccessEmail": "bids.curator@gmail.com",
+	"AccessLink": "https://github.com/bids-standard/bids-examples.git"
+}
