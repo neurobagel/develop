@@ -1,0 +1,100 @@
+services:
+
+  init_data:
+    build:
+      context: ./init_data
+    volumes:
+      - "${LOCAL_GRAPH_DATA:-./data}:/input_data"
+      - "neurobagel_data:/data"
+    environment:
+      NB_CATALOG_MODE: ${NB_CATALOG_MODE:-false}
+    command: >
+      sh -euxc "rm -rf /data/* && python -m init_data.process_jsonld /input_data /data"
+
+  api:
+    image: "neurobagel/api:${NB_NAPI_TAG:-latest}"
+    depends_on:
+      init_data:
+        condition: service_completed_successfully
+    ports:
+      - "${NB_NAPI_PORT_HOST:-8000}:8000"
+    environment:
+      NB_GRAPH_USERNAME: ${NB_GRAPH_USERNAME}
+      NB_GRAPH_ADDRESS: graph
+      NB_GRAPH_PORT: 7200
+      NB_GRAPH_DB: ${NB_GRAPH_DB:-repositories/my_db}
+      NB_DATASETS_METADATA_PATH: /data/datasets_metadata.json
+      NB_RETURN_AGG: ${NB_RETURN_AGG:-true}
+      NB_MIN_CELL_SIZE: ${NB_MIN_CELL_SIZE:-0}
+      NB_API_PORT: 8000
+      NB_NAPI_BASE_PATH: ${NB_NAPI_BASE_PATH}
+      NB_API_ALLOWED_ORIGINS: ${NB_NAPI_ALLOWED_ORIGINS:-"*"}
+      NB_ENABLE_AUTH: ${NB_ENABLE_AUTH:-false}
+      NB_QUERY_CLIENT_ID: ${NB_QUERY_CLIENT_ID}
+      NB_CONFIG: ${NB_CONFIG:-Neurobagel}
+      NB_CATALOG_MODE: ${NB_CATALOG_MODE:-false}
+    volumes:
+      - "./scripts/api_entrypoint.sh:/usr/src/api_entrypoint.sh"
+      - "neurobagel_data:/data"
+    entrypoint:
+      - "/usr/src/api_entrypoint.sh"
+    secrets:
+      - db_user_password
+
+  graph:
+    image: "ontotext/graphdb:10.8.12"
+    depends_on:
+      init_data:
+        condition: service_completed_successfully
+    volumes:
+      - "graphdb_home:/opt/graphdb/home"
+      - "./scripts:/usr/src/neurobagel/scripts"
+      - "./vocab:/usr/src/neurobagel/vocab"
+      - "neurobagel_data:/data"
+    ports:
+      - "${NB_GRAPH_PORT_HOST:-7200}:7200"
+    environment:
+      NB_GRAPH_USERNAME: ${NB_GRAPH_USERNAME}
+      NB_GRAPH_PORT: 7200
+      NB_GRAPH_DB: ${NB_GRAPH_DB:-repositories/my_db}
+      NB_GRAPH_MEMORY: ${NB_GRAPH_MEMORY:-2G}
+    entrypoint:
+      - "/usr/src/neurobagel/scripts/setup.sh"
+    working_dir: "/usr/src/neurobagel/scripts"
+    secrets:
+      - db_admin_password
+      - db_user_password
+
+  federation:
+    image: "neurobagel/federation_api:${NB_FAPI_TAG:-latest}"
+    ports:
+      - "${NB_FAPI_PORT_HOST:-8080}:8000"
+    volumes:
+      - "./local_nb_nodes.json:/usr/src/local_nb_nodes.json:ro"
+    environment:
+      NB_API_PORT: 8000
+      NB_FAPI_BASE_PATH: ${NB_FAPI_BASE_PATH}
+      NB_FEDERATE_REMOTE_PUBLIC_NODES: ${NB_FEDERATE_REMOTE_PUBLIC_NODES:-True}
+      NB_ENABLE_AUTH: ${NB_ENABLE_AUTH:-false}
+      NB_QUERY_CLIENT_ID: ${NB_QUERY_CLIENT_ID}
+
+  query_federation:
+    image: "neurobagel/query_tool:${NB_QUERY_TAG:-latest}"
+    ports:
+      - "${NB_QUERY_PORT_HOST:-3000}:5173"
+    environment:
+      NB_API_QUERY_URL: ${NB_API_QUERY_URL:-http://localhost:8080}
+      NB_QUERY_APP_BASE_PATH: ${NB_QUERY_APP_BASE_PATH:-/}
+      NB_ENABLE_AUTH: ${NB_ENABLE_AUTH:-false}
+      NB_QUERY_CLIENT_ID: ${NB_QUERY_CLIENT_ID}
+      NB_QUERY_HEADER_SCRIPT: ${NB_QUERY_HEADER_SCRIPT}
+
+secrets:
+  db_admin_password:
+    file: ${NB_GRAPH_SECRETS_PATH:-./secrets}/NB_GRAPH_ADMIN_PASSWORD.txt
+  db_user_password:
+    file: ${NB_GRAPH_SECRETS_PATH:-./secrets}/NB_GRAPH_PASSWORD.txt
+
+volumes:
+  graphdb_home:
+  neurobagel_data:
