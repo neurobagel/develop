@@ -26,3 +26,43 @@ jobs:
 
       - name: Run shellcheck
         run: shellcheck scripts/*.sh
+
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      federation-api: ${{ steps.filter.outputs.federation-api }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Detect changed tools
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            federation-api:
+              - 'tools/federation-api/**'
+              - '.github/workflows/test-python.yml'
+
+  check-unchanged:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # needs the imported upstream commits for the diff
+          fetch-depth: 0
+
+      - name: Check protected paths
+        run: scripts/check-unchanged.sh
+
+  federation-api:
+    needs: changes
+    if: needs.changes.outputs.federation-api == 'true'
+    uses: ./.github/workflows/test-python.yml
+    with:
+      tool: federation-api
+      python-versions: '["3.10", "3.11", "3.12", "3.13"]'
