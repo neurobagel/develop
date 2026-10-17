@@ -37,6 +37,11 @@ on:
         required: false
         type: string
         default: ""
+      link-check:
+        description: Check links in the tool's Markdown, HTML and TypeScript files with lychee (reads the tool's lychee.toml)
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -79,6 +84,21 @@ jobs:
       # Runs in the tool folder so codespell reads the tool's .codespellrc
       - name: Codespell
         run: pipx run codespell
+
+  link-check:
+    name: Check for broken links
+    if: inputs.link-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          workingDirectory: tools/${{ inputs.tool }}
+          fail: true
+          args: --verbose --no-progress '**/*.md' '**/*.html' '**/*.ts' '**/*.tsx'
 
   unit:
     if: inputs.run-unit

@@ -37,6 +37,15 @@ test tool:
         npm run typecheck
         npm run test:component
         ;;
+      annotation-tool)
+        cd tools/annotation-tool
+        npm ci
+        npm run lint:check
+        npm run format:check
+        npm run typecheck
+        npm run test:unit
+        npm run test:component
+        ;;
       *) echo "No tests configured for '{{tool}}'" >&2; exit 1 ;;
     esac
 
