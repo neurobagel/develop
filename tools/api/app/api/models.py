@@ -1,0 +1,200 @@
+"""Data models."""
+
+from enum import Enum
+from typing import Annotated
+
+from fastapi.exceptions import HTTPException
+from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
+from typing_extensions import Self
+
+STANDARDIZED_IDENTIFIER_REGEX = r"^[a-zA-Z]+[:]\S+$"
+
+# TODO: Check if version regex is too restrictive
+# Constrain version numbers to be in the following format:
+# Exactly three dot-separated segments, where the first and third segments can be letters, numbers, or hyphens (at least one character each),
+# and the middle segment must be purely digits (one or more).
+VERSION_REGEX = r"^([A-Za-z0-9-]+)\.(\d+)\.([A-Za-z0-9-]+)$"
+
+PHENOTYPIC_FILTERS = [
+    "min_age",
+    "max_age",
+    "sex",
+    "diagnosis",
+    "assessment",
+    "min_num_phenotypic_sessions",
+]
+IMAGING_FILTERS = [
+    "image_modal",
+    "pipeline",
+    "min_num_imaging_sessions",
+]
+
+
+class PipelineQuery(BaseModel):
+    """Data model for a pipeline query filter."""
+
+    name: str | None = Field(
+        default=None,
+        pattern=STANDARDIZED_IDENTIFIER_REGEX,
+        examples=["vocab:12345"],
+    )
+    version: str | None = Field(
+        default=None, pattern=VERSION_REGEX, examples=["1.0.0"]
+    )
+
+    model_config = ConfigDict(extra="forbid")
+
+    @model_validator(mode="after")
+    def check_pipeline_has_name(self) -> Self:
+        """
+        If a pipeline version is specified, ensure that a pipeline name is also provided.
+        """
+        if self.version is not None and self.name is None:
+            raise HTTPException(
+                status_code=422,
+                detail="Pipeline 'version' is missing a corresponding 'name'.",
+            )
+        return self
+
+
+class DatasetsQueryModel(BaseModel):
+    """Data model and dependency for API that stores the query parameters to be accepted and validated."""
+
+    # NOTE: extra query parameters are just ignored/have no effect
+    # NOTE: Explicit examples are needed for fields requiring a URI to avoid random-string examples being generated
+    # for the example request body in the interactive docs
+
+    min_age: float | None = Field(default=None, ge=0)
+    max_age: float | None = Field(default=None, ge=0)
+    sex: str | None = Field(
+        default=None,
+        pattern=STANDARDIZED_IDENTIFIER_REGEX,
+        examples=["vocab:12345"],
+    )
+    diagnosis: list[
+        Annotated[str, Field(pattern=STANDARDIZED_IDENTIFIER_REGEX)]
+    ] = Field(default_factory=list, examples=[["vocab:12345"]])
+    min_num_imaging_sessions: int | None = Field(default=None, ge=0)
+    min_num_phenotypic_sessions: int | None = Field(default=None, ge=0)
+    assessment: list[
+        Annotated[str, Field(pattern=STANDARDIZED_IDENTIFIER_REGEX)]
+    ] = Field(default_factory=list, examples=[["vocab:12345"]])
+    image_modal: list[
+        Annotated[str, Field(pattern=STANDARDIZED_IDENTIFIER_REGEX)]
+    ] = Field(default_factory=list, examples=[["vocab:12345"]])
+    pipeline: list[PipelineQuery] = Field(
+        default_factory=list,
+        examples=[{"name": "vocab:12345", "version": "1.0.0"}],
+    )
+
+    @model_validator(mode="after")
+    def check_maxage_ge_minage(self) -> Self:
+        """
+        If both age bounds have been set to values other than their defaults (None), ensure that max_age is >= min_age.
+        NOTE: HTTPException (and not ValueError) raised here to get around "Internal Server Error" raised by
+        FastAPI when a validation error comes from a Pydantic validator inside a class dependency.
+        See:
+        https://github.com/tiangolo/fastapi/issues/1474
+        https://github.com/tiangolo/fastapi/discussions/3426
+        https://fastapi.tiangolo.com/tutorial/handling-errors/?h=validation#requestvalidationerror-vs-validationerror
+        """
+        if (
+            self.min_age is not None
+            and self.max_age is not None
+            and (self.max_age < self.min_age)
+        ):
+            raise HTTPException(
+                status_code=422,
+                detail="'max_age' must be greater than or equal to 'min_age'",
+            )
+        return self
+
+
+class SubjectsQueryModel(DatasetsQueryModel):
+    # TODO: At the moment datasets always appears as the last field, after all other query parameters.
+    # Revisit if we want to modify the order.
+    # TODO: If we want to restrict the format of UUIDs further, we could use AnyURL or AnyHttpUrl
+    dataset_uuids: list[str] | None = None
+
+
+# we are keeping SubjectGroup in for now since our graph data model supports it (and we may use it in the future),
+# but we expect the query result to be null since the Neurobagel (default) config currently doesn't have any terms for SubjectGroup
+class SessionResponse(BaseModel):
+    """Data model for a single session available for a matching subject."""
+
+    sub_id: str
+    session_id: str
+    num_matching_phenotypic_sessions: int
+    num_matching_imaging_sessions: int
+    session_type: str
+    age: float | None
+    sex: str | None
+    diagnosis: list
+    subject_group: str | None
+    assessment: list
+    image_modal: list
+    session_file_path: str | None
+    completed_pipelines: dict
+
+
+class DatasetQueryResponse(BaseModel):
+    """Data model for metadata of a single dataset matching a query."""
+
+    dataset_uuid: str
+    # dataset_file_path: str  # TODO: Revisit this field once we have datasets without imaging info/sessions.
+    dataset_name: str
+    authors: list[str] = Field(default_factory=list)
+    homepage: str | None = None
+    references_and_links: list[str] = Field(default_factory=list)
+    keywords: list[str] = Field(default_factory=list)
+    repository_url: str | None = None
+    access_instructions: str | None = None
+    access_type: str | None = None
+    access_email: str | None = None
+    access_link: str | None = None
+    dataset_total_subjects: int
+    records_protected: bool
+    num_matching_subjects: int | None
+    image_modals: list[str] = Field(default_factory=list)
+    available_pipelines: dict = Field(default_factory=dict)
+
+    # By default, Pydantic models will ignore extra fields,
+    # but we make this explicit since in catalog mode, datasets will have additional attributes
+    # that will not be returned in the API response.
+    model_config = ConfigDict(extra="ignore")
+
+
+class SubjectsQueryResponse(BaseModel):
+    """Data model for subject data matching a query."""
+
+    dataset_uuid: str
+    subject_data: list[SessionResponse] | str
+
+
+class StandardizedVariableURI(str, Enum):
+    """Data model for standardized variable URIs that have available vocabularies."""
+
+    assessment = "nb:Assessment"
+    diagnosis = "nb:Diagnosis"
+    image = "nb:Image"
+
+
+class StandardizedTermVocabularyNamespace(BaseModel):
+    """
+    Data model for the terms and metadata for a single namespace used in a standardized term vocabulary.
+    This includes a list of standardized terms belonging to a standardized variable that all share the same namespace.
+    """
+
+    vocabulary_name: str
+    namespace_url: str
+    namespace_prefix: str
+    version: str | None  # TODO: Make version mandatory?
+    terms: list[dict]
+
+
+class StandardizedTermVocabularyResponse(
+    RootModel[list[StandardizedTermVocabularyNamespace]]
+):
+    """Data model for response to a request for all terms in a vocabulary."""
+
+    pass

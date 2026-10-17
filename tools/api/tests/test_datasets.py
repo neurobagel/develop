@@ -1,0 +1,468 @@
+import pytest
+
+from app.api import crud, env_settings
+from app.api.env_settings import settings
+
+ROUTE = "/datasets"
+
+
+async def test_query_matching_dataset_sizes(monkeypatch):
+    """Test that graph results for dataset size queries are correctly parsed into a dictionary."""
+
+    async def mock_post_query_to_graph(query, timeout=5.0):
+        return [
+            {
+                "dataset_uuid": "http://neurobagel.org/vocab/ds1234",
+                "total_subjects": "70",
+            },
+            {
+                "dataset_uuid": "http://neurobagel.org/vocab/ds2345",
+                "total_subjects": "40",
+            },
+        ]
+
+    monkeypatch.setattr(crud, "post_query_to_graph", mock_post_query_to_graph)
+    dataset_sizes = await crud.query_matching_dataset_sizes(
+        [
+            "http://neurobagel.org/vocab/ds1234",
+            "http://neurobagel.org/vocab/ds2345",
+        ]
+    )
+    assert dataset_sizes == {
+        "http://neurobagel.org/vocab/ds1234": 70,
+        "http://neurobagel.org/vocab/ds2345": 40,
+    }
+
+
+async def test_response_includes_attributes_from_dataset_metadata_file(
+    test_app,
+    mock_context,  # needed because dataset lookup in the datasets metadata dict uses the prefixed namespace
+    mock_query_matching_dataset_sizes,
+    disable_auth,
+    monkeypatch,
+):
+    """
+    Test that the /datasets endpoint response includes all available metadata for a matching dataset,
+    including information from the datasets metadata file.
+    """
+    mock_datasets_metadata = {
+        "nb:12345": {
+            "dataset_name": "Quebec Parkinson Network",
+            "authors": ["First Author", "Second Author"],
+            "homepage": "https://rpq-qpn.ca/en/home/",
+            "keywords": ["Parkinson's disease", "Neuroimaging"],
+            "access_type": "restricted",
+            "access_link": "https://rpq-qpn.ca/en/researchers-section/databases/",
+        },
+        "nb:67890": {
+            "dataset_name": "Other dataset",
+            "access_link": "https://otherdataset.org/access",
+        },
+    }
+
+    # Mock response for two matching subjects from the same dataset
+    async def mock_post_datasets_query_to_graph(query):
+        return [
+            {
+                "dataset": "http://neurobagel.org/vocab/12345",
+                "subject": "sub-ON95534",
+            },
+            {
+                "dataset": "http://neurobagel.org/vocab/12345",
+                "subject": "sub-ON95535",
+            },
+        ]
+
+    async def mock_query_available_modalities_and_pipelines(dataset_uuids):
+        return {
+            "http://neurobagel.org/vocab/12345": {
+                "subject": "sub-ON95534",
+                "image_modals": ["http://purl.org/nidash/nidm#T1Weighted"],
+                "available_pipelines": {
+                    "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/freesurfer": [
+                        "7.3.2"
+                    ]
+                },
+            },
+        }
+
+    monkeypatch.setattr(settings, "return_agg", True)
+    monkeypatch.setattr(
+        env_settings, "DATASETS_METADATA", mock_datasets_metadata
+    )
+    monkeypatch.setattr(
+        crud, "post_query_to_graph", mock_post_datasets_query_to_graph
+    )
+    monkeypatch.setattr(
+        crud,
+        "query_available_modalities_and_pipelines",
+        mock_query_available_modalities_and_pipelines,
+    )
+    monkeypatch.setattr(
+        crud, "query_matching_dataset_sizes", mock_query_matching_dataset_sizes
+    )
+
+    response = test_app.post(ROUTE, json={})
+    matching_datasets = response.json()
+
+    assert response.status_code == 200
+    assert len(matching_datasets) == 1
+    assert matching_datasets[0] == {
+        "dataset_uuid": "http://neurobagel.org/vocab/12345",
+        "dataset_name": "Quebec Parkinson Network",
+        "authors": ["First Author", "Second Author"],
+        "homepage": "https://rpq-qpn.ca/en/home/",
+        "references_and_links": [],
+        "keywords": ["Parkinson's disease", "Neuroimaging"],
+        "repository_url": None,
+        "access_instructions": None,
+        "access_type": "restricted",
+        "access_email": None,
+        "access_link": "https://rpq-qpn.ca/en/researchers-section/databases/",
+        "dataset_total_subjects": 200,
+        "records_protected": True,
+        "num_matching_subjects": 2,
+        "image_modals": ["http://purl.org/nidash/nidm#T1Weighted"],
+        "available_pipelines": {
+            "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/freesurfer": [
+                "7.3.2"
+            ]
+        },
+    }
+
+
+async def test_imaging_modals_and_pipelines_query(monkeypatch):
+    """
+    Test that SPARQL query results for available imaging modalities and pipelines are
+    processed correctly into a dictionary lookup keyed on dataset UUIDs.
+    """
+    # Setup
+    matching_dataset_uuids = [
+        "http://neurobagel.org/vocab/test-001",
+        "http://neurobagel.org/vocab/test-002",
+        "http://neurobagel.org/vocab/test-003",
+    ]
+
+    async def mock_post_query_to_graph(query):
+        """Mock response to SPARQL query from graph."""
+        return [
+            {
+                "dataset_uuid": "http://neurobagel.org/vocab/test-001",
+                "image_modal": "http://purl.org/nidash/nidm#T1Weighted",
+                "pipeline_name": "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/fmriprep",
+                "pipeline_version": "23.2.0",
+            },
+            {
+                "dataset_uuid": "http://neurobagel.org/vocab/test-001",
+                "image_modal": "http://purl.org/nidash/nidm#T1Weighted",
+                "pipeline_name": "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/mriqc",
+                "pipeline_version": "22.0.6",
+            },
+            {
+                "dataset_uuid": "http://neurobagel.org/vocab/test-001",
+                "image_modal": "http://purl.org/nidash/nidm#FlowWeighted",
+                "pipeline_name": "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/fmriprep",
+                "pipeline_version": "23.2.0",
+            },
+            {
+                "dataset_uuid": "http://neurobagel.org/vocab/test-001",
+                "image_modal": "http://purl.org/nidash/nidm#FlowWeighted",
+                "pipeline_name": "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/mriqc",
+                "pipeline_version": "22.0.6",
+            },
+            {
+                "dataset_uuid": "http://neurobagel.org/vocab/test-002",
+                "image_modal": "http://purl.org/nidash/nidm#T1Weighted",
+                "pipeline_name": "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/freesurfer",
+                "pipeline_version": "6.0.1",
+            },
+            {
+                "dataset_uuid": "http://neurobagel.org/vocab/test-002",
+                "image_modal": "http://purl.org/nidash/nidm#T1Weighted",
+                "pipeline_name": "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/freesurfer",
+                "pipeline_version": "7.3.2",
+            },
+            {
+                "dataset_uuid": "http://neurobagel.org/vocab/test-002",
+                "image_modal": "http://purl.org/nidash/nidm#FlowWeighted",
+            },
+            {
+                "dataset_uuid": "http://neurobagel.org/vocab/test-003",
+                "image_modal": "http://purl.org/nidash/nidm#T1Weighted",
+            },
+            {
+                "dataset_uuid": "http://neurobagel.org/vocab/test-003",
+                "image_modal": "http://purl.org/nidash/nidm#FlowWeighted",
+            },
+        ]
+
+    expected_image_modals_and_pipelines = {
+        "http://neurobagel.org/vocab/test-001": {
+            "image_modals": [
+                "http://purl.org/nidash/nidm#T1Weighted",
+                "http://purl.org/nidash/nidm#FlowWeighted",
+            ],
+            "available_pipelines": {
+                "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/fmriprep": [
+                    "23.2.0"
+                ],
+                "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/mriqc": [
+                    "22.0.6"
+                ],
+            },
+        },
+        "http://neurobagel.org/vocab/test-002": {
+            "image_modals": [
+                "http://purl.org/nidash/nidm#T1Weighted",
+                "http://purl.org/nidash/nidm#FlowWeighted",
+            ],
+            "available_pipelines": {
+                "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/freesurfer": [
+                    "6.0.1",
+                    "7.3.2",
+                ]
+            },
+        },
+        "http://neurobagel.org/vocab/test-003": {
+            "image_modals": [
+                "http://purl.org/nidash/nidm#T1Weighted",
+                "http://purl.org/nidash/nidm#FlowWeighted",
+            ],
+            "available_pipelines": {},
+        },
+    }
+
+    # Act
+    monkeypatch.setattr(crud, "post_query_to_graph", mock_post_query_to_graph)
+    image_modals_and_pipelines = (
+        await crud.query_available_modalities_and_pipelines(
+            dataset_uuids=matching_dataset_uuids
+        )
+    )
+
+    # Assert
+    assert image_modals_and_pipelines == expected_image_modals_and_pipelines
+
+
+def test_datasets_query_response_shape_is_correct_in_catalog_mode(
+    test_app,
+    mock_context,  # needed to replace namespace prefixes catalog dataset UUIDs
+    disable_auth,
+    monkeypatch,
+):
+    """
+    Test that the response from /datasets includes the expected fields in catalog mode.
+    """
+    mock_datasets_metadata = {
+        "nb:18532368-82dc-42ac-b4fb-fbb187ad6ae1": {
+            "dataset_name": "BIDS synthetic",
+            "participant_count": 5,
+            "repository_url": "https://github.com/bids-standard/bids-examples.git",
+            "available_sex": ["snomed:248153007", "snomed:248152002"],
+            "available_diagnoses": ["snomed:406506008", "ncit:C94342"],
+            "available_assessments": [
+                "snomed:859351000000102",
+                "snomed:342061000000106",
+            ],
+            "age_range": {"minimum": 21.0, "maximum": 42.0},
+        },
+        "nb:80af4d30-0447-4f13-9eaf-98ae8065895a": {
+            "dataset_name": "Rhyme judgment",
+            "access_link": "https://github.com/OpenNeuroDatasets-JSONLD/ds000003.git",
+            "participant_count": 10,
+            "available_sex": ["snomed:248153007", "snomed:248152002"],
+            "available_diagnoses": ["snomed:406506008", "ncit:C94342"],
+            "available_assessments": ["snomed:859351000000102"],
+            "age_range": {"minimum": 60.0, "maximum": 80.0},
+        },
+    }
+
+    monkeypatch.setattr(settings, "catalog_mode", True)
+    monkeypatch.setattr(
+        env_settings, "DATASETS_METADATA", mock_datasets_metadata
+    )
+
+    response = test_app.post(
+        ROUTE, json={"assessment": ["snomed:342061000000106"]}
+    )
+    response = response.json()
+
+    assert len(response) == 1
+    matching_dataset = response[0]
+
+    assert (
+        matching_dataset["dataset_uuid"]
+        == "http://neurobagel.org/vocab/18532368-82dc-42ac-b4fb-fbb187ad6ae1"
+    )
+    assert matching_dataset["dataset_total_subjects"] == 5
+    assert matching_dataset["num_matching_subjects"] is None
+    assert matching_dataset["image_modals"] == []
+    assert matching_dataset["available_pipelines"] == {}
+    # TODO: Update assertion once/if we combine NB_CATALOG_MODE with NB_RETURN_AGG
+    assert matching_dataset["records_protected"] is True
+    # Check that extra catalog metadata keys do not end up in the response
+    for key in [
+        "available_sex",
+        "available_diagnoses",
+        "available_assessments",
+        "age_range",
+    ]:
+        assert key not in matching_dataset
+
+
+@pytest.mark.parametrize(
+    "query_body",
+    [
+        {"min_age": 20, "image_modal": ["nidm:T1Weighted"]},
+        {"pipeline": [{"name": "np:fmriprep"}]},
+        {"pipeline": [{"name": "np:fmriprep", "version": "23.2.0"}]},
+    ],
+)
+def test_imaging_query_parameters_return_no_results_in_catalog_mode(
+    test_app,
+    mock_context,
+    disable_auth,
+    monkeypatch,
+    query_body,
+):
+    """
+    Test that /datasets does not return any matching datasets when
+    the query includes imaging-related parameters.
+    """
+    mock_datasets_metadata = {
+        "nb:18532368-82dc-42ac-b4fb-fbb187ad6ae1": {
+            "dataset_name": "BIDS synthetic",
+            "participant_count": 5,
+            "repository_url": "https://github.com/bids-standard/bids-examples.git",
+            "available_sex": ["snomed:248153007", "snomed:248152002"],
+            "available_diagnoses": ["snomed:406506008", "ncit:C94342"],
+            "available_assessments": [
+                "snomed:859351000000102",
+                "snomed:342061000000106",
+            ],
+            "age_range": {"minimum": 21.0, "maximum": 42.0},
+        },
+        "nb:80af4d30-0447-4f13-9eaf-98ae8065895a": {
+            "dataset_name": "Rhyme judgment",
+            "access_link": "https://github.com/OpenNeuroDatasets-JSONLD/ds000003.git",
+            "participant_count": 10,
+            "available_sex": ["snomed:248153007", "snomed:248152002"],
+            "available_diagnoses": ["snomed:406506008", "ncit:C94342"],
+            "available_assessments": ["snomed:859351000000102"],
+            "age_range": {"minimum": 60.0, "maximum": 80.0},
+        },
+    }
+
+    monkeypatch.setattr(settings, "catalog_mode", True)
+    monkeypatch.setattr(
+        env_settings, "DATASETS_METADATA", mock_datasets_metadata
+    )
+
+    response = test_app.post(ROUTE, json=query_body)
+    assert response.json() == []
+
+
+@pytest.mark.integration
+def test_compact_uri_query_succeeds(
+    test_app, disable_auth, set_graph_url_vars_for_integration_tests
+):
+    """
+    Test that a filtered query using a compact URI is correctly expanded in the SPARQL query
+    (using the context fetched on startup), resulting in at least 1 matching subject.
+    """
+    modality_with_prefix = "nidm:T1Weighted"
+
+    with test_app:
+        response = test_app.post(
+            url=ROUTE, json={"image_modal": [modality_with_prefix]}
+        )
+
+    matching_ds = response.json()[0]
+
+    assert response.status_code == 200
+    assert matching_ds["num_matching_subjects"] > 0
+
+
+def test_and_query_works_for_phenotypic_variables_in_catalog_mode(
+    test_app,
+    mock_context,
+    disable_auth,
+    monkeypatch,
+):
+    """
+    Test that an AND query correctly matches datasets with all specified filter terms in catalog mode.
+    """
+    mock_datasets_metadata = {
+        "nb:18532368-82dc-42ac-b4fb-fbb187ad6ae1": {
+            "dataset_name": "BIDS synthetic",
+            "participant_count": 5,
+            "repository_url": "https://github.com/bids-standard/bids-examples.git",
+            "available_sex": ["snomed:248153007", "snomed:248152002"],
+            "available_diagnoses": ["snomed:406506008", "ncit:C94342"],
+            "available_assessments": [
+                "snomed:859351000000102",
+                "snomed:342061000000106",
+            ],
+            "age_range": {"minimum": 21.0, "maximum": 42.0},
+        },
+        "nb:80af4d30-0447-4f13-9eaf-98ae8065895a": {
+            "dataset_name": "Rhyme judgment",
+            "access_link": "https://github.com/OpenNeuroDatasets-JSONLD/ds000003.git",
+            "participant_count": 10,
+            "available_sex": ["snomed:248153007", "snomed:248152002"],
+            "available_diagnoses": ["snomed:406506008", "ncit:C94342"],
+            "available_assessments": ["snomed:859351000000102"],
+            "age_range": {"minimum": 60.0, "maximum": 80.0},
+        },
+    }
+
+    monkeypatch.setattr(settings, "catalog_mode", True)
+    monkeypatch.setattr(
+        env_settings, "DATASETS_METADATA", mock_datasets_metadata
+    )
+
+    response = test_app.post(
+        ROUTE,
+        json={
+            "assessment": ["snomed:859351000000102", "snomed:342061000000106"]
+        },
+    )
+    response = response.json()
+
+    assert len(response) == 1
+    matching_dataset = response[0]
+
+    assert matching_dataset["dataset_name"] == "BIDS synthetic"
+
+
+def test_pipeline_query_with_version_but_without_name_returns_informative_error(
+    test_app, disable_auth
+):
+    """
+    Test that a query with a pipeline version but no name returns an error.
+    """
+    response = test_app.post(ROUTE, json={"pipeline": [{"version": "23.2.0"}]})
+
+    assert response.status_code == 422
+    assert "missing a corresponding 'name'" in response.json()["detail"]
+
+
+# TODO: Once https://github.com/neurobagel/api/issues/492 is addressed,
+# we can add a test case for the legacy pipeline filter format with "pipeline_name" and "pipeline_version"
+# keys, which should be rejected with an error.
+@pytest.mark.parametrize(
+    "pipeline_filter",
+    [
+        {"name": "np:fmriprep", "version": ["23.2.0", "22.0.6"]},
+        {"invalidfield1": "np:fmriprep", "invalidfield2": "23.2.0"},
+    ],
+)
+def test_query_with_invalid_pipeline_field_returns_error(
+    test_app, disable_auth, pipeline_filter
+):
+    """
+    Test that a query with an invalid pipeline filter returns an error.
+    """
+    response = test_app.post(ROUTE, json={"pipeline": [pipeline_filter]})
+
+    assert response.status_code == 422

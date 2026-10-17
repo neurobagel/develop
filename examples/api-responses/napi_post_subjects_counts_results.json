@@ -1,0 +1,10 @@
+[
+  {
+    "dataset_uuid": "http://neurobagel.org/vocab/1ea53a53-620f-406e-aa99-0a6564e05c95",
+    "subject_data": "protected"
+  },
+  {
+    "dataset_uuid": "http://neurobagel.org/vocab/46e5ead2-6b55-4318-a23b-8da8b40fe2c5",
+    "subject_data": "protected"
+  }
+]

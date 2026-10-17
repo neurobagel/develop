@@ -10,3 +10,6 @@ __pycache__/
 
 # Node
 node_modules/
+
+# Written by the api test graph setup (tools/api/docker-compose.yml)
+tools/api/test_graph_data/

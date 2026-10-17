@@ -34,6 +34,7 @@ jobs:
       pull-requests: read
     outputs:
       federation-api: ${{ steps.filter.outputs.federation-api }}
+      api: ${{ steps.filter.outputs.api }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -45,6 +46,11 @@ jobs:
           filters: |
             federation-api:
               - 'tools/federation-api/**'
+              - '.github/workflows/test-python.yml'
+            api:
+              - 'tools/api/**'
+              - 'stack/**'
+              - 'examples/**'
               - '.github/workflows/test-python.yml'
 
   check-unchanged:
@@ -66,3 +72,13 @@ jobs:
     with:
       tool: federation-api
       python-versions: '["3.10", "3.11", "3.12", "3.13"]'
+
+  api:
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    uses: ./.github/workflows/test-python.yml
+    with:
+      tool: api
+      python-versions: '["3.10", "3.11", "3.12", "3.13"]'
+      pytest-args: -m "integration or not integration"
+      needs-graph: true
