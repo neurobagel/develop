@@ -10,6 +10,19 @@ test tool:
         uv sync --group dev
         uv run pytest
         ;;
+      api)
+        cd tools/api
+        docker compose up -d test_graph export_datasets_metadata
+        timeout=120; elapsed=0
+        until docker logs api-test_graph-1 2>&1 | grep -q "FINISHED UPLOADING DATA"; do
+          if [ "$elapsed" -ge "$timeout" ]; then
+            echo "Timed out waiting for graph setup" >&2; docker logs api-test_graph-1; exit 1
+          fi
+          sleep 1; elapsed=$((elapsed + 1))
+        done
+        uv sync --group dev
+        uv run pytest -m "integration or not integration"
+        ;;
       *) echo "No tests configured for '{{tool}}'" >&2; exit 1 ;;
     esac
 

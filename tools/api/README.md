@@ -2,8 +2,7 @@
 
 # Neurobagel API
 
-[![Main branch check status](https://img.shields.io/github/check-runs/neurobagel/api/main?style=flat-square&logo=github)](https://github.com/neurobagel/api/actions?query=branch:main)
-[![Tests Status](https://img.shields.io/github/actions/workflow/status/neurobagel/api/test.yaml?branch=main&style=flat-square&logo=github&label=tests)](https://github.com/neurobagel/api/actions/workflows/test.yaml)
+[![CI](https://img.shields.io/github/actions/workflow/status/neurobagel/develop/ci.yml?branch=main&style=flat-square&logo=github&label=ci)](https://github.com/neurobagel/develop/actions/workflows/ci.yml?query=branch%3Amain)
 [![Codecov](https://img.shields.io/codecov/c/github/neurobagel/api?token=ZEOGQFFZMJ&style=flat-square&logo=codecov&link=https%3A%2F%2Fcodecov.io%2Fgh%2Fneurobagel%2Fapi)](https://app.codecov.io/gh/neurobagel/api)
 [![Python versions static](https://img.shields.io/badge/python-3.10--3.13-blue?style=flat-square&logo=python)](https://www.python.org)  
 [![License](https://img.shields.io/github/license/neurobagel/api?style=flat-square&color=purple&link=LICENSE)](LICENSE)
@@ -30,7 +29,7 @@ Please refer to our [**official documentation**](https://neurobagel.org/user_gui
     - [Install dependencies](#install-dependencies)
     - [Launch the API](#launch-the-api)
   - [Troubleshooting](#troubleshooting)
-- [Testing](#testing)
+- [Development in the Neurobagel monorepo](#development-in-the-neurobagel-monorepo)
 - [The default Neurobagel SPARQL query](#the-default-neurobagel-sparql-query)
 - [Updating dependencies](#updating-dependencies)
 - [License](#license)
@@ -48,12 +47,14 @@ The below instructions assume that you have a local instance of or access to a r
 If this is not the case and you need to first build a graph from data, refer to our documentation for [getting started locally with a graph backend](https://neurobagel.org/user_guide/getting_started/).
 
 ### Clone the repo
+The API lives in `tools/api/` of the Neurobagel monorepo:
 ```bash
-git clone https://github.com/neurobagel/api.git
+git clone https://github.com/neurobagel/develop.git
+cd develop/tools/api
 ```
 
 ### Set the environment variables
-Create a file called `.env` in the root of the repository to store the environment variables used by the app. 
+Create a file called `.env` in `tools/api/` to store the environment variables used by the app. 
 See the Neurobagel recipes repo for a [template `.env` file](https://github.com/neurobagel/recipes/blob/main/template.env) you can copy and edit.
 
 To run API requests against a graph, at least two environment variables must be set: `NB_GRAPH_USERNAME` and `NB_GRAPH_PASSWORD`.
@@ -91,15 +92,16 @@ docker run -d --name=api -p ${NB_API_PORT_HOST}:${NB_API_PORT} --env-file=.env n
 > :warning: **IMPORTANT:** If using the above command, do not wrap any values for variables in the `.env` file in quotation marks, as they will be interpreted literally and may lead to [issues](https://github.com/docker/for-linux/issues/1208).
 
 #### Option 3: Build the image using the Dockerfile
-After cloning the current repository, build the Docker image locally:
+After cloning the repository, build the Docker image from the repository root and run it from `tools/api/`:
 ```bash
-docker build -t neurobagel/api .
+docker build -t neurobagel/api tools/api
+cd tools/api
 docker run -d --name=api -p 8000:8000 --env-file=.env neurobagel/api
 ```
 **NOTE:** The above `docker run` command uses recommended default values for `NBI_API_PORT_HOST` and `NB_API_PORT` in the `-p` flag. 
 If you wish to set different port numbers, modify your `.env` file accordingly and run the below commands instead:
 ```bash
-docker build -t neurobagel/api .
+# from tools/api/, after building the image as above
 export $(cat .env | xargs)  # export your .env file to expose your set port numbers to the -p flag of docker run
 docker run -d --name=api -p ${NB_API_PORT_HOST}:${NB_API_PORT} --env-file=.env neurobagel/api
 ```
@@ -129,11 +131,11 @@ uv sync --group dev
 ```
 
 This will create a virtual environment (if one doesn't exist)
-called `.venv` in the repository root and install all project and dev dependencies into that environment.
+called `.venv` in `tools/api/` and install all project and dev dependencies into that environment.
 
 #### Launch the API
 
-To launch the API, make sure you're in the repository root and that your [`.env` file has been configured](#set-the-environment-variables).
+To launch the API, make sure you're in `tools/api/` and that your [`.env` file has been configured](#set-the-environment-variables).
 
 Export the variables defined in your `.env` file:
 ```bash
@@ -168,50 +170,73 @@ You can verify the API is running once you receive info messages similar to the 
 ### Troubleshooting
 If you get a 401 response to your API request with an `"Unauthorized: "` error message, your `NB_GRAPH_USERNAME` and `NB_GRAPH_PASSWORD` pair may be incorrect. Verify that these environment variables have been exported and/or have the correct values.
 
-## Testing
+## Development in the Neurobagel monorepo
 
-Neurobagel API utilizes [Pytest](https://docs.pytest.org/en/7.2.x/) framework for testing.
+This tool lives in `tools/api/` of https://github.com/neurobagel/develop.
 
-To run the tests, first ensure you're in the repository's root directory.
+### Setup
 
-Install the submodules used by the tests:
 ```bash
-git submodule init
-git submodule update
+git clone https://github.com/neurobagel/develop.git
+cd develop/tools/api
+uv sync --group dev
 ```
 
-You can then run the tests by executing the following command in your terminal:
+The version is derived from the repository's `api-v*` tags, so the clone needs its full history and tags (the default for `git clone`).
+
+The tests use example data and the test graph configuration from the monorepo's shared folders, reached through two symlinks in `tools/api/`: `neurobagel_examples -> ../../examples` and `recipes -> ../../stack`. No submodules are needed.
+
+### Tests
+
+The tests use [Pytest](https://docs.pytest.org/). From `tools/api/`, run the unit tests (integration tests are skipped by default):
 
 ```bash
 uv run pytest
 ```
 
-To run the integration tests of SPARQL queries (skipped by default), also launch the test graph store:
+The integration tests of SPARQL queries need the test graph store and the datasets metadata it exports. Start them from `tools/api/`:
 
 ```bash
-docker compose up -d test_graph
+docker compose up -d test_graph export_datasets_metadata
 ```
 
-_NOTE: Don't have a `.env` file in the root directory as it will conflict with the environment variable configuration of the docker compose file, 
-since docker compose will try to use `.env` by default._
+Wait until `docker logs api-test_graph-1` shows `FINISHED UPLOADING DATA`, then run all tests:
 
-Then, run all tests using:
 ```bash
 uv run pytest -m "integration or not integration"
-# OR
-uv run pytest -m ""
 ```
 
-Or, to run only the integration tests:
+Or only the integration tests:
+
 ```bash
 uv run pytest -m "integration"
 ```
 
-Once you are done with testing, you can stop and remove the test graph container:
+_NOTE: Don't have a `.env` file in `tools/api/` while testing, as docker compose would read it and override the test configuration._
+
+When you are done, stop and remove the test services and their volumes:
+
 ```bash
-docker compose stop test_graph
-docker compose rm -f test_graph
+docker compose down -v
 ```
+
+From the repository root, `just test api` starts the test graph, waits for it and runs all tests. CI runs them on Python 3.10 to 3.13 whenever a pull request changes `tools/api/`, `stack/` or `examples/`.
+
+### Docker image
+
+From the repository root:
+
+```bash
+docker build -t neurobagel/api:local tools/api
+```
+
+The image contains the `app` package and its runtime dependencies, exported from `uv.lock`, and serves the API on port 8000. It requires at least `NB_GRAPH_USERNAME` and `NB_GRAPH_PASSWORD` and a datasets metadata file at runtime (see [Set the environment variables](#set-the-environment-variables)).
+
+### Releases
+
+Tags: `api-vX.Y.Z`. Published to: Docker Hub `neurobagel/api`.
+Release automation (release-please) is not set up in this repository yet, so no releases are made from it.
+PR titles must follow Conventional Commits with scope `api`, for example `fix(api): ...`.
 
 ## The default Neurobagel SPARQL query
 
@@ -220,7 +245,7 @@ This file is mainly intended for reference because in normal operations,
 the API will always talk to the graph on behalf of the user.
 
 (For developers) 
-To regenerate this sample query when the API query template is updated, first launch an interactive Python terminal from the repository root:
+To regenerate this sample query when the API query template is updated, first launch an interactive Python terminal from `tools/api/`:
 
 ```bash
 uv run python
