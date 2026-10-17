@@ -1,0 +1,186 @@
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import {
+  Paper,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  FormControlLabel,
+  Switch,
+  Tooltip,
+} from '@mui/material';
+import { useState } from 'react';
+import { useFormattingMarks } from '../contexts/FormattingMarksContext';
+import { FormattingMarksProvider } from '../contexts/FormattingMarksProvider';
+import { useColumnsMetadata } from '../hooks/useColumnsMetadata';
+import { useValueAnnotationColumn } from '../hooks/useValueAnnotationColumn';
+import { useValueAnnotationNavData } from '../hooks/useValueAnnotationNavData';
+import { useDataActions } from '../stores/data';
+import { ValueAnnotationInstructions } from '../utils/instructions';
+import GlobalMissingValues from './GlobalMissingValues';
+import Instruction from './Instruction';
+import SideColumnNavBar from './SideColumnNavBar';
+import ValueAnnotationTabs from './ValueAnnotationTabs';
+
+function ValueAnnotationContent() {
+  const {
+    userUpdatesValueDescription: userUpdatesColumnLevelDescription,
+    userUpdatesColumnUnits,
+    userUpdatesColumnMissingValues,
+    userUpdatesColumnFormat,
+    userUpdatesValueStandardizedTerm: userUpdatesColumnLevelTerm,
+  } = useDataActions();
+  const [selectedColumnIds, setSelectedColumnIds] = useState<string[]>([]);
+  const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
+  const navData = useValueAnnotationNavData();
+  const { showFormattingMarks, setShowFormattingMarks } = useFormattingMarks();
+
+  const handleSelect = (params: {
+    columnIDs: string[];
+    dataType?: 'Categorical' | 'Continuous' | null;
+  }) => {
+    setSelectedColumnIds(params.columnIDs);
+    setActiveColumnId((current) => {
+      if (params.columnIDs.length === 0) {
+        return null;
+      }
+      if (!current || !params.columnIDs.includes(current)) {
+        return params.columnIDs[0];
+      }
+      return current;
+    });
+  };
+
+  const columnMetadata = useColumnsMetadata(selectedColumnIds);
+
+  const unknownDataTypeColumns = selectedColumnIds.filter((id) => {
+    const metadata = columnMetadata[id];
+    if (!metadata) {
+      return false;
+    }
+    return !metadata.dataType && !metadata.isCollection;
+  });
+  const activeColumn = useValueAnnotationColumn(activeColumnId);
+
+  const renderContent = () => {
+    if (selectedColumnIds.length === 0) {
+      return <GlobalMissingValues />;
+    }
+
+    // Multi-column measure groups intentionally lack a data type; they render as continuous by default.
+    if (unknownDataTypeColumns.length !== 0) {
+      return (
+        <Paper
+          data-cy="other"
+          elevation={3}
+          className="flex h-full flex-col shadow-lg overflow-hidden p-6"
+        >
+          <Typography variant="h6" component="div" sx={{ mb: 2 }}>
+            {`The following column${
+              unknownDataTypeColumns.length > 1 ? 's' : ''
+            } do not have a mapped data type:`}
+            <List dense sx={{ listStyleType: 'disc', pl: 4 }}>
+              {unknownDataTypeColumns.map((columnId) => (
+                <ListItem key={columnId} sx={{ display: 'list-item' }}>
+                  <ListItemText primary={columnMetadata[columnId]?.name || columnId} />
+                </ListItem>
+              ))}
+            </List>
+          </Typography>
+          <List dense sx={{ listStyleType: 'disc', pl: 4, overflowY: 'auto', flexGrow: 1 }}>
+            {unknownDataTypeColumns.map((columnId) => (
+              <ListItem key={columnId} sx={{ display: 'list-item' }}>
+                <ListItemText primary={columnMetadata[columnId]?.name || columnId} />
+              </ListItem>
+            ))}
+          </List>
+        </Paper>
+      );
+    }
+
+    // Covers the case where a selected column has no metadata yet (e.g., empty columns).
+    // essentially when useValueAnnotationColumn returns null.
+    if (!activeColumn || !activeColumnId) {
+      return (
+        <Paper
+          elevation={3}
+          className="flex h-full items-center justify-center shadow-lg"
+          data-cy="column-data-unavailable"
+        >
+          <Typography variant="h6">Selected column data is unavailable.</Typography>
+        </Paper>
+      );
+    }
+
+    return (
+      <ValueAnnotationTabs
+        columnOrder={selectedColumnIds}
+        columnsMeta={columnMetadata}
+        activeColumnId={activeColumnId}
+        activeColumn={activeColumn}
+        onChangeActiveColumn={setActiveColumnId}
+        onUpdateDescription={userUpdatesColumnLevelDescription}
+        onUpdateUnits={userUpdatesColumnUnits}
+        onToggleMissingValue={userUpdatesColumnMissingValues}
+        onUpdateFormat={userUpdatesColumnFormat}
+        onUpdateLevelTerm={userUpdatesColumnLevelTerm}
+      />
+    );
+  };
+
+  return (
+    <div className="mx-auto flex flex-col w-full max-w-7xl p-4">
+      <div className="mb-4 flex items-center justify-between">
+        <Instruction title="Value Annotation">
+          <ValueAnnotationInstructions />
+        </Instruction>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={showFormattingMarks}
+              onChange={(e) => setShowFormattingMarks(e.target.checked)}
+              color="primary"
+              size="small"
+            />
+          }
+          label={
+            <div className="flex items-center gap-1">
+              <Typography variant="body2" color="textSecondary">
+                Show whitespace
+              </Typography>
+              <Tooltip
+                title="Display hidden formatting characters like spaces and newlines"
+                placement="bottom"
+                arrow
+              >
+                <InfoOutlinedIcon color="action" sx={{ fontSize: '1rem' }} />
+              </Tooltip>
+            </div>
+          }
+        />
+      </div>
+      <div
+        className="flex w-full max-h-[calc(100vh-320px)] space-x-4"
+        data-cy="value-annotation-layout"
+      >
+        <SideColumnNavBar
+          annotatedGroups={navData.annotatedGroups}
+          unannotatedGroups={navData.unannotatedGroups}
+          onSelect={handleSelect}
+          selectedColumnId={selectedColumnIds.length === 1 ? selectedColumnIds[0] : null}
+        />
+        <div className="flex-1 min-w-0">{renderContent()}</div>
+      </div>
+    </div>
+  );
+}
+
+function ValueAnnotation() {
+  return (
+    <FormattingMarksProvider>
+      <ValueAnnotationContent />
+    </FormattingMarksProvider>
+  );
+}
+
+export default ValueAnnotation;

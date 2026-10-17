@@ -1,0 +1,35 @@
+// ***********************************************************
+// This example support/e2e.ts is processed and
+// loaded automatically before your test files.
+//
+// This is a great place to put global configuration and
+// behavior that modifies Cypress.
+//
+// You can change the location of this file or turn off
+// automatically serving support files with the
+// 'supportFile' configuration option.
+//
+// You can read more here:
+// https://docs.cypress.io/app/references/configuration
+// ***********************************************************
+// Import commands.js using ES2015 syntax:
+// cypress/support/e2e.js
+import '@cypress/code-coverage/support';
+import './commands';
+
+// Alternatively you can use CommonJS syntax:
+// require('./commands')
+
+beforeEach(() => {
+  // Globally mock the local storage to prevent the Column Annotation Tour from breaking existing E2E tests.
+  // Tests that explicitly need to test the tour (like ColumnAnnotationTour.cy.ts) can simply set the
+  // `SHOW_COLUMN_ANNOTATION_TOUR` env variable to `true` to disable the mock and allow the tour to run.
+  cy.on('window:before:load', (win) => {
+    if (!Cypress.env('SHOW_COLUMN_ANNOTATION_TOUR')) {
+      win.localStorage.setItem(
+        'local',
+        JSON.stringify({ state: { hasSeenColumnAnnotationTour: true }, version: 0 })
+      );
+    }
+  });
+});

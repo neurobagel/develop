@@ -1,0 +1,241 @@
+export enum View {
+  Landing = 'landing',
+  Upload = 'upload',
+  ColumnAnnotation = 'columnAnnotation',
+  MultiColumnMeasures = 'multiColumnMeasures',
+  ValueAnnotation = 'valueAnnotation',
+  DatasetDescription = 'datasetDescription',
+  Download = 'download',
+}
+
+export type AllowedFileType = '.tsv' | '.json';
+
+export interface GlobalMissingValue {
+  value: string;
+  description?: string;
+}
+
+export interface DatasetDescriptionFormState {
+  Name: string;
+  Authors: string[];
+  AccessType: string;
+  AccessInstructions: string;
+  RepositoryURL: string;
+  AccessEmail: string;
+  AccessLink: string;
+  ReferencesAndLinks: string[];
+  Keywords: string[];
+}
+
+export interface DatasetDescription {
+  Name: string;
+  Authors?: string[];
+  AccessType?: string;
+  AccessInstructions?: string;
+  RepositoryURL?: string;
+  AccessEmail?: string;
+  AccessLink?: string;
+  ReferencesAndLinks?: string[];
+  Keywords?: string[];
+  ParticipantCount?: number;
+}
+
+export type StepConfig = {
+  label: string;
+  view: View;
+  icon: React.ComponentType;
+};
+
+export enum VariableType {
+  identifier = 'Identifier',
+  categorical = 'Categorical',
+  continuous = 'Continuous',
+  collection = 'Collection',
+}
+
+export enum DataType {
+  categorical = 'Categorical',
+  continuous = 'Continuous',
+}
+
+export interface DataTable {
+  [key: string]: string[];
+}
+
+export interface Column {
+  id: string;
+  name: string;
+  allValues: string[]; // because we want to show the datable preview
+  description?: string | null;
+  dataType?: DataType | null;
+  isPartOf?: string; // foreign key (primary key in terms table) to standardized term in the terms for the corresponding standardized variable
+  levels?: { [key: string]: { description: string; standardizedTerm: string } } | null; // foreign key to standardized term
+  units?: string;
+  standardizedVariable?: string | null; // foreign key to standardized variable
+  missingValues?: string[];
+  format?: string; // foreign key to term format
+}
+
+export interface Columns {
+  [key: string]: Column;
+}
+
+export interface StandardizedVariable {
+  id: string;
+  name: string;
+  variable_type?: VariableType;
+  required?: boolean;
+  description?: string;
+  is_multi_column_measure?: boolean;
+  can_have_multiple_columns?: boolean;
+  same_as?: string | null;
+}
+
+export interface StandardizedVariables {
+  [key: string]: StandardizedVariable;
+}
+
+// Includes all terms in one place
+export interface StandardizedTerm {
+  standardizedVariableId: string; // foreign key (primary key in the standardized variable table) to standardized variable
+  id: string;
+  label: string;
+  abbreviation?: string;
+  description?: string;
+  same_as?: string;
+  status?: string;
+  // When set, indicates the term has been used to create a collection card.
+  // Stored as a string so creation order can be tracked deterministically.
+  collectionCreatedAt?: string;
+}
+
+export interface StandardizedTerms {
+  [key: string]: StandardizedTerm;
+}
+
+interface StandardizedFormat {
+  standardizedVariableId: string; // foreign key (primary key in the standardized variable table) to standardized variable
+  identifier: string;
+  label: string;
+  examples?: string[];
+}
+
+export interface StandardizedFormats {
+  [key: string]: StandardizedFormat;
+}
+
+export interface DataDictionary {
+  [key: string]: {
+    Description: string;
+    Levels?: { [key: string]: { Description: string; TermURL?: string } };
+    Units?: string;
+    Annotations?: {
+      IsAbout?: {
+        TermURL: string;
+        Label: string;
+      };
+      VariableType?: VariableType;
+      Format?: {
+        TermURL: string;
+        Label: string;
+      };
+      Levels?: {
+        [key: string]: {
+          TermURL: string;
+          Label: string;
+        };
+      };
+      IsPartOf?: {
+        TermURL: string;
+        Label: string;
+      };
+      MissingValues?: string[];
+      ValueRange?: {
+        Min?: number;
+        Max?: number;
+      };
+    };
+  };
+}
+
+export interface UploadedDataDictionaryFile {
+  fileName: string;
+  dataDictionary: DataDictionary;
+}
+
+export type DataStoreState = {
+  columns: Columns;
+  standardizedVariables: StandardizedVariables;
+  standardizedTerms: StandardizedTerms;
+  standardizedFormats: StandardizedFormats;
+  uploadedDataTableFileName: string | null;
+  isConfigLoading: boolean;
+  config: string;
+  configOptions: string[];
+  uploadedDataDictionary: UploadedDataDictionaryFile;
+  datasetDescription: DatasetDescriptionFormState;
+};
+
+export type DataStoreActions = {
+  loadConfig: (configName: string) => Promise<void>;
+  appFetchesConfigOptions: () => Promise<void>;
+  userSelectsConfig: (userSelectedConfig: string | null) => Promise<void>;
+  userUploadsDataTableFile: (dataTableFile: File) => Promise<void>;
+  userUploadsDataDictionaryFile: (dataDictionaryFile: File) => Promise<void>;
+  userUpdatesColumnDescription: (columnID: string, description: string | null) => void;
+  userUpdatesColumnDataType: (columnID: string, dataType: DataType | null) => void;
+  userUpdatesMultipleColumnDataTypes: (columnIDs: string[], dataType: DataType | null) => void;
+  userUpdatesColumnStandardizedVariable: (
+    columnID: string,
+    standardizedVariableId: string | null
+  ) => void;
+  userUpdatesMultipleColumnStandardizedVariables: (
+    columnIDs: string[],
+    standardizedVariableId: string | null
+  ) => void;
+  userUpdatesColumnToCollectionMapping: (columnID: string, termId: string | null) => void;
+  userUpdatesMultipleColumnToCollectionMappings: (
+    columnIDs: string[],
+    termId: string | null
+  ) => void;
+  userCreatesCollection: (termId: string) => void;
+  userDeletesCollection: (termId: string) => void;
+  userUpdatesValueDescription: (columnID: string, value: string, description: string) => void;
+  userUpdatesValueStandardizedTerm: (
+    columnID: string,
+    value: string,
+    termId: string | null
+  ) => void;
+  userUpdatesColumnUnits: (columnID: string, units: string) => void;
+  userUpdatesColumnFormat: (columnID: string, formatId: string | null) => void;
+  userUpdatesColumnMissingValues: (columnID: string, value: string, isMissing: boolean) => void;
+  userAppliesGlobalMissingStatus: (
+    valuesToApply: { value: string; description?: string }[]
+  ) => void;
+  userRemovesGlobalMissingStatus: (valueToRemove: string) => void;
+  // Using a generic to strictly tie the value type to the specific field being updated,
+  // preventing TypeScript errors without needing 'as any' in the store implementation.
+  userUpdatesDatasetDescription: <K extends keyof DatasetDescriptionFormState>(
+    field: K,
+    value: DatasetDescriptionFormState[K]
+  ) => void;
+  reset: () => void;
+};
+
+export type DataStore = DataStoreState & {
+  actions: DataStoreActions;
+};
+
+export interface StandardizedTermItem {
+  id: string;
+  label: string;
+  abbreviation?: string;
+  description?: string;
+}
+
+export interface StandardizedVariableItem {
+  id: string;
+  label: string;
+  can_have_multiple_columns?: boolean;
+  terms?: StandardizedTermItem[];
+}

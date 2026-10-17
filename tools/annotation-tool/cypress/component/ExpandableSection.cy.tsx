@@ -1,0 +1,57 @@
+import ColumnTypeCollapse from '../../src/components/ColumnTypeCollapse';
+import ExpandableSection from '../../src/components/ExpandableSection';
+import type { ColumnGroupColumn } from '../../src/hooks/useValueAnnotationColumns';
+
+const mockColumnGroup: ColumnGroupColumn[] = [
+  {
+    id: '1',
+    column: {
+      id: '1',
+      name: 'participant_id',
+      allValues: [],
+    },
+  },
+];
+
+function TestComponent({
+  defaultExpanded,
+  tooltip,
+}: {
+  defaultExpanded: boolean;
+  tooltip: string;
+}) {
+  return (
+    <ExpandableSection title="some title" defaultExpanded={defaultExpanded} tooltip={tooltip}>
+      <ColumnTypeCollapse
+        label="subject id"
+        dataType="Continuous"
+        columns={mockColumnGroup}
+        onSelect={() => {}}
+        selectedColumnId="1"
+        schemaErrors={[]}
+      />
+    </ExpandableSection>
+  );
+}
+
+describe('ColumnTypeCollapse', () => {
+  it('renders the component correctly', () => {
+    cy.mount(<TestComponent defaultExpanded tooltip="" />);
+    cy.get('[data-cy="side-column-nav-bar-some title"]').should('be.visible');
+    cy.get('[data-cy="side-column-nav-bar-some title-toggle-button"]').should('be.visible');
+    cy.get('[data-cy="side-column-nav-bar-subject id"]').should('be.visible');
+    cy.get('[data-cy="side-column-nav-bar-some title-toggle-button"]').click();
+    cy.get('[data-cy="side-column-nav-bar-subject id"]').should('not.be.visible');
+  });
+  it('renders the component correctly when defaultExpanded is false', () => {
+    cy.mount(<TestComponent defaultExpanded={false} tooltip="" />);
+    cy.get('[data-cy="side-column-nav-bar-subject id"]').should('not.be.visible');
+  });
+
+  it('renders a tooltip when tooltip prop is provided', () => {
+    cy.mount(<TestComponent defaultExpanded tooltip="This is a test tooltip" />);
+    cy.get('[data-cy="side-column-nav-bar-some title-info-icon"]').should('be.visible');
+    cy.get('[data-cy="side-column-nav-bar-some title-toggle-button"]').trigger('mouseover');
+    cy.get('.MuiTooltip-tooltip').should('contain', 'This is a test tooltip');
+  });
+});

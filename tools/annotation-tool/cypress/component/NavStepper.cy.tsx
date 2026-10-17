@@ -1,0 +1,24 @@
+import NavStepper from '../../src/components/NavStepper';
+import { View } from '../../src/utils/internal_types';
+
+const props = {
+  currentView: View.ValueAnnotation,
+};
+
+describe('Stepper component', () => {
+  it('renders the component correctly', () => {
+    cy.mount(<NavStepper currentView={props.currentView} />);
+    cy.get('[data-cy="nav-stepper"]').should('be.visible');
+    cy.get('[data-cy="nav-stepper"]')
+      .should('contain', 'Load data files')
+      .and('contain', 'Column Annotation')
+      .and('contain', 'Value Annotation')
+      .and('contain', 'Save');
+    cy.get('[data-cy="Load data files-step"]').within(() => {
+      cy.get('.MuiStepLabel-iconContainer').should('not.have.class', 'Mui-active');
+    });
+    cy.get('[data-cy="Value Annotation-step"]').within(() => {
+      cy.get('.MuiStepLabel-iconContainer').should('have.class', 'Mui-active');
+    });
+  });
+});

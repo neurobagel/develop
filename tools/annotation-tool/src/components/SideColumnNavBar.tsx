@@ -1,0 +1,145 @@
+import { List, Paper, ListItem, ListItemButton, ListItemText } from '@mui/material';
+import { useGenerateDataDictionary } from '~/hooks/useGenerateDataDictionary';
+import { useSchemaValidation } from '~/hooks/useSchemaValidation';
+import type { UnannotatedColumnGroup } from '~/hooks/useValueAnnotationColumns';
+import type {
+  ValueAnnotationNavAnnotatedGroup,
+  ValueAnnotationNavData,
+} from '~/hooks/useValueAnnotationNavData';
+import { DataType } from '../utils/internal_types';
+import ColumnTypeCollapse from './ColumnTypeCollapse';
+import ExpandableSection from './ExpandableSection';
+
+interface SideColumnNavBarProps extends ValueAnnotationNavData {
+  onSelect: (params: {
+    columnIDs: string[];
+    dataType?: 'Categorical' | 'Continuous' | null;
+  }) => void;
+  selectedColumnId: string | null;
+}
+
+function AnnotatedColumnGroupCollapse({
+  group,
+  onSelect,
+  selectedColumnId,
+  schemaErrors,
+}: {
+  group: ValueAnnotationNavAnnotatedGroup;
+  onSelect: SideColumnNavBarProps['onSelect'];
+  selectedColumnId: string | null;
+  schemaErrors: string[];
+}) {
+  return (
+    <ColumnTypeCollapse
+      label={group.label}
+      dataType={null}
+      columns={group.columns}
+      onSelect={onSelect}
+      selectedColumnId={selectedColumnId}
+      isCollection={group.isCollection}
+      groupedColumns={group.groupedColumns}
+      schemaErrors={schemaErrors}
+    />
+  );
+}
+
+function UnannotatedColumnGroupCollapse({
+  group,
+  onSelect,
+  selectedColumnId,
+  schemaErrors,
+}: {
+  group: UnannotatedColumnGroup;
+  onSelect: SideColumnNavBarProps['onSelect'];
+  selectedColumnId: string | null;
+  schemaErrors: string[];
+}) {
+  let label = 'other';
+  let dataType: 'Categorical' | 'Continuous' | null = null;
+  if (group.key === DataType.categorical || group.key === DataType.continuous) {
+    dataType = group.key;
+    label = group.key.toLocaleLowerCase();
+  }
+
+  return (
+    <ColumnTypeCollapse
+      label={label}
+      dataType={dataType}
+      columns={group.columns}
+      onSelect={onSelect}
+      selectedColumnId={selectedColumnId}
+      schemaErrors={schemaErrors}
+    />
+  );
+}
+
+function SideColumnNavBar({
+  annotatedGroups,
+  unannotatedGroups,
+  onSelect,
+  selectedColumnId,
+}: SideColumnNavBarProps) {
+  const dataDictionary = useGenerateDataDictionary();
+  const { schemaErrors } = useSchemaValidation(dataDictionary);
+
+  return (
+    <Paper
+      className="w-full max-w-80 p-4 overflow-y-auto"
+      elevation={3}
+      data-cy="side-column-nav-bar"
+    >
+      <ExpandableSection title="Global Operations" defaultExpanded tooltip="">
+        <List>
+          <ListItem disablePadding sx={{ paddingLeft: 2 }}>
+            <ListItemButton
+              selected={selectedColumnId === null}
+              onClick={() => onSelect({ columnIDs: [] })}
+              sx={{ borderRadius: 1 }}
+            >
+              <ListItemText primary="Global Missing Values" />
+            </ListItemButton>
+          </ListItem>
+        </List>
+      </ExpandableSection>
+
+      <ExpandableSection
+        title="annotated"
+        tooltip="Columns that have been mapped to a standardized variable"
+      >
+        <List>
+          {annotatedGroups.map((group) => (
+            <ListItem key={group.standardizedVariableId} sx={{ paddingLeft: 2 }}>
+              <AnnotatedColumnGroupCollapse
+                group={group}
+                selectedColumnId={selectedColumnId}
+                onSelect={onSelect}
+                schemaErrors={schemaErrors}
+              />
+            </ListItem>
+          ))}
+        </List>
+      </ExpandableSection>
+
+      <ExpandableSection
+        title="unannotated"
+        defaultExpanded={false}
+        tooltip="Columns that have not been mapped to a standardized variable"
+      >
+        <List>
+          {unannotatedGroups.map((group) => (
+            <ListItem key={`unannotated-${group.key}`} sx={{ paddingLeft: 2 }}>
+              <UnannotatedColumnGroupCollapse
+                group={group}
+                onSelect={onSelect}
+                selectedColumnId={selectedColumnId}
+                schemaErrors={schemaErrors}
+              />
+            </ListItem>
+          ))}
+        </List>
+      </ExpandableSection>
+    </Paper>
+  );
+}
+
+export default SideColumnNavBar;
