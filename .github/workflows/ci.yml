@@ -65,7 +65,6 @@ jobs:
               - 'examples/**'
               - '.github/workflows/test-node.yml'
               - '.github/actions/docker-build/**'
-              - 'scripts/materialize-context.sh'
             annotation-tool:
               - 'tools/annotation-tool/**'
               - '.github/workflows/test-node.yml'

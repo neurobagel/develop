@@ -2,7 +2,8 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-COPY . .
+COPY tools/query-tool/ .
+COPY examples/ ./neurobagel_examples/
 
 ENV NB_API_QUERY_URL="REPLACE_ME_NB_API_QUERY_URL_REPLACE_ME"
 ENV NB_ENABLE_AUTH="REPLACE_ME_NB_ENABLE_AUTH_REPLACE_ME"
@@ -18,7 +19,7 @@ FROM nginx:alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html
 
-COPY entrypoint.sh /entrypoint.sh
+COPY tools/query-tool/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 WORKDIR /usr/share/nginx/html

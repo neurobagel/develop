@@ -1,0 +1,6 @@
+/usr/share/nginx/html/50x.html
+/usr/share/nginx/html/assets/favicon-DQJMHyU8.ico
+/usr/share/nginx/html/assets/index-B49hPdth.css
+/usr/share/nginx/html/assets/index-C_a8Bf10.js
+/usr/share/nginx/html/assets/logo-Cgi1n2qg.png
+/usr/share/nginx/html/index.html

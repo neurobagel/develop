@@ -1,8 +1,9 @@
 name: Docker build
 description: >
-  Build a tool's Docker image from a copy of its folder with symlinks resolved
-  (scripts/materialize-context.sh), so files reached through symlinks such as
-  neurobagel_examples are part of the build context.
+  Build a tool's Docker image with the repository root as build context and
+  tools/<tool>/Dockerfile as the Dockerfile. Each Dockerfile has an allowlist
+  ignore file next to it (tools/<tool>/Dockerfile.dockerignore), which BuildKit
+  reads automatically.
 
 inputs:
   tool:
@@ -27,21 +28,14 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Materialize build context
-      id: context
-      shell: bash
-      env:
-        TOOL: ${{ inputs.tool }}
-      run: echo "dir=$(scripts/materialize-context.sh "tools/$TOOL")" >> "$GITHUB_OUTPUT"
-
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v4
 
     - name: Build
       uses: docker/build-push-action@v7
       with:
-        context: ${{ steps.context.outputs.dir }}
-        file: ${{ steps.context.outputs.dir }}/Dockerfile
+        context: .
+        file: tools/${{ inputs.tool }}/Dockerfile
         tags: ${{ inputs.tags }}
         push: ${{ inputs.push }}
         load: ${{ inputs.load }}

@@ -5,7 +5,7 @@ FROM ghcr.io/astral-sh/uv:alpine AS prebuild
 
 WORKDIR /build
 
-COPY pyproject.toml uv.lock ./
+COPY tools/api/pyproject.toml tools/api/uv.lock ./
 RUN uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements.txt
 
 # Build stage
@@ -15,7 +15,7 @@ WORKDIR /usr/src/
 COPY --from=prebuild /build/requirements.txt /usr/src/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /usr/src/requirements.txt
 
-COPY ./app /usr/src/app
+COPY tools/api/app /usr/src/app
 
 # NB_API_PORT, representing the port on which the API will be exposed, 
 # is an environment variable that will always have a default value of 8000 when building the image

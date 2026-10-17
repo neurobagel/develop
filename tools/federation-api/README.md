@@ -99,8 +99,10 @@ Or from the repository root: `just test federation-api`. CI runs the tests on Py
 From the repository root:
 
 ```bash
-docker build -t neurobagel/federation_api:local tools/federation-api
+docker build -f tools/federation-api/Dockerfile -t neurobagel/federation_api:local .
 ```
+
+The build context is the repository root, so images must be built from there with `-f`. `tools/federation-api/Dockerfile.dockerignore` (next to the Dockerfile, read automatically by BuildKit) allowlists the files the image needs; everything else in the repository stays out of the build context. `just build federation-api` runs the same command.
 
 The image contains the `app` package and its runtime dependencies, exported from `uv.lock`, and serves the API on port 8000.
 

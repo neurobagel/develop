@@ -1,0 +1,9 @@
+# Build context is the repository root: docker build -f tools/query-tool/Dockerfile .
+# Allowlist: ignore everything, then re-include only what the image needs.
+*
+!tools/query-tool
+!examples
+tools/query-tool/node_modules
+tools/query-tool/dist
+# The symlink to ../../examples; the Dockerfile copies examples/ in its place
+tools/query-tool/neurobagel_examples

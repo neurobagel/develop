@@ -1,0 +1,9 @@
+# Build context is the repository root: docker build -f tools/federation-api/Dockerfile .
+# Allowlist: ignore everything, then re-include only what the image needs.
+*
+!tools/federation-api/pyproject.toml
+!tools/federation-api/uv.lock
+!tools/federation-api/app
+tools/federation-api/app/**/__pycache__
+# hatch-vcs writes this during uv sync; it is git-ignored and not used at runtime
+tools/federation-api/app/_version.py

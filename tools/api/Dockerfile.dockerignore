@@ -1,0 +1,9 @@
+# Build context is the repository root: docker build -f tools/api/Dockerfile .
+# Allowlist: ignore everything, then re-include only what the image needs.
+*
+!tools/api/pyproject.toml
+!tools/api/uv.lock
+!tools/api/app
+tools/api/app/**/__pycache__
+# hatch-vcs writes this during uv sync; it is git-ignored and not used at runtime
+tools/api/app/_version.py
