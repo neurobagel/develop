@@ -1,0 +1,458 @@
+# v0.11.0 (Mon Sep 14 2026)
+
+:tada: This release contains work from a new contributor! :tada:
+
+Thank you, CHANDAN YADAV ([@NobleCoder69](https://github.com/NobleCoder69)), for all your work!
+
+#### 💥 Breaking Changes
+
+- [ENH] Support AND queries for categorical variables other than sex [#594](https://github.com/neurobagel/api/pull/594) ([@alyssadai](https://github.com/alyssadai))
+- [REF] Remove cohort `/query` endpoint in favour of `/subjects` [#595](https://github.com/neurobagel/api/pull/595) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [MNT] Switch to Python 3.9+ type annotation syntax everywhere [#539](https://github.com/neurobagel/api/pull/539) ([@NobleCoder69](https://github.com/NobleCoder69) [@alyssadai](https://github.com/alyssadai))
+
+####  🧪 Tests
+
+- [TST] Add test runners for Python 3.11-3.13 [#598](https://github.com/neurobagel/api/pull/598) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🔩 Dependency Updates
+
+- [MNT] Remove deprecated `orjson` dependency [#593](https://github.com/neurobagel/api/pull/593) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- CHANDAN YADAV ([@NobleCoder69](https://github.com/NobleCoder69))
+
+---
+
+# v0.10.0 (Thu Jun 04 2026)
+
+#### 🚀 Enhancements
+
+- [ENH] Support catalog mode for only dataset-level metadata queries [#576](https://github.com/neurobagel/api/pull/576) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] distroless uv requirements export [#558](https://github.com/neurobagel/api/pull/558) ([@surchs](https://github.com/surchs))
+
+#### 🏠 Internal
+
+- [REF] remove stale python setup step [#559](https://github.com/neurobagel/api/pull/559) ([@surchs](https://github.com/surchs))
+
+#### 🔩 Dependency Updates
+
+- [MNT] Setup uv [#529](https://github.com/neurobagel/api/pull/529) ([@surchs](https://github.com/surchs))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
+# v0.9.2 (Tue Mar 03 2026)
+
+:tada: This release contains work from a new contributor! :tada:
+
+Thank you, Sejal ([@sejalpunwatkar](https://github.com/sejalpunwatkar)), for all your work!
+
+#### 🚀 Enhancements
+
+- [MNT] Change default value of NB_ENABLE_AUTH to False #530 [#533](https://github.com/neurobagel/api/pull/533) ([@sejalpunwatkar](https://github.com/sejalpunwatkar))
+
+#### Authors: 1
+
+- Sejal ([@sejalpunwatkar](https://github.com/sejalpunwatkar))
+
+---
+
+# v0.9.1 (Wed Feb 04 2026)
+
+#### 🚀 Enhancements
+
+- [MNT] Add logging for user errors & warnings [#522](https://github.com/neurobagel/api/pull/522) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.9.0 (Thu Jan 15 2026)
+
+#### 💥 Breaking Changes
+
+- [ENH] Return expanded metadata per matching dataset for `POST /datasets` endpoint only [#519](https://github.com/neurobagel/api/pull/519) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.8.0 (Thu Dec 11 2025)
+
+#### 🚀 Enhancements
+
+- [ENH] Add `/imaging-modalities` route for getting available imaging modality term instances & labels [#513](https://github.com/neurobagel/api/pull/513) ([@rmanaem](https://github.com/rmanaem))
+
+#### 🏠 Internal
+
+- [REF] Factor out repeated logic in query handling functions [#510](https://github.com/neurobagel/api/pull/510) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+
+---
+
+# v0.7.2 (Wed Nov 19 2025)
+
+#### 🏎 Performance Improvements
+
+- [ENH] Add SPARQL query for available imaging modalities & pipelines for matching datasets [#499](https://github.com/neurobagel/api/pull/499) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Expand SPARQL entity classes to create explicit triples for phenotypic-only dataset query [#497](https://github.com/neurobagel/api/pull/497) ([@alyssadai](https://github.com/alyssadai))
+- [REF] Use classes for SPARQL entities to create explicit triples for imaging-only dataset query [#495](https://github.com/neurobagel/api/pull/495) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.7.1 (Thu Nov 06 2025)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Add back missing API root path to docs link in root UI [#496](https://github.com/neurobagel/api/pull/496) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.7.0 (Thu Sep 11 2025)
+
+#### 💥 Breaking Changes
+
+- [MNT] Removed `is_control` query parameter [#475](https://github.com/neurobagel/api/pull/475) ([@rmanaem](https://github.com/rmanaem))
+
+#### 🚀 Enhancements
+
+- [ENH] Add POST `/subjects` endpoint that allows querying for specific datasets [#445](https://github.com/neurobagel/api/pull/445) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Create `POST /datasets` endpoint [#441](https://github.com/neurobagel/api/pull/441) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Added bells and whistles to the root ui [#465](https://github.com/neurobagel/api/pull/465) ([@rmanaem](https://github.com/rmanaem))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+
+---
+
+# v0.6.4 (Wed Mar 26 2025)
+
+#### 🚀 Enhancements
+
+- [MNT] Update diagnosis terms to SNOMED v20250227 and standardize vocab file format [#427](https://github.com/neurobagel/api/pull/427) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.6.3 (Fri Mar 14 2025)
+
+#### 🐛 Bug Fixes
+
+- [FIX] update assessments to SNOMED v20250227 and exclude non-standard terms [#421](https://github.com/neurobagel/api/pull/421) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.6.2 (Mon Mar 10 2025)
+
+:tada: This release contains work from a new contributor! :tada:
+
+Thank you, Khushi Jitendra Rajurkar ([@KhushiRajurkar](https://github.com/KhushiRajurkar)), for all your work!
+
+#### 🐛 Bug Fixes
+
+- [FIX] Ensure defaults are correctly applied for environment variables set to empty strings [#418](https://github.com/neurobagel/api/pull/418) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [REF] Move environment variable handling to Pydantic `BaseSettings` class [#416](https://github.com/neurobagel/api/pull/416) ([@alyssadai](https://github.com/alyssadai))
+- [REF] Refactor startup/shutdown events to lifespan events [#407](https://github.com/neurobagel/api/pull/407) ([@KhushiRajurkar](https://github.com/KhushiRajurkar) [@alyssadai](https://github.com/alyssadai))
+
+#### 🔩 Dependency Updates
+
+- [REF] Upgrade to Pydantic>2 [#413](https://github.com/neurobagel/api/pull/413) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Khushi Jitendra Rajurkar ([@KhushiRajurkar](https://github.com/KhushiRajurkar))
+
+---
+
+# v0.6.1 (Fri Feb 07 2025)
+
+#### 🚀 Enhancements
+
+- [MNT] Remove trailing slashes from all paths [#408](https://github.com/neurobagel/api/pull/408) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Make `root_path` for app configurable [#400](https://github.com/neurobagel/api/pull/400) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.6.0 (Tue Jan 07 2025)
+
+#### 💥 Breaking Changes
+
+- [MNT] Replaced Cognitive Atlas with SNOMED [#397](https://github.com/neurobagel/api/pull/397) ([@rmanaem](https://github.com/rmanaem))
+
+#### Authors: 1
+
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+
+---
+
+# v0.5.1 (Mon Dec 16 2024)
+
+#### 📝 Documentation
+
+- [DOC] Update shortcuts in README.md [#391](https://github.com/neurobagel/api/pull/391) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.5.0 (Mon Dec 16 2024)
+
+#### 🚀 Enhancements
+
+- [ENH] Implement minimum cell size [#388](https://github.com/neurobagel/api/pull/388) ([@surchs](https://github.com/surchs))
+
+#### 🏠 Internal
+
+- [ENH] Add consistent badges [#387](https://github.com/neurobagel/api/pull/387) ([@surchs](https://github.com/surchs))
+
+#### Authors: 1
+
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
+# v0.4.3 (Mon Dec 02 2024)
+
+#### 🏠 Internal
+
+- [REF] Manually verify ID token using PyJWT instead of google_auth [#386](https://github.com/neurobagel/api/pull/386) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.4.2 (Thu Nov 07 2024)
+
+#### 🚀 Enhancements
+
+- [FIX] Filter for only `ImagingSession`s or `PhenotypicSession`s in SPARQL query [#375](https://github.com/neurobagel/api/pull/375) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.4.1 (Tue Oct 29 2024)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Ensure non-agg API doesn't error out when all matches lack pipeline data [#369](https://github.com/neurobagel/api/pull/369) ([@alyssadai](https://github.com/alyssadai))
+
+####  🧪 Tests
+
+- [TST] Remove unneeded env file mount from test docker-compose.yml [#366](https://github.com/neurobagel/api/pull/366) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.4.0 (Thu Oct 24 2024)
+
+#### 💥 Breaking Changes
+
+- [REF] Split generic `/attributes` endpoints into attribute-specific routers [#358](https://github.com/neurobagel/api/pull/358) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Implemented `pipeline_version` and `pipeline_name` query fields [#345](https://github.com/neurobagel/api/pull/345) ([@rmanaem](https://github.com/rmanaem))
+
+#### 🚀 Enhancements
+
+- [ENH] Add `/pipelines` router & route for fetching available pipeline versions [#350](https://github.com/neurobagel/api/pull/350) ([@alyssadai](https://github.com/alyssadai))
+- [REF] Update README links and simplify Docker Compose instructions [#340](https://github.com/neurobagel/api/pull/340) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Allow only `"true"` or `None` for `is_control` query parameter [#364](https://github.com/neurobagel/api/pull/364) ([@alyssadai](https://github.com/alyssadai))
+- [FIX] Fixed a typo in filtering pipeline name [#351](https://github.com/neurobagel/api/pull/351) ([@rmanaem](https://github.com/rmanaem))
+- [FIX] Ensure pipeline variables are returned from the graph in an aggregate query [#349](https://github.com/neurobagel/api/pull/349) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [MNT] Updated `default_neurobagel_query` [#347](https://github.com/neurobagel/api/pull/347) ([@rmanaem](https://github.com/rmanaem))
+- [MNT] Removed build docker nightly workflow file [#342](https://github.com/neurobagel/api/pull/342) ([@rmanaem](https://github.com/rmanaem))
+
+#### 📝 Documentation
+
+- [MNT] Update default Neurobagel SPARQL query file and turn into PR checkbox [#359](https://github.com/neurobagel/api/pull/359) ([@alyssadai](https://github.com/alyssadai))
+
+####  🧪 Tests
+
+- [TST] Add integration test against local test graph [#357](https://github.com/neurobagel/api/pull/357) ([@rmanaem](https://github.com/rmanaem) [@surchs](https://github.com/surchs) [@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 3
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
+# v0.3.1 (Tue Aug 13 2024)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Ensure subjects without imaging sessions are considered in main query [#333](https://github.com/neurobagel/api/pull/333) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [CI] Fix reference for `DOCKERHUB_REPO` in build_docker_on_release.yml [#337](https://github.com/neurobagel/api/pull/337) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.3.1 (Tue Aug 13 2024)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Ensure subjects without imaging sessions are considered in main query [#333](https://github.com/neurobagel/api/pull/333) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [CI] Release the node API [#336](https://github.com/neurobagel/api/pull/336) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.3.1 (Tue Aug 13 2024)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Ensure subjects without imaging sessions are considered in main query [#333](https://github.com/neurobagel/api/pull/333) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.3.0 (Fri Aug 02 2024)
+
+#### 💥 Breaking Changes
+
+- [FIX] Disable redirect slashes globally and remove trailing `/` from `/query` [#328](https://github.com/neurobagel/api/pull/328) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Add authentication to `/query` route [#323](https://github.com/neurobagel/api/pull/323) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Exclude sessions missing a queried property from matches [#326](https://github.com/neurobagel/api/pull/326) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.2.1 (Tue Apr 16 2024)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Address performance issues in SPARQL query [#308](https://github.com/neurobagel/api/pull/308) ([@surchs](https://github.com/surchs))
+- [FIX] Disable timeout for request to graph [#305](https://github.com/neurobagel/api/pull/305) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
+# v0.2.0 (Thu Apr 11 2024)
+
+:tada: This release contains work from a new contributor! :tada:
+
+Thank you, Abdul Samad Siddiqui ([@samadpls](https://github.com/samadpls)), for all your work!
+
+### Release Notes
+
+#### [MNT] Release new data model ([#300](https://github.com/neurobagel/api/pull/300))
+
+We have updated the Neurobagel data model to allow users to specify phenotypic information at the session level (https://github.com/neurobagel/planning/issues/83). This release updates the node API so it can understand the new graph data.
+
+---
+
+#### 💥 Breaking Changes
+
+- [REF] Make session count names clearer in query response [#282](https://github.com/neurobagel/api/pull/282) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Support queries of session-level phenotypic attributes [#264](https://github.com/neurobagel/api/pull/264) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🚀 Enhancements
+
+- [ENH] Added root endpoint with welcome message and API docs link [#286](https://github.com/neurobagel/api/pull/286) ([@samadpls](https://github.com/samadpls))
+- [MNT] Release new data model [#300](https://github.com/neurobagel/api/pull/300) ([@surchs](https://github.com/surchs))
+- Delete .github/workflows/add_pr2project.yml [#244](https://github.com/neurobagel/api/pull/244) ([@surchs](https://github.com/surchs))
+
+#### 📝 Documentation
+
+- [DOC] Added warning about quoting in `.env` file for Docker commands [#284](https://github.com/neurobagel/api/pull/284) ([@samadpls](https://github.com/samadpls))
+- [DOC] Add sample default SPARQL query to repo [#277](https://github.com/neurobagel/api/pull/277) ([@alyssadai](https://github.com/alyssadai))
+
+####  🧪 Tests
+
+- [TST] Refactor tests [#269](https://github.com/neurobagel/api/pull/269) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🔩 Dependency Updates
+
+- Bumped fastapi, starlette, and typing_extensions [#295](https://github.com/neurobagel/api/pull/295) ([@rmanaem](https://github.com/rmanaem))
+
+#### Authors: 4
+
+- Abdul Samad Siddiqui ([@samadpls](https://github.com/samadpls))
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
