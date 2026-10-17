@@ -267,7 +267,7 @@ The Docker build needs the example data, which the folder only reaches through a
 docker build -t neurobagel/query_tool:local "$(scripts/materialize-context.sh tools/query-tool)"
 ```
 
-`docker build tools/query-tool` fails at `tsc`, because the Cypress tests' example imports are missing. The image contains the production build of the app, served by nginx on port 5173; the `NB_*` variables are substituted when the container starts.
+`docker build tools/query-tool` fails at `tsc`, because the Cypress tests' example imports are missing. The image contains the production build of the app, served by nginx on port 5173. The `NB_*` variables are substituted when the container starts, and it exits unless `NB_API_QUERY_URL` is set (see [Mandatory configuration](#mandatory-configuration)).
 
 ### Releases
 

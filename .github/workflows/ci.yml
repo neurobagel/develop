@@ -138,7 +138,9 @@ jobs:
 
       - name: Check that the image serves the app
         run: |
-          docker run -d --name query-tool -p 5173:5173 neurobagel/query_tool:ci
+          # entrypoint.sh exits unless NB_API_QUERY_URL is set
+          docker run -d --name query-tool -p 5173:5173 \
+            -e NB_API_QUERY_URL=https://federate.neurobagel.org/ neurobagel/query_tool:ci
           for _ in $(seq 1 30); do
             code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5173/ || true)
             if [ "$code" = "200" ]; then
