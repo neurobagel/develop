@@ -121,7 +121,16 @@ Python 3.10 (as in upstream CD).
 
 ## Already failing upstream
 
-None of the test suites. Only the documentation `markdown-link-check` hook above.
+None of the test suites. Two checks fail upstream:
+
+- The documentation `markdown-link-check` hook above.
+- query-tool `docker compose --profile test config --quiet` (found in Step 5, 2026-10-17), at query-tool `b3366bb` with recipes `v0.9.1`:
+
+  ```
+  service "graph" depends on undefined service "init_data": invalid compose project
+  ```
+
+  (The monorepo reports the same problem for `api`; compose picks the first service it finds.) query-tool's `docker-compose.yml` extends recipes' `api` and `graph` services, which depend on an `init_data` service that query-tool's file does not define. Upstream CI never uses this compose file. Fixed in migration Step 7a.
 
 ## Environment and deviations
 

@@ -29,6 +29,14 @@ test tool:
         uv sync --group dev
         uv run pytest -m "integration or not integration"
         ;;
+      query-tool)
+        cd tools/query-tool
+        npm ci
+        npm run lint:check
+        npm run format:check
+        npm run typecheck
+        npm run test:component
+        ;;
       *) echo "No tests configured for '{{tool}}'" >&2; exit 1 ;;
     esac
 

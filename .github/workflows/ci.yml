@@ -36,6 +36,7 @@ jobs:
       federation-api: ${{ steps.filter.outputs.federation-api }}
       api: ${{ steps.filter.outputs.api }}
       bagel-cli: ${{ steps.filter.outputs.bagel-cli }}
+      query-tool: ${{ steps.filter.outputs.query-tool }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -58,6 +59,12 @@ jobs:
               - 'examples/**'
               - '.gitmodules'
               - '.github/workflows/test-python.yml'
+            query-tool:
+              - 'tools/query-tool/**'
+              - 'examples/**'
+              - '.github/workflows/test-node.yml'
+              - '.github/actions/docker-build/**'
+              - 'scripts/materialize-context.sh'
 
   check-unchanged:
     runs-on: ubuntu-latest
@@ -99,3 +106,47 @@ jobs:
       sync-args: --group dev --upgrade
       pytest-args: -m "integration or not integration"
       submodules: true
+
+  query-tool:
+    needs: changes
+    if: needs.changes.outputs.query-tool == 'true'
+    uses: ./.github/workflows/test-node.yml
+    with:
+      tool: query-tool
+      run-component: true
+      run-e2e: true
+      component-env: NB_API_QUERY_URL=https://federate.neurobagel.org/
+      e2e-env: |
+        NB_API_QUERY_URL=https://federate.neurobagel.org/
+        NB_ENABLE_AUTH=true
+        NB_QUERY_CLIENT_ID=mockclientid
+
+  query-tool-image:
+    needs: changes
+    if: needs.changes.outputs.query-tool == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build image
+        uses: ./.github/actions/docker-build
+        with:
+          tool: query-tool
+          tags: neurobagel/query_tool:ci
+          load: "true"
+
+      - name: Check that the image serves the app
+        run: |
+          docker run -d --name query-tool -p 5173:5173 neurobagel/query_tool:ci
+          for _ in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5173/ || true)
+            if [ "$code" = "200" ]; then
+              echo "query-tool serves HTTP 200 on port 5173"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "query-tool did not serve HTTP 200 on port 5173 (last: $code)"
+          docker logs query-tool
+          exit 1

@@ -2,9 +2,7 @@
 
 # Query Tool
 
-[![Main branch checks status](https://img.shields.io/github/check-runs/neurobagel/query-tool/main?style=flat-square&logo=github)](https://github.com/neurobagel/query-tool/actions?query=branch:main)
-[![e2e tests status](https://img.shields.io/github/actions/workflow/status/neurobagel/query-tool/e2e-test.yaml?branch=main&style=flat-square&logo=github&label=e2e%20tests&link=https%3A%2F%2Fgithub.com%2Fneurobagel%2Fquery-tool%2Factions%2Fworkflows%2Fe2e-test.yaml)](https://github.com/neurobagel/query-tool/actions/workflows/e2e-test.yaml)
-[![Component tests status](https://img.shields.io/github/actions/workflow/status/neurobagel/query-tool/component-test.yaml?branch=main&style=flat-square&logo=github&label=component%20tests&link=https%3A%2F%2Fgithub.com%2Fneurobagel%2Fquery-tool%2Factions%2Fworkflows%2Fcomponent-test.yaml)](https://github.com/neurobagel/query-tool/actions/workflows/component-test.yaml)
+[![CI](https://img.shields.io/github/actions/workflow/status/neurobagel/develop/ci.yml?branch=main&style=flat-square&logo=github&label=ci)](https://github.com/neurobagel/develop/actions/workflows/ci.yml?query=branch%3Amain)
 [![Node version](https://img.shields.io/badge/node-20.9-green?style=flat-square&logo=nodedotjs)](https://nodejs.org/en)
 [![License](https://img.shields.io/github/license/neurobagel/query-tool?style=flat-square&color=purple&link=LICENSE)](LICENSE)
 [![Docker Image Version (tag)](https://img.shields.io/docker/v/neurobagel/query_tool/latest?style=flat-square&logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fneurobagel%2Fquery_tool%2Ftags)](https://hub.docker.com/r/neurobagel/query_tool/tags)
@@ -20,6 +18,7 @@ The query tool is a React application, developed in [TypeScript](https://www.typ
 [Local Installation](#local-installation) |
 [Usage](#usage) |
 [Testing](#testing) |
+[Development in the Neurobagel monorepo](#development-in-the-neurobagel-monorepo) |
 [License](#license)
 
 </div>
@@ -35,7 +34,7 @@ The query tool is hosted at https://query.neurobagel.org/ and interfaces with [N
 To run the query tool locally, you have two options:
 
 1. Use our docker image
-2. Do a manual install from the cloned git repo.
+2. Do a manual install from a clone of the [Neurobagel monorepo](https://github.com/neurobagel/develop), in `tools/query-tool/`.
 
 but before proceeding with either you need to set the environment variables.
 
@@ -79,7 +78,7 @@ NB_QUERY_HEADER_SCRIPT='<script defer data-domain="mydomain" src="plausible">'
 
 #### Set the environment variables
 
-To set environment variables, create a `.env` file in the root directory and add the environment variables there. If you're running a neurobagel node-API locally on your machine (following the instructions [here](https://github.com/neurobagel/api#local-installation)), your `.env` file would look something like this:
+To set environment variables, create a `.env` file in `tools/query-tool/` and add the environment variables there. If you're running a neurobagel node-API locally on your machine (following the instructions [here](https://github.com/neurobagel/api#local-installation)), your `.env` file would look something like this:
 
 ```bash
 NB_API_QUERY_URL=http://localhost:8000/
@@ -134,7 +133,7 @@ To install the query tool directly, you'll need [node package manager (npm)](htt
 You can find the instructions on installing npm and node in the official [documentation](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
 
 Once you have npm and node installed, you'll need to install the dependencies outlined in the package.json file.
-You can do so by running the following command:
+You can do so by running the following command from `tools/query-tool/`:
 
 ```bash
 npm install
@@ -156,30 +155,21 @@ You can verify the tool is running by watching for the` info messages from Vite 
 
 #### Developer setup
 
-Having installed the dependencies, run the following command to enable husky `pre-commit` and `post-merge` hooks:
-
-```bash
-npx husky init
-```
+Commit hooks (husky and lint-staged) do not run in the monorepo: husky only installs hooks at the root of a git repository. Run the lint and format checks listed under [Tests](#tests) before committing.
 
 ##### Docker compose testing environment for development
 
-Since the query tool relies on other neurobagel tools to function, their presence is often required during development. To facilitate this, a docker compose containing a complete testing environment has been created. To use it follow the steps below:
+Since the query tool relies on other neurobagel tools to function, their presence is often required during development. `docker-compose.yml` in `tools/query-tool/` defines a `test` profile for this, built on the monorepo's shared `stack/` folder (reached through the symlink `recipes -> ../../stack`) and example data in `examples/` (through `neurobagel_examples -> ../../examples`).
 
-1. Install `recipes` and `neurobagel_examples` submodules:
+_Known issue: the `test` profile currently does not start. `docker compose --profile test config` reports `service "api" depends on undefined service "init_data"`, because the shared stack's `api` and `graph` services depend on an `init_data` service that this compose file does not define._
 
-```bash
-git submodule init
-git submodule update
-```
-
-2. Pull the latest images and bring up the stack using the `test` profile:
+Once that is fixed, pull the latest images and bring up the stack from `tools/query-tool/` with:
 
 ```bash
 docker compose --profile test pull && docker compose --profile test up -d
 ```
 
-_NOTE: Make sure your .env file in the root directory doesn't contain any of the environment variables used in the docker compose file as it will conflict with the configuration, since docker compose will try to use .env by default._
+_NOTE: Make sure your .env file in `tools/query-tool/` doesn't contain any of the environment variables used in the docker compose file as it will conflict with the configuration, since docker compose will use `.env` by default._
 
 ## Usage
 
@@ -208,11 +198,71 @@ You can refer to [the neurobagel documentation](https://neurobagel.org/user_guid
 
 The query tool utilizes [Cypress](https://www.cypress.io/) framework for testing.
 
-To run the tests execute the following command:
+To run the tests interactively, execute the following command from `tools/query-tool/`:
 
 ```bash
 npx cypress open
 ```
+
+## Development in the Neurobagel monorepo
+
+This tool lives in `tools/query-tool/` of https://github.com/neurobagel/develop.
+
+### Setup
+
+```bash
+git clone https://github.com/neurobagel/develop.git
+cd develop/tools/query-tool
+npm ci
+```
+
+The Cypress tests import example API responses from the monorepo's `examples/` folder through the symlink `neurobagel_examples -> ../../examples`. No submodules are needed.
+
+### Tests
+
+From `tools/query-tool/`, the static checks:
+
+```bash
+npm run lint:check
+npm run format:check
+npm run typecheck
+```
+
+Component tests, built against the public federation API as in CI:
+
+```bash
+echo "NB_API_QUERY_URL=https://federate.neurobagel.org/" > .env
+npm run build
+npm run test:component
+```
+
+End-to-end tests run against the production build served by `npm run preview` on port 5173, with authentication enabled and a mock client ID:
+
+```bash
+printf 'NB_API_QUERY_URL=https://federate.neurobagel.org/\nNB_ENABLE_AUTH=true\nNB_QUERY_CLIENT_ID=mockclientid\n' > .env
+npm run build
+npm run preview &
+npm run test:e2e
+kill %1
+```
+
+From the repository root, `just test query-tool` runs `npm ci`, the static checks and the component tests. CI runs everything above, plus codespell, whenever a pull request changes `tools/query-tool/` or `examples/`.
+
+### Docker image
+
+The Docker build needs the example data, which the folder only reaches through a symlink that Docker does not follow. Build from the repository root with a copy of the folder that has symlinks resolved:
+
+```bash
+docker build -t neurobagel/query_tool:local "$(scripts/materialize-context.sh tools/query-tool)"
+```
+
+`docker build tools/query-tool` fails at `tsc`, because the Cypress tests' example imports are missing. The image contains the production build of the app, served by nginx on port 5173; the `NB_*` variables are substituted when the container starts.
+
+### Releases
+
+Tags: `query-tool-vX.Y.Z`. Published to: Docker Hub `neurobagel/query_tool`, and the site https://query.neurobagel.org.
+Release automation (release-please) is not set up in this repository yet, so no releases are made from it.
+PR titles must follow Conventional Commits with scope `query-tool`, for example `fix(query-tool): ...`.
 
 ## License
 
