@@ -1,0 +1,295 @@
+import shutil
+
+import pandas as pd
+import pytest
+
+from bagel.cli import bagel
+from bagel.utilities import file_utils
+
+
+@pytest.fixture(scope="function")
+def default_bids2tsv_output_path(tmp_path):
+    """Return temporary bids2tsv command output filepath that uses the default filename."""
+    return tmp_path / "bids.tsv"
+
+
+@pytest.fixture()
+def bids_synthetic_with_fake_suffix_file(bids_synthetic):
+    """
+    Yield a temporary bids-examples 'synthetic' dataset containing an additional file
+    with a BIDS-unrecognized suffix 'FAKE'
+    """
+    fake_suffix_file = (
+        bids_synthetic / "sub-01/ses-01/anat/sub-01_ses-01_FAKE.nii"
+    )
+    with open(fake_suffix_file, "w") as f:
+        f.write("")
+
+    yield bids_synthetic
+
+    fake_suffix_file.unlink()
+
+
+@pytest.fixture()
+def bids_synthetic_without_unsupported_suffixes(bids_synthetic, tmp_path):
+    """
+    Yield a temporary bids-examples 'synthetic' dataset with all 'beh', 'physio', and 'stim' files removed
+    (i.e., all suffixes not currently supported by Neurobagel).
+
+    TODO: Update when/if we add support for 'beh' files.
+    """
+    tmp_synthetic = tmp_path / "synthetic"
+    shutil.copytree(bids_synthetic, tmp_synthetic)
+
+    for beh_dir in tmp_synthetic.rglob("sub-*/ses-*/beh"):
+        shutil.rmtree(beh_dir)
+
+    for file in tmp_synthetic.rglob("sub-*/ses-*/func/*"):
+        if any(suffix in file.name for suffix in ["physio", "stim"]):
+            file.unlink()
+
+    yield tmp_synthetic
+
+
+@pytest.mark.parametrize(
+    "bids_dataset,has_sessions,expected_suffixes",
+    [
+        ("synthetic", True, {"bold", "T1w"}),
+        ("eeg_cbm", False, {"eeg"}),
+    ],
+)
+def test_valid_bids_dataset_converted_successfully(
+    runner,
+    bids_path,
+    bids_dataset,
+    has_sessions,
+    expected_suffixes,
+    default_bids2tsv_output_path,
+):
+    """
+    Test that generated TSV contains expected columns and image contrast suffixes
+    and that sub and ses columns are correctly prefixed.
+    """
+    result = runner.invoke(
+        bagel,
+        [
+            "bids2tsv",
+            "--bids-dir",
+            bids_path / bids_dataset,
+            "--output",
+            default_bids2tsv_output_path,
+        ],
+    )
+    assert result.exit_code == 0, f"Errored out. STDOUT: {result.output}"
+
+    bids_tsv = pd.read_csv(default_bids2tsv_output_path, sep="\t")
+    assert list(bids_tsv.columns) == ["sub", "ses", "suffix", "path"]
+    assert bids_tsv[["sub", "suffix", "path"]].notna().all(axis=None)
+    assert bids_tsv["sub"].str.startswith("sub-").all()
+    if has_sessions:
+        assert bids_tsv["ses"].str.startswith("ses-").all()
+    else:
+        assert bids_tsv["ses"].isna().all()
+    assert set(bids_tsv["suffix"].unique()) == expected_suffixes
+
+
+def test_unrecognized_and_unsupported_suffixes_filtered_out_with_informative_warnings(
+    runner,
+    bids_synthetic_with_fake_suffix_file,
+    default_bids2tsv_output_path,
+    propagate_warnings,
+    caplog,
+):
+    """
+    Test that when a BIDS directory contains BIDS-unrecognized or Neurobagel-unsupported file suffixes,
+    bids2tsv filters them out of the output table with separate informative warnings.
+    """
+    expected_filtered_suffixes = {"T1w", "bold"}
+    expected_unrecognized_suffixes_warning = (
+        "suffixes not recognized by BIDS were found",
+        "FAKE",
+    )
+    # TODO: Update if/once Neurobagel supports 'beh' files
+    expected_unsupported_suffixes_warning = (
+        "valid BIDS suffixes that are not supported by Neurobagel",
+        "beh",
+        "physio",
+        "stim",
+    )
+
+    # We use a temporarily modified version of the bids-examples 'synthetic' dataset which includes:
+    # - 'beh' files (from original synthetic dataset)
+    # - a file with a BIDS-unrecognized suffix 'FAKE'
+    result = runner.invoke(
+        bagel,
+        [
+            "bids2tsv",
+            "--bids-dir",
+            bids_synthetic_with_fake_suffix_file,
+            "--output",
+            default_bids2tsv_output_path,
+        ],
+    )
+
+    warnings = [record.message for record in caplog.records]
+
+    bids_tsv = pd.read_csv(default_bids2tsv_output_path, sep="\t")
+
+    assert result.exit_code == 0
+    assert len(warnings) == 2
+    assert any(
+        all(
+            substr in warning
+            for substr in expected_unrecognized_suffixes_warning
+        )
+        for warning in warnings
+    ), "Unrecognized suffixes warning not found"
+    assert any(
+        all(
+            substr in warning
+            for substr in expected_unsupported_suffixes_warning
+        )
+        for warning in warnings
+    ), "Unsupported suffixes warning not found"
+    assert set(bids_tsv["suffix"].unique()) == expected_filtered_suffixes
+
+
+def test_tsv_from_bids_dir_with_unsupported_suffixes_passes_bids_cmd(
+    runner,
+    bids_synthetic_with_fake_suffix_file,
+    default_bids2tsv_output_path,
+    test_data_upload_path,
+    tmp_path,
+):
+    """
+    Test that a TSV generated by 'bids2tsv' from a BIDS directory that contains Neurobagel-unsupported file suffixes
+    does not produce a validation error when used as input to the 'bids' command.
+    """
+    runner.invoke(
+        bagel,
+        [
+            "bids2tsv",
+            "--bids-dir",
+            bids_synthetic_with_fake_suffix_file,
+            "--output",
+            default_bids2tsv_output_path,
+        ],
+    )
+    result = runner.invoke(
+        bagel,
+        [
+            "bids",
+            "--jsonld-path",
+            test_data_upload_path / "example_synthetic.jsonld",
+            "--bids-table",
+            default_bids2tsv_output_path,
+            "--output",
+            tmp_path / "pheno_bids.jsonld",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+
+def test_non_data_file_suffixes_not_warned_about_but_filtered_out(
+    runner,
+    bids_synthetic_without_unsupported_suffixes,
+    default_bids2tsv_output_path,
+    propagate_warnings,
+    caplog,
+):
+    """
+    Test that when all file suffixes are recognized by BIDS and all data file suffixes are supported by Neurobagel,
+    any non-data files are filtered out of the output TSV without warnings.
+    """
+    # We use a temporarily modified version of the bids-examples 'synthetic' dataset:
+    # - does not include any data file suffixes that are not supported by Neurobagel
+    # - still includes (non-data) _scans.tsv and _sessions.tsv files for subjects
+    result = runner.invoke(
+        bagel,
+        [
+            "bids2tsv",
+            "--bids-dir",
+            bids_synthetic_without_unsupported_suffixes,
+            "--output",
+            default_bids2tsv_output_path,
+        ],
+    )
+
+    bids_tsv = pd.read_csv(default_bids2tsv_output_path, sep="\t")
+
+    assert result.exit_code == 0
+    assert len(caplog.records) == 0
+    assert "scans" not in bids_tsv["suffix"].unique()
+    assert "sessions" not in bids_tsv["suffix"].unique()
+
+
+def test_exits_gracefully_if_no_supported_suffixes_in_bids_dir(
+    runner,
+    bids_path,
+    default_bids2tsv_output_path,
+    propagate_warnings,
+    caplog,
+):
+    """
+    Test that if a BIDS directory contains BIDS-recognized suffixes but none supported by Neurobagel,
+    bids2tsv logs a warning about the unsupported suffixes and exits with an informative error.
+    """
+    result = runner.invoke(
+        bagel,
+        [
+            "bids2tsv",
+            "--bids-dir",
+            bids_path / "micr_SEM",
+            "--output",
+            default_bids2tsv_output_path,
+        ],
+    )
+
+    warnings = [
+        record.message
+        for record in caplog.records
+        if record.levelname == "WARNING"
+    ]
+    errors = [
+        record.message
+        for record in caplog.records
+        if record.levelname == "ERROR"
+    ]
+
+    assert result.exit_code != 0
+    assert not default_bids2tsv_output_path.exists()
+    assert len(warnings) == 1
+    assert len(errors) == 1
+    assert (
+        "valid BIDS suffixes that are not supported by Neurobagel"
+        in warnings[0]
+    )
+    assert "No image files with supported BIDS suffixes" in errors[0]
+
+
+def test_strip_id_prefixes_option(
+    runner, bids_synthetic, default_bids2tsv_output_path
+):
+    """
+    Test that when --strip-id-prefixes is set, sub and ses columns in the output TSV do not contain BIDS prefixes.
+    """
+    result = runner.invoke(
+        bagel,
+        [
+            "bids2tsv",
+            "--bids-dir",
+            bids_synthetic,
+            "--output",
+            default_bids2tsv_output_path,
+            "--strip-id-prefixes",
+        ],
+    )
+
+    # NOTE: We use our custom TSV loading function here to ensure that ID column values are kept as strings
+    bids_tsv = file_utils.load_tabular(default_bids2tsv_output_path)
+
+    assert result.exit_code == 0
+    assert bids_tsv[["sub", "ses"]].notna().all(axis=None)
+    assert not bids_tsv["sub"].str.startswith("sub-").all()
+    assert not bids_tsv["ses"].str.startswith("ses-").all()

@@ -1,0 +1,94 @@
+<div align="center">
+
+# Neurobagel CLI
+
+[![Main branch checks status](https://img.shields.io/github/check-runs/neurobagel/bagel-cli/main?style=flat-square&logo=github)](https://github.com/neurobagel/bagel-cli/actions?query=branch:main)
+[![Tests status](https://img.shields.io/github/actions/workflow/status/neurobagel/bagel-cli/test.yml?branch=main&style=flat-square&logo=github&label=tests)](https://github.com/neurobagel/bagel-cli/actions/workflows/test.yml)
+[![Codecov](https://img.shields.io/codecov/c/github/neurobagel/bagel-cli?token=R1KI9KIP8D&style=flat-square&logo=codecov&link=https%3A%2F%2Fcodecov.io%2Fgh%2Fneurobagel%2Fbagel-cli)](https://app.codecov.io/gh/neurobagel/bagel-cli)
+[![Python versions static](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue?style=flat-square&logo=python)](https://www.python.org)
+[![License](https://img.shields.io/github/license/neurobagel/bagel-cli?style=flat-square&color=purple&link=LICENSE)](LICENSE)
+[![PyPI - Version](https://img.shields.io/pypi/v/bagel?style=flat-square&logo=pypi&link=https%3A%2F%2Fimg.shields.io%2Fpypi%2Fv%2Fbagel)](https://pypi.org/project/bagel/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/bagel?style=flat-square&logo=python&label=pypi%20downloads&link=https%3A%2F%2Fpypistats.org%2Fpackages%2Fbagel)](https://pypistats.org/packages/bagel)
+[![Docker Image Version (tag)](https://img.shields.io/docker/v/neurobagel/bagelcli/latest?style=flat-square&logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fneurobagel%2Fbagelcli%2Ftags)](https://hub.docker.com/r/neurobagel/bagelcli/tags)
+[![Docker Pulls](https://img.shields.io/docker/pulls/neurobagel/bagelcli?style=flat-square&logo=docker&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fneurobagel%2Fbagelcli%2Ftags)](https://hub.docker.com/r/neurobagel/bagelcli/tags)
+[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/neurobagel/bagel-cli?style=flat-square&label=openssf%20scorecard)](https://scorecard.dev/viewer/?uri=github.com/neurobagel/bagel-cli)
+
+</div>
+
+The Neurobagel CLI is a Python command-line tool to automatically parse and describe subject phenotypic and imaging attributes in an annotated dataset for integration into the Neurobagel graph.
+
+**For information on how to use the CLI, please refer to the [official Neurobagel documentation](https://neurobagel.org/user_guide/cli/).**
+
+## Installation
+The Neurobagel CLI is available as a Python package that can be installed from PyPI using:
+
+```bash
+pip install bagel
+```
+
+(If you prefer to run the CLI using Docker or Singularity containers instead, please refer to the [Neurobagel documentation](https://neurobagel.org/user_guide/cli/).)
+
+## Development environment
+
+### Setting up a local development environment
+To work on the CLI, we suggest that you create a development environment 
+that is as close as possible to the environment we run in production.
+We [use uv](https://docs.astral.sh/uv/getting-started/installation/) to set up local development environments.
+
+1. Clone the repository
+
+    ```bash
+    git clone https://github.com/neurobagel/bagel-cli.git
+    cd bagel-cli
+    ```
+
+2. Install the CLI and all development dependencies in editable mode with `uv`:
+
+    ```bash
+    uv sync --group dev
+    ```
+
+3. Install the `bids-examples` and `neurobagel_examples` submodules needed to run the test suite:
+    ```bash
+    git submodule init
+    git submodule update
+    ```
+
+Confirm that everything works well by running the tests: 
+`uv run pytest .`
+
+To run the CLI during local development, use:
+
+```bash
+uv run bagel
+```
+
+### Setting up code formatting and linting (recommended)
+
+[pre-commit](https://pre-commit.com/) is configured in the development environment for this repository, and can be set up to automatically run a number of code linters and formatters on any commit you make according to the consistent code style set for this project.
+
+Run the following from the repository root to install the configured pre-commit "hooks" for your local clone of the repo:
+```bash
+uv run pre-commit install
+```
+
+pre-commit will now run automatically whenever you run `git commit`.
+
+### Updating dependencies
+If new runtime or development dependencies are needed, [add them with `uv add`](https://docs.astral.sh/uv/concepts/projects/dependencies/#adding-dependencies). 
+To change the version constraints of existing dependencies,
+edit `pyproject.toml` and then update the lockfile using
+[`uv lock`](https://docs.astral.sh/uv/concepts/projects/sync/#creating-the-lockfile).
+
+## Regenerating the Neurobagel vocabulary file
+Terms in the Neurobagel namespace (`nb` prefix) and their class relationships are serialized to a file 
+called [nb_vocab.ttl](https://github.com/neurobagel/recipes/blob/main/vocab/nb_vocab.ttl), which is automatically
+uploaded to new Neurobagel graph deployments.
+This vocabulary is used by Neurobagel APIs to fetch available attributes and attribute instances from a graph store.
+
+When the Neurobagel graph data model is updated (e.g., if new classes or subclasses are created), 
+this file should be regenerated by running:
+```bash
+uv run python helper_scripts/generate_nb_vocab_file.py
+```
+This will create a file called `nb_vocab.ttl` in the current working directory.

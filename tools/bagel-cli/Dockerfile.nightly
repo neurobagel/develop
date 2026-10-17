@@ -1,0 +1,14 @@
+# syntax=docker/dockerfile:1
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY . /app
+
+# Git is needed for VCS dynamic versioning
+RUN apt-get update && apt-get install git --assume-yes
+
+RUN pip install --no-cache-dir .
+
+ENTRYPOINT [ "bagel" ]
+CMD ["--help"]
