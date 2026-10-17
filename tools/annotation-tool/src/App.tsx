@@ -1,0 +1,87 @@
+import { useTheme } from '@mui/material/styles';
+import AppTitle from './components/AppTitle';
+import ColumnAnnotation from './components/ColumnAnnotation';
+import DatasetDescription from './components/DatasetDescription';
+import Download from './components/Download';
+import Landing from './components/Landing';
+import NavStepper from './components/NavStepper';
+import NavigationButton from './components/NavigationButton';
+import Upload from './components/Upload';
+import ValueAnnotation from './components/ValueAnnotation';
+import { useUploadedDataTableFileName } from './stores/data';
+import useViewStore, { getNavigationProps } from './stores/view';
+import { View } from './utils/internal_types';
+
+function App() {
+  const currentView = useViewStore((state) => state.currentView);
+
+  const disableUploadNextButton = useUploadedDataTableFileName() == null;
+
+  const theme = useTheme();
+  const appBarHeight = theme.mixins.toolbar.minHeight || 64;
+
+  const disableConfig = (import.meta.env.NB_DISABLE_CONFIG ?? 'true').toLowerCase() === 'true';
+
+  const { backView, nextView, backLabel, nextLabel, className } = getNavigationProps(currentView);
+
+  const determineView = () => {
+    switch (currentView) {
+      case View.Landing:
+        return <Landing />;
+      case View.Upload:
+        return <Upload disableConfig={disableConfig} />;
+      case View.ColumnAnnotation:
+        return <ColumnAnnotation />;
+
+      case View.ValueAnnotation:
+        return <ValueAnnotation />;
+      case View.DatasetDescription:
+        return <DatasetDescription />;
+      case View.Download:
+        return <Download />;
+      default:
+        return <Landing />;
+    }
+  };
+
+  // Alias for the better readability
+  const content = determineView();
+
+  return (
+    <div
+      className="flex flex-col overflow-x-hidden pb-24"
+      style={{
+        minHeight: `calc(100vh - ${appBarHeight}px)`,
+        marginTop: appBarHeight,
+      }}
+    >
+      {currentView !== View.Landing && (
+        <>
+          <AppTitle
+            title="Neurobagel Annotation Tool"
+            githubUrl="https://github.com/neurobagel/annotation-tool"
+            docsUrl="https://neurobagel.org/user_guide/annotation_tool/"
+          />
+          <NavStepper currentView={currentView} />
+        </>
+      )}
+
+      {content}
+
+      {currentView !== View.Landing && (
+        <div data-cy="navigation-buttons-container" className="fixed bottom-0 left-0 right-0">
+          <NavigationButton
+            disableNext={disableUploadNextButton}
+            backView={backView}
+            nextView={nextView}
+            backLabel={backLabel}
+            nextLabel={nextLabel}
+            styleClassName={className}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;

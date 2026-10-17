@@ -1,0 +1,77 @@
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+import { steps } from '../utils/constants';
+import { View } from '../utils/internal_types';
+
+type NavigationProps = {
+  backView: View | undefined;
+  nextView: View | undefined;
+  backLabel?: string;
+  nextLabel?: string;
+  className: string;
+};
+
+type ViewStore = {
+  currentView: View;
+  setCurrentView: (view: View) => void;
+};
+
+const useViewStore = create<ViewStore>()(
+  devtools((set) => ({
+    currentView: View.Landing,
+    setCurrentView: (view: View) => set({ currentView: view }),
+  }))
+);
+
+export const getNavigationProps = (currentView: View): NavigationProps => {
+  const navigationFlow = [
+    View.Landing,
+    View.Upload,
+    View.ColumnAnnotation,
+    View.ValueAnnotation,
+    View.DatasetDescription,
+    View.Download,
+  ];
+
+  const currentIndex = navigationFlow.indexOf(currentView);
+
+  if (currentIndex === -1) {
+    return {
+      backView: undefined,
+      nextView: undefined,
+      backLabel: undefined,
+      nextLabel: undefined,
+      className: '',
+    };
+  }
+
+  const backView = currentIndex > 0 ? navigationFlow[currentIndex - 1] : undefined;
+  const nextView =
+    currentIndex < navigationFlow.length - 1 ? navigationFlow[currentIndex + 1] : undefined;
+
+  let backLabel;
+  if (backView) {
+    if (backView === View.Landing) {
+      backLabel = 'Previous: Landing';
+    } else {
+      const step = steps.find((s) => s.view === backView);
+      backLabel = step ? `Previous: ${step.label}` : undefined;
+    }
+  }
+
+  let nextLabel;
+  if (nextView) {
+    const step = steps.find((s) => s.view === nextView);
+    nextLabel = step ? `Next: ${step.label}` : undefined;
+  }
+
+  return {
+    backView,
+    nextView,
+    backLabel,
+    nextLabel,
+    className: 'p-4',
+  };
+};
+
+export default useViewStore;

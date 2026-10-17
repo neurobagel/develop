@@ -1,0 +1,1389 @@
+import axios from 'axios';
+import { describe, it, expect, vi } from 'vitest';
+import mockDataDictionaryRaw from '../../cypress/fixtures/examples/mock.json?raw';
+import mockTsvRaw from '../../cypress/fixtures/examples/mock.tsv?raw';
+import mockTsvWithEmptyLineRaw from '../../cypress/fixtures/examples/mock_with_empty_line.tsv?raw';
+import { fetchConfigGitHubURL, githubRawBaseURL } from './constants';
+import {
+  fetchAvailableConfigs,
+  fetchConfig,
+  convertStandardizedVariables,
+  convertStandardizedTerms,
+  convertStandardizedFormats,
+  readFile,
+  parseTsvContent,
+  buildCategoricalLevels,
+  applyDataDictionaryToColumns,
+  applyDataTypeToColumn,
+  validateContinuousValues,
+  parseContinuousValue,
+} from './data-utils';
+import {
+  Columns,
+  DataDictionary,
+  StandardizedVariables,
+  StandardizedTerms,
+  DataType,
+  VariableType,
+} from './internal_types';
+import {
+  mockGitHubResponse,
+  mockTermsData,
+  mockConfigFile,
+  mockStandardizedVariables,
+  mockStandardizedTerms,
+  mockStandardizedFormats,
+  mockColumnsAfterDataTableUpload,
+} from './mocks';
+
+// Mock axios
+vi.mock('axios');
+const mockedAxios = vi.mocked(axios, true);
+
+describe('fetchAvailableConfigs', () => {
+  it('should fetch available configs from the right GitHub location and handles the (mock) response', async () => {
+    mockedAxios.get.mockResolvedValueOnce({ data: mockGitHubResponse });
+
+    const result = await fetchAvailableConfigs();
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(fetchConfigGitHubURL);
+    expect(result).toEqual(['Neurobagel', 'OtherConfig', 'TestConfig']);
+  });
+
+  it('should return default config when GitHub API fails', async () => {
+    mockedAxios.get.mockRejectedValueOnce(new Error('Network error'));
+
+    const result = await fetchAvailableConfigs();
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(fetchConfigGitHubURL);
+    expect(result).toEqual(['Neurobagel']);
+  });
+
+  it('should filter out non-directory items', async () => {
+    mockedAxios.get.mockResolvedValueOnce({ data: mockGitHubResponse });
+
+    const result = await fetchAvailableConfigs();
+
+    expect(result).toEqual(['Neurobagel', 'OtherConfig', 'TestConfig']);
+    expect(result).not.toContain('README.md');
+    expect(result).not.toContain('config.json');
+  });
+});
+
+describe('fetchConfig', () => {
+  it('should fetch config from remote GitHub successfully', async () => {
+    const configArray = [mockConfigFile];
+
+    mockedAxios.get
+      .mockResolvedValueOnce({ data: configArray })
+      .mockResolvedValueOnce({ data: mockTermsData['sex.json'] })
+      .mockResolvedValueOnce({ data: mockTermsData['diagnosis.json'] })
+      .mockResolvedValueOnce({ data: mockTermsData['assessment.json'] });
+
+    const result = await fetchConfig('Neurobagel');
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/config.json`);
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/sex.json`);
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/diagnosis.json`);
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/assessment.json`);
+    expect(result.config).toEqual(mockConfigFile);
+    expect(result.termsData).toEqual(mockTermsData);
+  });
+
+  it('should fallback to default config when remote fails', async () => {
+    mockedAxios.get.mockReset();
+    mockedAxios.get.mockRejectedValueOnce(new Error('Remote config not found'));
+
+    const result = await fetchConfig('Neurobagel');
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/config.json`);
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+    expect(result.config).toBeDefined();
+    expect(result.termsData).toBeDefined();
+  });
+
+  it('should return empty config when both remote and default fail', async () => {
+    mockedAxios.get.mockReset();
+    mockedAxios.get.mockRejectedValueOnce(new Error('Remote config not found'));
+
+    const result = await fetchConfig('Neurobagel');
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/config.json`);
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+    expect(result.config).toBeDefined();
+    expect(result.termsData).toBeDefined();
+  });
+
+  it('should handle different config names', async () => {
+    const configArray = [mockConfigFile];
+
+    mockedAxios.get
+      .mockResolvedValueOnce({ data: configArray })
+      .mockResolvedValueOnce({ data: mockTermsData['sex.json'] })
+      .mockResolvedValueOnce({ data: mockTermsData['diagnosis.json'] })
+      .mockResolvedValueOnce({ data: mockTermsData['assessment.json'] });
+
+    const result = await fetchConfig('TestConfig');
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}TestConfig/config.json`);
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}TestConfig/sex.json`);
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}TestConfig/diagnosis.json`);
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}TestConfig/assessment.json`);
+    expect(result.config).toEqual(mockConfigFile);
+    expect(result.termsData).toEqual(mockTermsData);
+  });
+
+  it('should handle config with multiple terms files', async () => {
+    const configArray = [mockConfigFile];
+
+    mockedAxios.get
+      .mockResolvedValueOnce({ data: configArray })
+      .mockResolvedValueOnce({ data: mockTermsData['sex.json'] })
+      .mockResolvedValueOnce({ data: mockTermsData['diagnosis.json'] })
+      .mockResolvedValueOnce({ data: mockTermsData['assessment.json'] });
+
+    const result = await fetchConfig('Neurobagel');
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/config.json`);
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/sex.json`);
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/diagnosis.json`);
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/assessment.json`);
+    expect(result.config).toEqual(mockConfigFile);
+    expect(result.termsData).toEqual(mockTermsData);
+  });
+
+  it('should handle file loading errors gracefully', async () => {
+    const configArray = [mockConfigFile];
+
+    mockedAxios.get
+      .mockResolvedValueOnce({ data: configArray })
+      .mockRejectedValueOnce(new Error('Terms file not found')) // sex.json fails
+      .mockResolvedValueOnce({ data: mockTermsData['diagnosis.json'] })
+      .mockResolvedValueOnce({ data: mockTermsData['assessment.json'] });
+
+    const result = await fetchConfig('Neurobagel');
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/config.json`);
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/sex.json`);
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/diagnosis.json`);
+    expect(mockedAxios.get).toHaveBeenCalledWith(`${githubRawBaseURL}Neurobagel/assessment.json`);
+    expect(result.config).toEqual(mockConfigFile);
+    expect(result.termsData).toEqual({
+      'sex.json': [],
+      'diagnosis.json': mockTermsData['diagnosis.json'],
+      'assessment.json': mockTermsData['assessment.json'],
+    });
+  });
+});
+
+describe('convertStandardizedVariables', () => {
+  it('should convert standardized variables config array to StandardizedVariables object', () => {
+    const result = convertStandardizedVariables(
+      mockConfigFile.standardized_variables,
+      mockConfigFile.namespace_prefix
+    );
+
+    expect(result).toBeDefined();
+    expect(Object.keys(result)).toHaveLength(6);
+    expect(result['nb:ParticipantID']).toBeDefined();
+    expect(result['nb:Age']).toBeDefined();
+  });
+
+  it("should correctly map a standardized variable's properties", () => {
+    const result = convertStandardizedVariables(
+      mockConfigFile.standardized_variables,
+      mockConfigFile.namespace_prefix
+    );
+
+    const ageVariable = result['nb:Age'];
+    expect(ageVariable.id).toBe('nb:Age');
+    expect(ageVariable.name).toBe('Age');
+    expect(ageVariable.variable_type).toBe('Continuous');
+    expect(ageVariable.description).toBe('The age of the participant.');
+    expect(ageVariable.required).toBe(false);
+  });
+});
+
+describe('convertStandardizedTerms', () => {
+  it('should correctly convert termsData to StandardizedTerms object', () => {
+    const result = convertStandardizedTerms(
+      mockTermsData,
+      mockConfigFile.standardized_variables,
+      mockConfigFile.namespace_prefix
+    );
+
+    expect(result).toBeDefined();
+    expect(Object.keys(result).length).toBeGreaterThan(0);
+  });
+
+  it("should correctly map a standardized variable's terms", () => {
+    const result = convertStandardizedTerms(
+      mockTermsData,
+      mockConfigFile.standardized_variables,
+      mockConfigFile.namespace_prefix
+    );
+
+    const adhdTerm = result['snomed:406506008'];
+    expect(adhdTerm).toBeDefined();
+    expect(adhdTerm.id).toBe('snomed:406506008');
+    expect(adhdTerm.label).toBe('Attention deficit hyperactivity disorder');
+    expect(adhdTerm.standardizedVariableId).toBe('nb:Diagnosis');
+    expect(adhdTerm.collectionCreatedAt).toBeUndefined();
+  });
+});
+
+describe('convertStandardizedFormats', () => {
+  it('should convert formats to StandardizedFormats object', () => {
+    const result = convertStandardizedFormats(
+      mockConfigFile.standardized_variables,
+      mockConfigFile.namespace_prefix
+    );
+
+    expect(result).toBeDefined();
+    expect(Object.keys(result)).toHaveLength(5);
+  });
+
+  it('should correctly map a format', () => {
+    const result = convertStandardizedFormats(
+      mockConfigFile.standardized_variables,
+      mockConfigFile.namespace_prefix
+    );
+
+    const floatFormat = result['nb:FromFloat'];
+    expect(floatFormat).toBeDefined();
+    expect(floatFormat.identifier).toBe('nb:FromFloat');
+    expect(floatFormat.label).toBe('decimal');
+    expect(floatFormat.standardizedVariableId).toBe('nb:Age');
+    expect(floatFormat.examples).toEqual(['31', '31.5']);
+  });
+
+  it('should map all age formats', () => {
+    const result = convertStandardizedFormats(
+      mockConfigFile.standardized_variables,
+      mockConfigFile.namespace_prefix
+    );
+
+    expect(result['nb:FromFloat']).toBeDefined();
+    expect(result['nb:FromEuro']).toBeDefined();
+    expect(result['nb:FromBounded']).toBeDefined();
+    expect(result['nb:FromRange']).toBeDefined();
+    expect(result['nb:FromISO8601']).toBeDefined();
+  });
+});
+
+describe('readFile + parseTsvContent integration', () => {
+  it('should read and parse a valid TSV file correctly', async () => {
+    const file = new File([mockTsvRaw], 'mock.tsv', { type: 'text/tab-separated-values' });
+
+    const content = await readFile(file);
+    const { headers, data } = parseTsvContent(content);
+
+    expect(headers).toEqual(['participant_id', 'age', 'sex', 'group_dx', 'group', 'iq']);
+    expect(data).toHaveLength(12);
+    expect(data[0]).toEqual(['sub-718211', '28.4', 'M', 'ADHD', 'HC', '80']);
+    expect(data[11]).toEqual(['sub-718225', '65', 'N/A', 'PD', 'HC', '83']);
+  });
+
+  it('should handle an empty TSV file', async () => {
+    const file = new File([''], 'empty.tsv', { type: 'text/tab-separated-values' });
+
+    const content = await readFile(file);
+    const { headers, data } = parseTsvContent(content);
+
+    expect(headers).toEqual([]);
+    expect(data).toEqual([]);
+  });
+
+  it('should handle a TSV file with only headers', async () => {
+    const tsvContent = 'col1\tcol2\tcol3';
+    const file = new File([tsvContent], 'headers-only.tsv', { type: 'text/tab-separated-values' });
+
+    const content = await readFile(file);
+    const { headers, data } = parseTsvContent(content);
+
+    expect(headers).toEqual(['col1', 'col2', 'col3']);
+    expect(data).toEqual([]);
+  });
+
+  it('should handle a TSV file with empty values', async () => {
+    const tsvContent = 'col1\tcol2\tcol3\nval1\t\tval3\n\tval2\t';
+    const file = new File([tsvContent], 'empty-values.tsv', { type: 'text/tab-separated-values' });
+
+    const content = await readFile(file);
+    const { headers, data } = parseTsvContent(content);
+
+    expect(headers).toEqual(['col1', 'col2', 'col3']);
+    expect(data).toHaveLength(2);
+    expect(data[0]).toEqual(['val1', '', 'val3']);
+    expect(data[1]).toEqual(['', 'val2', '']);
+  });
+
+  it('should skip empty lines in a TSV file', async () => {
+    const file = new File([mockTsvWithEmptyLineRaw], 'mock_with_empty_line.tsv', {
+      type: 'text/tab-separated-values',
+    });
+
+    const content = await readFile(file);
+    const { headers, data } = parseTsvContent(content);
+
+    expect(headers).toEqual(['participant_id', 'age', 'sex', 'group_dx', 'iq']);
+    expect(data).toHaveLength(12);
+    expect(data[0]).toEqual(['sub-718211', '28.4', 'M', 'ADHD', '80']);
+    expect(data[11]).toEqual(['sub-718225', '65', 'N/A', 'PD', '83']);
+  });
+});
+
+describe('buildCategoricalLevels', () => {
+  it('should create levels from allValues', () => {
+    const result = buildCategoricalLevels({
+      column: { allValues: ['A', 'B', 'A'], missingValues: [] },
+      columnData: { Description: '' },
+      standardizedTerms: {},
+    });
+
+    expect(Object.keys(result)).toEqual(['A', 'B']);
+    expect(result.A).toEqual({ description: '', standardizedTerm: '' });
+    expect(result.B).toEqual({ description: '', standardizedTerm: '' });
+  });
+
+  it('should include missing values in BIDS levels', () => {
+    const result = buildCategoricalLevels({
+      column: { allValues: ['A', 'N/A', 'B'], missingValues: ['N/A'] },
+      columnData: { Description: '' },
+      standardizedTerms: {},
+    });
+
+    expect(result.A).toEqual({ description: '', standardizedTerm: '' });
+    expect(result.B).toEqual({ description: '', standardizedTerm: '' });
+    expect(result['N/A']).toEqual({ description: '', standardizedTerm: '' });
+  });
+
+  it('should apply dictionary descriptions only for matching values', () => {
+    const result = buildCategoricalLevels({
+      column: { allValues: ['A', 'B'], missingValues: [] },
+      columnData: {
+        Description: '',
+        Levels: {
+          A: { Description: 'Alpha' },
+          C: { Description: 'Charlie' },
+        },
+      },
+      standardizedTerms: {},
+    });
+
+    expect(result.A.description).toBe('Alpha');
+    expect(result.B.description).toBe('');
+    expect(result.C).toBeUndefined();
+  });
+
+  it('should apply standardized terms only when recognized and matching', () => {
+    const result = buildCategoricalLevels({
+      column: { allValues: ['A', 'B'], missingValues: [] },
+      columnData: {
+        Description: '',
+        Annotations: {
+          Levels: {
+            A: { TermURL: 'term:1', Label: 'Alpha' },
+            B: { TermURL: 'term:missing', Label: 'Beta' },
+            C: { TermURL: 'term:2', Label: 'Charlie' },
+          },
+        },
+      },
+      standardizedTerms: {
+        'term:1': {
+          standardizedVariableId: 'nb:Test',
+          id: 'term:1',
+          label: 'Alpha',
+        },
+        'term:2': {
+          standardizedVariableId: 'nb:Test',
+          id: 'term:2',
+          label: 'Charlie',
+        },
+      },
+    });
+
+    expect(result.A.standardizedTerm).toBe('term:1');
+    expect(result.B.standardizedTerm).toBe('');
+    expect(result.C).toBeUndefined();
+  });
+});
+
+describe('applyDataDictionaryToColumns', () => {
+  it('should apply data dictionary from mock.json to columns and return updated columns', () => {
+    const mockDataDict = JSON.parse(mockDataDictionaryRaw);
+
+    const result = applyDataDictionaryToColumns(
+      mockColumnsAfterDataTableUpload,
+      mockDataDict,
+      mockStandardizedVariables,
+      mockStandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].description).toBe('A participant ID');
+    expect(result['0'].standardizedVariable).toBe('nb:ParticipantID');
+    // Identifier VariableType doesn't map to DataType
+    expect(result['0'].dataType).toBeUndefined();
+
+    expect(result['1'].description).toBe('Age of the participant');
+    expect(result['1'].standardizedVariable).toBe('nb:Age');
+    expect(result['1'].dataType).toBe('Continuous');
+    expect(result['1'].format).toBe('nb:FromFloat');
+
+    expect(result['2'].description).toBe('Sex of the participant');
+    expect(result['2'].standardizedVariable).toBe('nb:Sex');
+    expect(result['2'].dataType).toBe('Categorical');
+    expect(result['2'].levels).toBeDefined();
+    expect(result['2'].levels?.M.description).toBe('Male');
+    expect(result['2'].levels?.M.standardizedTerm).toBe('snomed:248153007');
+    expect(result['2'].levels?.F.description).toBe('Female');
+    expect(result['2'].levels?.F.standardizedTerm).toBe('snomed:248152002');
+    expect(result['2'].missingValues).toEqual(['N/A']);
+
+    expect(result['3'].description).toBe('Diagnosis of the participant');
+    expect(result['3'].standardizedVariable).toBe('nb:Diagnosis');
+    expect(result['3'].dataType).toBe('Categorical');
+
+    expect(result['5'].description).toBe('iq test score of the participant');
+    expect(result['5'].standardizedVariable).toBe('nb:Assessment');
+    // Collection VariableType doesn't map to DataType
+    expect(result['5'].dataType).toBeUndefined();
+    expect(result['5'].isPartOf).toBe('snomed:273712001');
+  });
+
+  it('should handle categorical variables with levels', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'sex',
+        allValues: ['M', 'F', 'N/A'],
+      },
+    };
+
+    const mockDataDict = {
+      sex: {
+        Description: 'Sex of the participant',
+        Levels: {
+          M: {
+            Description: 'Male',
+          },
+          F: {
+            Description: 'Female',
+          },
+        },
+        Annotations: {
+          IsAbout: {
+            TermURL: 'nb:Sex',
+            Label: 'Sex',
+          },
+          VariableType: 'Categorical' as const,
+          Levels: {
+            M: {
+              TermURL: 'snomed:248153007',
+              Label: 'Male',
+            },
+            F: {
+              TermURL: 'snomed:248152002',
+              Label: 'Female',
+            },
+          },
+          MissingValues: ['N/A'],
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns as unknown as Columns,
+      mockDataDict as unknown as DataDictionary,
+      mockStandardizedVariables as unknown as StandardizedVariables,
+      mockStandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].description).toBe('Sex of the participant');
+    expect(result['0'].standardizedVariable).toBe('nb:Sex');
+    expect(result['0'].dataType).toBe('Categorical');
+    expect(result['0'].levels).toBeDefined();
+    expect(result['0'].levels?.M.description).toBe('Male');
+    expect(result['0'].levels?.M.standardizedTerm).toBe('snomed:248153007');
+    expect(result['0'].levels?.F.description).toBe('Female');
+    expect(result['0'].levels?.F.standardizedTerm).toBe('snomed:248152002');
+    expect(result['0'].missingValues).toEqual(['N/A']);
+  });
+
+  it('should add level entries for TSV values when dictionary levels differ', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'diagnosis',
+        allValues: ['pd', 'hc'],
+        dataType: DataType.categorical,
+      },
+    };
+
+    const mockDataDict = {
+      diagnosis: {
+        Description: 'Diagnosis of the participant',
+        Levels: {
+          PD: { Description: 'Old PD' },
+          HC: { Description: 'Old HC' },
+        },
+        Annotations: {
+          VariableType: 'Categorical' as const,
+          Levels: {
+            PD: { TermURL: 'snomed:111' },
+            HC: { TermURL: 'snomed:222' },
+          },
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns as unknown as Columns,
+      mockDataDict as unknown as DataDictionary,
+      {
+        'nb:Diagnosis': { variable_type: VariableType.categorical },
+      } as unknown as StandardizedVariables,
+      {
+        'snomed:111': { id: 'snomed:111' },
+        'snomed:222': { id: 'snomed:222' },
+      } as unknown as StandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].levels?.pd).toBeDefined();
+    expect(result['0'].levels?.hc).toBeDefined();
+  });
+
+  it('should ignore dictionary levels that are not present in TSV values', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'diagnosis',
+        allValues: ['pd', 'hc'],
+        dataType: DataType.categorical,
+      },
+    };
+
+    const mockDataDict = {
+      diagnosis: {
+        Description: 'Diagnosis of the participant',
+        Levels: {
+          PD: { Description: 'Old PD' },
+          HC: { Description: 'Old HC' },
+          XYZ: { Description: 'Extra' },
+        },
+        Annotations: {
+          VariableType: 'Categorical' as const,
+          Levels: {
+            PD: { TermURL: 'snomed:111' },
+            HC: { TermURL: 'snomed:222' },
+            XYZ: { TermURL: 'snomed:333' },
+          },
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns as unknown as Columns,
+      mockDataDict as unknown as DataDictionary,
+      {
+        'nb:Diagnosis': { variable_type: VariableType.categorical },
+      } as unknown as StandardizedVariables,
+      {
+        'snomed:111': { id: 'snomed:111' },
+        'snomed:222': { id: 'snomed:222' },
+        'snomed:333': { id: 'snomed:333' },
+      } as unknown as StandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].levels?.PD).toBeUndefined();
+    expect(result['0'].levels?.HC).toBeUndefined();
+  });
+
+  it('should ignore dictionary MissingValues that are not present in TSV values', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'sex',
+        allValues: ['M', 'F'],
+        dataType: DataType.categorical,
+      },
+    };
+
+    const mockDataDict = {
+      sex: {
+        Description: 'Sex of the participant',
+        Annotations: {
+          VariableType: 'Categorical' as const,
+          MissingValues: ['N/A', 'UNKNOWN'],
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns as unknown as Columns,
+      mockDataDict as unknown as DataDictionary,
+      {},
+      {},
+      {}
+    );
+
+    // Should be completely empty since 'N/A' and 'UNKNOWN' are not in ['M', 'F']
+    expect(result['0'].missingValues).toEqual([]);
+  });
+
+  it('should handle multi-column measures with IsPartOf', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'iq',
+        allValues: ['100', '110'],
+      },
+    };
+
+    const mockDataDict = {
+      iq: {
+        Description: 'IQ test score',
+        Annotations: {
+          IsAbout: {
+            TermURL: 'nb:Assessment',
+            Label: 'Assessment Tool',
+          },
+          VariableType: 'Collection' as const,
+          IsPartOf: {
+            TermURL: 'snomed:273712001',
+            Label: 'Previous IQ assessment by pronunciation',
+          },
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns as unknown as Columns,
+      mockDataDict as unknown as DataDictionary,
+      mockStandardizedVariables as unknown as StandardizedVariables,
+      mockStandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].description).toBe('IQ test score');
+    expect(result['0'].standardizedVariable).toBe('nb:Assessment');
+    expect(result['0'].isPartOf).toBe('snomed:273712001');
+  });
+
+  it('should handle formats for continuous variables', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'age',
+        allValues: ['25.5', '30.2'],
+      },
+    };
+
+    const mockDataDict = {
+      age: {
+        Description: 'Age of the participant',
+        Annotations: {
+          IsAbout: {
+            TermURL: 'nb:Age',
+            Label: 'Age',
+          },
+          VariableType: 'Continuous' as const,
+          Format: {
+            TermURL: 'nb:FromFloat',
+            Label: 'decimal',
+          },
+        },
+        Units: 'years',
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns as unknown as Columns,
+      mockDataDict as unknown as DataDictionary,
+      mockStandardizedVariables as unknown as StandardizedVariables,
+      mockStandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].format).toBe('nb:FromFloat');
+    expect(result['0'].dataType).toBe('Continuous');
+    expect(result['0'].units).toBe('years');
+  });
+
+  it('should infer categorical data type for collection variables with levels', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'assessment_score',
+        allValues: ['good', 'bad'],
+      },
+    };
+
+    const mockDataDict = {
+      assessment_score: {
+        Description: 'Assessment score',
+        Levels: {
+          good: {
+            Description: 'Good',
+          },
+          bad: {
+            Description: 'Bad',
+          },
+        },
+        Annotations: {
+          IsAbout: {
+            TermURL: 'nb:Assessment',
+            Label: 'Assessment Tool',
+          },
+          VariableType: 'Collection' as const,
+          Levels: {
+            good: {
+              TermURL: 'snomed:1304062007',
+              Label: 'Good',
+            },
+          },
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns as unknown as Columns,
+      mockDataDict as unknown as DataDictionary,
+      mockStandardizedVariables as unknown as StandardizedVariables,
+      mockStandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].dataType).toBe('Categorical');
+    expect(result['0'].levels?.good.description).toBe('Good');
+    expect(result['0'].levels?.good.standardizedTerm).toBe('snomed:1304062007');
+    expect(result['0'].levels?.bad.standardizedTerm).toEqual('');
+  });
+
+  it('should ignore dictionary-only levels and missing values for collection variables', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'assessment_score',
+        allValues: ['good', 'bad', 'N/A'],
+      },
+    };
+
+    const mockDataDict = {
+      assessment_score: {
+        Description: 'Assessment score',
+        Levels: {
+          good: {
+            Description: 'Good',
+          },
+          bad: {
+            Description: 'Bad',
+          },
+          extra: {
+            Description: 'Extra',
+          },
+        },
+        Annotations: {
+          IsAbout: {
+            TermURL: 'nb:Assessment',
+            Label: 'Assessment Tool',
+          },
+          VariableType: 'Collection' as const,
+          Levels: {
+            good: {
+              TermURL: 'snomed:1304062007',
+              Label: 'Good',
+            },
+            extra: {
+              TermURL: 'snomed:999999',
+              Label: 'Extra',
+            },
+          },
+          MissingValues: ['N/A'],
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns as unknown as Columns,
+      mockDataDict as unknown as DataDictionary,
+      mockStandardizedVariables as unknown as StandardizedVariables,
+      {
+        ...mockStandardizedTerms,
+        'snomed:1304062007': {
+          id: 'snomed:1304062007',
+          standardizedVariableId: 'nb:Assessment',
+          label: 'Good',
+        },
+        'snomed:999999': {
+          id: 'snomed:999999',
+          standardizedVariableId: 'nb:Assessment',
+          label: 'Extra',
+        },
+      },
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].levels?.good.description).toBe('Good');
+    expect(result['0'].levels?.good.standardizedTerm).toBe('snomed:1304062007');
+    expect(result['0'].levels?.bad.description).toBe('Bad');
+    expect(result['0'].levels?.extra).toBeUndefined();
+    expect(result['0'].levels?.['N/A']).toEqual({ description: '', standardizedTerm: '' });
+    expect(result['0'].missingValues).toEqual(['N/A']);
+  });
+
+  it('should infer continuous data type for collection variables with units', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'assessment_score',
+        allValues: ['10', '20'],
+      },
+    };
+
+    const mockDataDict = {
+      assessment_score: {
+        Description: 'Assessment score',
+        Units: 'points',
+        Annotations: {
+          IsAbout: {
+            TermURL: 'nb:Assessment',
+            Label: 'Assessment Tool',
+          },
+          VariableType: 'Collection' as const,
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns as unknown as Columns,
+      mockDataDict as unknown as DataDictionary,
+      mockStandardizedVariables as unknown as StandardizedVariables,
+      mockStandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].dataType).toBe('Continuous');
+    expect(result['0'].units).toBe('points');
+  });
+
+  it('should not modify columns when column names do not match', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'column1',
+        allValues: ['val1', 'val2'],
+      },
+    };
+
+    const mockDataDict = {
+      different_column: {
+        Description: 'Some description',
+        Annotations: {
+          IsAbout: {
+            TermURL: 'nb:Age',
+            Label: 'Age',
+          },
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns,
+      mockDataDict,
+      mockStandardizedVariables,
+      mockStandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].description).toBeUndefined();
+    expect(result['0'].standardizedVariable).toBeUndefined();
+  });
+
+  it('should skip invalid standardized variable references', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'test_column',
+        allValues: ['val1', 'val2'],
+      },
+    };
+
+    const mockDataDict = {
+      test_column: {
+        Description: 'Test column',
+        Annotations: {
+          IsAbout: {
+            TermURL: 'nb:NonExistentVariable',
+            Label: 'Non Existent',
+          },
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns,
+      mockDataDict,
+      mockStandardizedVariables,
+      mockStandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].description).toBe('Test column');
+    expect(result['0'].standardizedVariable).toBeUndefined();
+  });
+
+  it('should skip invalid term references in IsPartOf', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'test_column',
+        allValues: ['val1', 'val2'],
+      },
+    };
+
+    const mockDataDict = {
+      test_column: {
+        Description: 'Test column',
+        Annotations: {
+          IsAbout: {
+            TermURL: 'nb:Assessment',
+            Label: 'Assessment Tool',
+          },
+          IsPartOf: {
+            TermURL: 'snomed:NonExistentTerm',
+            Label: 'Non Existent Term',
+          },
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns,
+      mockDataDict,
+      mockStandardizedVariables,
+      mockStandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].standardizedVariable).toBe('nb:Assessment');
+    expect(result['0'].isPartOf).toBeUndefined();
+  });
+
+  it('should skip invalid format references', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'age',
+        allValues: ['25', '30'],
+      },
+    };
+
+    const mockDataDict = {
+      age: {
+        Description: 'Age',
+        Annotations: {
+          IsAbout: {
+            TermURL: 'nb:Age',
+            Label: 'Age',
+          },
+          Format: {
+            TermURL: 'nb:NonExistentFormat',
+            Label: 'Non Existent',
+          },
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns,
+      mockDataDict,
+      mockStandardizedVariables,
+      mockStandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].standardizedVariable).toBe('nb:Age');
+    expect(result['0'].format).toBeUndefined();
+  });
+
+  it('should handle levels without term annotations', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'category',
+        allValues: ['A', 'B'],
+      },
+    };
+
+    const mockDataDict = {
+      category: {
+        Description: 'Category column',
+        Levels: {
+          A: {
+            Description: 'Category A',
+          },
+          B: {
+            Description: 'Category B',
+          },
+        },
+        Annotations: {
+          IsAbout: {
+            TermURL: 'nb:Diagnosis',
+            Label: 'Diagnosis',
+          },
+          VariableType: 'Categorical' as const,
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns as unknown as Columns,
+      mockDataDict as unknown as DataDictionary,
+      mockStandardizedVariables as unknown as StandardizedVariables,
+      mockStandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].levels).toBeDefined();
+    expect(result['0'].levels?.A.description).toBe('Category A');
+    expect(result['0'].levels?.A.standardizedTerm).toBe('');
+    expect(result['0'].levels?.B.description).toBe('Category B');
+    expect(result['0'].levels?.B.standardizedTerm).toBe('');
+  });
+
+  it('should return a new columns object without mutating the original', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'test',
+        allValues: ['val1'],
+      },
+    };
+
+    const mockDataDict = {
+      test: {
+        Description: 'Test description',
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns as unknown as Columns,
+      mockDataDict as unknown as DataDictionary,
+      mockStandardizedVariables as unknown as StandardizedVariables,
+      mockStandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result).not.toBe(mockColumns);
+    expect((mockColumns as Columns)['0'].description).toBeUndefined();
+    expect(result['0'].description).toBe('Test description');
+  });
+
+  it('should include missing values in categorical levels', () => {
+    const mockColumns = {
+      '0': {
+        id: '0',
+        name: 'diagnosis',
+        allValues: ['hc', 'NA', 'pd'],
+      },
+    };
+
+    const mockDataDict = {
+      diagnosis: {
+        Description: 'Diagnosis of the participant',
+        Annotations: {
+          VariableType: 'Categorical' as const,
+          MissingValues: ['NA'],
+        },
+      },
+    };
+
+    const result = applyDataDictionaryToColumns(
+      mockColumns as unknown as Columns,
+      mockDataDict as unknown as DataDictionary,
+      {
+        'nb:Diagnosis': { variable_type: VariableType.categorical },
+      } as unknown as StandardizedVariables,
+      {} as unknown as StandardizedTerms,
+      mockStandardizedFormats
+    );
+
+    expect(result['0'].missingValues).toEqual(['NA']);
+    expect(result['0'].levels).toBeDefined();
+    expect(result['0'].levels?.NA).toEqual({ description: '', standardizedTerm: '' });
+  });
+});
+
+describe('applyDataTypeToColumn', () => {
+  const createColumn = (
+    overrides: {
+      dataType?: DataType | null;
+      levels?: { [key: string]: { description: string; standardizedTerm: string } } | null;
+      units?: string;
+    } = {}
+  ) => ({
+    dataType: undefined,
+    levels: undefined,
+    units: undefined,
+    ...overrides,
+  });
+
+  it('should set dataType to categorical and initialize levels from allValues', () => {
+    const column = createColumn();
+    const allValues = ['A', 'B', 'A', 'C', 'B'];
+
+    const result = applyDataTypeToColumn(column, DataType.categorical, allValues);
+
+    expect(result).not.toBe(column);
+    expect(result.dataType).toBe(DataType.categorical);
+    expect(result.levels).toBeDefined();
+    expect(Object.keys(result.levels!)).toEqual(['A', 'B', 'C']);
+    expect(result.levels!.A).toEqual({ description: '', standardizedTerm: '' });
+    expect(result.levels!.B).toEqual({ description: '', standardizedTerm: '' });
+    expect(result.levels!.C).toEqual({ description: '', standardizedTerm: '' });
+    expect(result.units).toBeUndefined();
+    expect(column.levels).toBeUndefined(); // original column unchanged
+  });
+
+  it('should preserve existing levels when switching to categorical', () => {
+    const column = createColumn({
+      levels: {
+        A: { description: 'Existing A', standardizedTerm: 'term:A' },
+        B: { description: 'Existing B', standardizedTerm: 'term:B' },
+      },
+    });
+    const allValues = ['A', 'B', 'C'];
+
+    const result = applyDataTypeToColumn(column, DataType.categorical, allValues);
+
+    expect(result.dataType).toBe(DataType.categorical);
+    expect(result.levels).toBeDefined();
+    expect(result.levels!.A).toEqual({ description: 'Existing A', standardizedTerm: 'term:A' });
+    expect(result.levels!.B).toEqual({ description: 'Existing B', standardizedTerm: 'term:B' });
+    expect(result.units).toBeUndefined();
+  });
+
+  it('should remove units when switching to categorical', () => {
+    const column = createColumn({
+      dataType: DataType.continuous,
+      units: 'years',
+    });
+    const allValues = ['A', 'B', 'C'];
+
+    const result = applyDataTypeToColumn(column, DataType.categorical, allValues);
+
+    expect(result.dataType).toBe(DataType.categorical);
+    expect(result.levels).toBeDefined();
+    expect(result.units).toBeUndefined();
+  });
+
+  it('should initialize column units attribute when dataType is set to continuous', () => {
+    const column = createColumn();
+    const allValues = ['25', '30', '35'];
+
+    const result = applyDataTypeToColumn(column, DataType.continuous, allValues);
+
+    expect(result.dataType).toBe(DataType.continuous);
+    expect(result.units).toBe('');
+    expect(result.levels).toBeUndefined();
+  });
+
+  it('should preserve existing units when switching to continuous', () => {
+    const column = createColumn({
+      units: 'kg',
+    });
+    const allValues = ['25', '30', '35'];
+
+    const result = applyDataTypeToColumn(column, DataType.continuous, allValues);
+
+    expect(result.dataType).toBe(DataType.continuous);
+    expect(result.units).toBe('kg');
+    expect(result.levels).toBeUndefined();
+  });
+
+  it('should remove levels when switching to continuous', () => {
+    const column = createColumn({
+      dataType: DataType.categorical,
+      levels: {
+        A: { description: 'Level A', standardizedTerm: 'term:A' },
+      },
+    });
+    const allValues = ['25', '30', '35'];
+
+    const result = applyDataTypeToColumn(column, DataType.continuous, allValues);
+
+    expect(result.dataType).toBe(DataType.continuous);
+    expect(result.units).toBe('');
+    expect(result.levels).toBeUndefined();
+  });
+
+  it('should clear dataType, levels, and units when dataType is null', () => {
+    const column = createColumn({
+      dataType: DataType.categorical,
+      levels: {
+        A: { description: 'Level A', standardizedTerm: 'term:A' },
+      },
+      units: 'years',
+    });
+    const allValues = ['A', 'B'];
+
+    const result = applyDataTypeToColumn(column, null, allValues);
+
+    expect(result.dataType).toBeNull();
+    expect(result.levels).toBeUndefined();
+    expect(result.units).toBeUndefined();
+  });
+
+  it('should handle empty allValues array for categorical', () => {
+    const column = createColumn();
+    const allValues: string[] = [];
+
+    const result = applyDataTypeToColumn(column, DataType.categorical, allValues);
+
+    expect(result.dataType).toBe(DataType.categorical);
+    expect(result.levels).toBeDefined();
+    expect(Object.keys(result.levels!)).toEqual([]);
+  });
+
+  it('should handle empty strings in allValues for categorical', () => {
+    const column = createColumn();
+    const allValues = ['A', '', 'B', ''];
+
+    const result = applyDataTypeToColumn(column, DataType.categorical, allValues);
+
+    expect(result.dataType).toBe(DataType.categorical);
+    expect(result.levels).toBeDefined();
+    expect(Object.keys(result.levels!)).toEqual(['A', '', 'B']);
+    expect(result.levels!['']).toEqual({ description: '', standardizedTerm: '' });
+  });
+});
+
+describe('validateContinuousValues', () => {
+  it('should return null if formatId is missing', () => {
+    expect(validateContinuousValues(['25', '30'], [], undefined)).toBeNull();
+    expect(validateContinuousValues(['25', '30'], [], null)).toBeNull();
+  });
+
+  it('should calculate valid results, min, max, and ignore explicitly defined missing values', () => {
+    const values = ['25', 'N/A', '30', '15', '', ' '];
+    const missingValues = ['N/A', '', ' '];
+    const formatId = 'nb:FromFloat';
+
+    const result = validateContinuousValues(values, missingValues, formatId);
+
+    expect(result).not.toBeNull();
+    expect(result!.validCount).toBe(3);
+    expect(result!.invalidCount).toBe(0);
+    expect(result!.invalidValues).toEqual([]);
+    expect(result!.min).toBe(15);
+    expect(result!.max).toBe(30);
+  });
+
+  it('should treat empty strings as invalid if not designated as missing', () => {
+    const values = ['25', '', ' '];
+    const missingValues: string[] = [];
+    const formatId = 'nb:FromFloat';
+
+    const result = validateContinuousValues(values, missingValues, formatId);
+
+    expect(result).not.toBeNull();
+    expect(result!.validCount).toBe(1);
+    expect(result!.invalidCount).toBe(2);
+    expect(result!.invalidValues).toEqual(['', ' ']);
+  });
+
+  it('should process unique strings and return exact counts', () => {
+    const values = ['25', 'bad', '30', 'worse'];
+    const missingValues: string[] = [];
+    const formatId = 'nb:FromFloat';
+
+    const result = validateContinuousValues(values, missingValues, formatId);
+
+    expect(result).not.toBeNull();
+    expect(result!.validCount).toBe(2);
+    expect(result!.invalidCount).toBe(2);
+    expect(result!.invalidValues).toEqual(['bad', 'worse']);
+    // Min and Max are computed from validValues even if invalidCount > 0
+    expect(result!.min).toBe(25);
+    expect(result!.max).toBe(30);
+  });
+
+  it('should return null if no valid or invalid values are present', () => {
+    const values = ['N/A', '', ' '];
+    const missingValues = ['N/A', '', ' '];
+    const formatId = 'nb:FromFloat';
+
+    const result = validateContinuousValues(values, missingValues, formatId);
+
+    expect(result).toBeNull();
+  });
+});
+
+describe('parseContinuousValue', () => {
+  it('should return null for empty or whitespace values', () => {
+    expect(parseContinuousValue('', 'nb:FromFloat')).toBeNull();
+    expect(parseContinuousValue('   ', 'nb:FromInt')).toBeNull();
+  });
+
+  it('should return null for undefined or unrecognized formats', () => {
+    expect(parseContinuousValue('25', undefined)).toBeNull();
+    expect(parseContinuousValue('25', 'nb:UnknownFormat')).toBeNull();
+  });
+
+  it('should parse nb:FromFloat and nb:FromInt', () => {
+    expect(parseContinuousValue('25.5', 'nb:FromFloat')).toBe(25.5);
+    expect(parseContinuousValue('25', 'nb:FromFloat')).toBe(25);
+    expect(parseContinuousValue('25.5', 'nb:FromInt')).toBeNull();
+    expect(parseContinuousValue('25', 'nb:FromInt')).toBe(25);
+    expect(parseContinuousValue('bad', 'nb:FromFloat')).toBeNull();
+    // hex values should be rejected
+    expect(parseContinuousValue('0x1A', 'nb:FromInt')).toBeNull();
+  });
+
+  it('should parse nb:FromEuro', () => {
+    expect(parseContinuousValue('25,5', 'nb:FromEuro')).toBe(25.5);
+    expect(parseContinuousValue('25', 'nb:FromEuro')).toBe(25);
+    expect(parseContinuousValue('0,5', 'nb:FromEuro')).toBe(0.5);
+    expect(parseContinuousValue('-0,5', 'nb:FromEuro')).toBe(-0.5);
+    expect(parseContinuousValue('25.5', 'nb:FromEuro')).toBeNull();
+    expect(parseContinuousValue('-', 'nb:FromEuro')).toBeNull();
+    expect(parseContinuousValue(',5', 'nb:FromEuro')).toBeNull();
+    expect(parseContinuousValue('bad', 'nb:FromEuro')).toBeNull();
+  });
+
+  // TODO: revisit, since currently the CLI only accepts '+' as a bound character
+  it('should parse nb:FromBounded', () => {
+    expect(parseContinuousValue('+25+', 'nb:FromBounded')).toBe(25);
+    expect(parseContinuousValue('25+', 'nb:FromBounded')).toBe(25);
+    expect(parseContinuousValue('<25', 'nb:FromBounded')).toBe(25);
+    expect(parseContinuousValue('<=25', 'nb:FromBounded')).toBe(25);
+    expect(parseContinuousValue('>25', 'nb:FromBounded')).toBe(25);
+    expect(parseContinuousValue('>=25', 'nb:FromBounded')).toBe(25);
+    expect(parseContinuousValue('25', 'nb:FromBounded')).toBeNull(); // Missing bound character
+    expect(parseContinuousValue('25.5+', 'nb:FromBounded')).toBeNull(); // Decimals not allowed
+    expect(parseContinuousValue('bad', 'nb:FromBounded')).toBeNull();
+  });
+
+  it('should parse nb:FromRange', () => {
+    expect(parseContinuousValue('20 - 30', 'nb:FromRange')).toBe(25);
+    expect(parseContinuousValue('20.5-30.5', 'nb:FromRange')).toBe(25.5);
+    expect(parseContinuousValue('-10-20', 'nb:FromRange')).toBe(5);
+    expect(parseContinuousValue('-10--20', 'nb:FromRange')).toBe(-15);
+    expect(parseContinuousValue('10--20', 'nb:FromRange')).toBe(-5);
+    expect(parseContinuousValue('-10.5 - -20.5', 'nb:FromRange')).toBe(-15.5);
+    expect(parseContinuousValue('20', 'nb:FromRange')).toBeNull();
+    expect(parseContinuousValue('bad-worse', 'nb:FromRange')).toBeNull();
+  });
+
+  it('should parse nb:FromISO8601', () => {
+    expect(parseContinuousValue('P1Y6M', 'nb:FromISO8601')).toBe(1.5);
+    // Should automatically prepend 'P' if missing
+    expect(parseContinuousValue('1Y6M', 'nb:FromISO8601')).toBe(1.5);
+    expect(parseContinuousValue('bad', 'nb:FromISO8601')).toBeNull();
+  });
+});
