@@ -54,13 +54,17 @@ lint:
     actionlint
     shellcheck scripts/*.sh
 
-# Build a tool's Docker image
+# Build a tool's Docker image from the repository root, tagged neurobagel/<image>:local
 build tool:
     #!/usr/bin/env bash
     set -euo pipefail
     case "{{tool}}" in
+      api) image=api ;;
+      federation-api) image=federation_api ;;
+      query-tool) image=query_tool ;;
       *) echo "No image build configured for '{{tool}}'" >&2; exit 1 ;;
     esac
+    docker build -f "tools/{{tool}}/Dockerfile" -t "neurobagel/${image}:local" .
 
 # Check that protected paths of imported tools are unchanged
 check-unchanged:

@@ -5,7 +5,7 @@ FROM ghcr.io/astral-sh/uv:alpine AS prebuild
 
 WORKDIR /build
 
-COPY pyproject.toml uv.lock ./
+COPY tools/federation-api/pyproject.toml tools/federation-api/uv.lock ./
 # We need to add --no-emit-project here to prevent the local source to be added to its own dependencies
 RUN uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements.txt
 
@@ -17,7 +17,7 @@ COPY --from=prebuild /build/requirements.txt /usr/src/requirements.txt
 
 RUN pip install --no-cache-dir --upgrade -r /usr/src/requirements.txt
 
-COPY ./app /usr/src/app
+COPY tools/federation-api/app /usr/src/app
 
 # NB_API_PORT, representing the port on which the API will be exposed, 
 # is an environment variable that will always have a default value of 8000 when building the image

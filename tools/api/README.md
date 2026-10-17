@@ -92,9 +92,9 @@ docker run -d --name=api -p ${NB_API_PORT_HOST}:${NB_API_PORT} --env-file=.env n
 > :warning: **IMPORTANT:** If using the above command, do not wrap any values for variables in the `.env` file in quotation marks, as they will be interpreted literally and may lead to [issues](https://github.com/docker/for-linux/issues/1208).
 
 #### Option 3: Build the image using the Dockerfile
-After cloning the repository, build the Docker image from the repository root and run it from `tools/api/`:
+After cloning the repository, build the Docker image from the repository root (images must be built from there) and run it from `tools/api/`:
 ```bash
-docker build -t neurobagel/api tools/api
+docker build -f tools/api/Dockerfile -t neurobagel/api .
 cd tools/api
 docker run -d --name=api -p 8000:8000 --env-file=.env neurobagel/api
 ```
@@ -227,8 +227,10 @@ From the repository root, `just test api` starts the test graph, waits for it an
 From the repository root:
 
 ```bash
-docker build -t neurobagel/api:local tools/api
+docker build -f tools/api/Dockerfile -t neurobagel/api:local .
 ```
+
+The build context is the repository root, so images must be built from there with `-f`. `tools/api/Dockerfile.dockerignore` (next to the Dockerfile, read automatically by BuildKit) allowlists the files the image needs; everything else in the repository stays out of the build context. `just build api` runs the same command.
 
 The image contains the `app` package and its runtime dependencies, exported from `uv.lock`, and serves the API on port 8000. It requires at least `NB_GRAPH_USERNAME` and `NB_GRAPH_PASSWORD` and a datasets metadata file at runtime (see [Set the environment variables](#set-the-environment-variables)).
 

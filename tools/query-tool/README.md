@@ -265,13 +265,15 @@ From the repository root, `just test query-tool` runs `npm ci`, the static check
 
 ### Docker image
 
-The Docker build needs the example data, which the folder only reaches through a symlink that Docker does not follow. Build from the repository root with a copy of the folder that has symlinks resolved:
+From the repository root:
 
 ```bash
-docker build -t neurobagel/query_tool:local "$(scripts/materialize-context.sh tools/query-tool)"
+docker build -f tools/query-tool/Dockerfile -t neurobagel/query_tool:local .
 ```
 
-`docker build tools/query-tool` fails at `tsc`, because the Cypress tests' example imports are missing. The image contains the production build of the app, served by nginx on port 5173. The `NB_*` variables are substituted when the container starts, and it exits unless `NB_API_QUERY_URL` is set (see [Mandatory configuration](#mandatory-configuration)).
+The build context is the repository root, so images must be built from there with `-f`. `tools/query-tool/Dockerfile.dockerignore` (next to the Dockerfile, read automatically by BuildKit) allowlists the files the image needs; everything else in the repository stays out of the build context. `just build query-tool` runs the same command. The Dockerfile copies the monorepo's `examples/` folder into the build in place of the `neurobagel_examples` symlink, which Docker does not follow.
+
+The image contains the production build of the app, served by nginx on port 5173. The `NB_*` variables are substituted when the container starts, and it exits unless `NB_API_QUERY_URL` is set (see [Mandatory configuration](#mandatory-configuration)).
 
 ### Releases
 
