@@ -4,3 +4,5 @@
 160000 commit 8cb5730510de23538452ecbe7d0db4881c2e5f8b	tools/bagel-cli/bagel/pipeline-catalog
 160000 commit a94600688a6d34a4496e049363d22d76a303d08f	tools/bagel-cli/tests/bids-examples
 160000 commit 9886428f9e4dbbe267e7f1d7fb3be265a4e62b03	tools/bagel-cli/tests/neurobagel_examples
+160000 commit 9886428f9e4dbbe267e7f1d7fb3be265a4e62b03	tools/query-tool/neurobagel_examples
+160000 commit 9f8db034c9586abbd8c91c4c1216928ceedec312	tools/query-tool/recipes

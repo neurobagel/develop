@@ -1,0 +1,48 @@
+name: Docker build
+description: >
+  Build a tool's Docker image from a copy of its folder with symlinks resolved
+  (scripts/materialize-context.sh), so files reached through symlinks such as
+  neurobagel_examples are part of the build context.
+
+inputs:
+  tool:
+    description: Folder name under tools/
+    required: true
+  tags:
+    description: Image tags, one per line
+    required: true
+  push:
+    description: Push the image
+    required: false
+    default: "false"
+  load:
+    description: Load the image into the local Docker daemon
+    required: false
+    default: "false"
+  platforms:
+    description: Target platforms
+    required: false
+    default: linux/amd64
+
+runs:
+  using: composite
+  steps:
+    - name: Materialize build context
+      id: context
+      shell: bash
+      env:
+        TOOL: ${{ inputs.tool }}
+      run: echo "dir=$(scripts/materialize-context.sh "tools/$TOOL")" >> "$GITHUB_OUTPUT"
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
+
+    - name: Build
+      uses: docker/build-push-action@v7
+      with:
+        context: ${{ steps.context.outputs.dir }}
+        file: ${{ steps.context.outputs.dir }}/Dockerfile
+        tags: ${{ inputs.tags }}
+        push: ${{ inputs.push }}
+        load: ${{ inputs.load }}
+        platforms: ${{ inputs.platforms }}

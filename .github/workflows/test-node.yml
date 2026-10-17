@@ -1,0 +1,182 @@
+name: Test Node tool
+
+on:
+  workflow_call:
+    inputs:
+      tool:
+        description: Folder name under tools/
+        required: true
+        type: string
+      node-version:
+        description: Node.js version
+        required: false
+        type: string
+        default: "20"
+      run-unit:
+        description: Run npm run test:unit
+        required: false
+        type: boolean
+        default: false
+      run-component:
+        description: Run Cypress component tests
+        required: false
+        type: boolean
+        default: false
+      run-e2e:
+        description: Run Cypress end-to-end tests against npm run preview
+        required: false
+        type: boolean
+        default: false
+      component-env:
+        description: Contents of .env for the component test build (empty for no .env)
+        required: false
+        type: string
+        default: ""
+      e2e-env:
+        description: Contents of .env for the end-to-end test build (empty for no .env)
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/${{ inputs.tool }}
+    strategy:
+      fail-fast: false
+      matrix:
+        check: [lint:check, format:check, typecheck]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ${{ matrix.check }}
+        run: npm run ${{ matrix.check }}
+
+  codespell:
+    name: Check for spelling errors
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/${{ inputs.tool }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Runs in the tool folder so codespell reads the tool's .codespellrc
+      - name: Codespell
+        run: pipx run codespell
+
+  unit:
+    if: inputs.run-unit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/${{ inputs.tool }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+  component:
+    if: inputs.run-component
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/${{ inputs.tool }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Create .env file
+        if: inputs.component-env != ''
+        env:
+          ENV_CONTENTS: ${{ inputs.component-env }}
+        run: printf '%s\n' "$ENV_CONTENTS" > .env
+
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Run component tests
+        uses: cypress-io/github-action@v7
+        with:
+          working-directory: tools/${{ inputs.tool }}
+          component: true
+
+      - name: Upload component screenshots on failure
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: ${{ inputs.tool }}-component-screenshots
+          path: tools/${{ inputs.tool }}/cypress/screenshots
+          retention-days: 30
+
+  e2e:
+    if: inputs.run-e2e
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/${{ inputs.tool }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Create .env file
+        if: inputs.e2e-env != ''
+        env:
+          ENV_CONTENTS: ${{ inputs.e2e-env }}
+        run: printf '%s\n' "$ENV_CONTENTS" > .env
+
+      - name: Build
+        run: npm install && npm run build
+
+      - name: Run end to end tests
+        uses: cypress-io/github-action@v7
+        with:
+          working-directory: tools/${{ inputs.tool }}
+          wait-on: http://localhost:5173
+          start: npm run preview
+          component: false
+
+      - name: Upload e2e screenshots on failure
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: ${{ inputs.tool }}-e2e-screenshots
+          path: tools/${{ inputs.tool }}/cypress/screenshots
+          retention-days: 30
