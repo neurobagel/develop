@@ -49,7 +49,8 @@ services:
     profiles:
       - 'test'
     volumes:
-      - '../../stack/local_nb_nodes.json:/usr/src/local_nb_nodes.json:ro'
+      # The committed template defines the test profile's own api service as the local node
+      - '../../stack/local_nb_nodes.template.json:/usr/src/local_nb_nodes.json:ro'
 
 secrets:
   db_admin_password:

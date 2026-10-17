@@ -159,7 +159,7 @@ Commit hooks (husky and lint-staged) do not run in the monorepo: husky only inst
 
 ##### Docker compose testing environment for development
 
-Since the query tool relies on other neurobagel tools to function, their presence is often required during development. `docker-compose.yml` in `tools/query-tool/` defines a `test` profile for this. It builds on the monorepo's shared development and test stack in `stack/` and loads example data from `examples/`, referring to both by relative path (`../../stack`, `../../examples`). It starts the example data preparation (`init_data`), a graph with the example dataset, a node API and a federation API.
+Since the query tool relies on other neurobagel tools to function, their presence is often required during development. `docker-compose.yml` in `tools/query-tool/` defines a `test` profile for this. It builds on the monorepo's shared development and test stack in `stack/` and loads example data from `examples/`, referring to both by relative path (`../../stack`, `../../examples`). It starts the example data preparation (`init_data`), a graph with the example dataset, a node API and a federation API. The federation API federates over that node API, as defined in `stack/local_nb_nodes.template.json`, plus the public Neurobagel nodes.
 
 Pull the latest images and bring up the stack from `tools/query-tool/` with:
 
