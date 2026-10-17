@@ -241,10 +241,21 @@ End-to-end tests run against the production build served by `npm run preview` on
 ```bash
 printf 'NB_API_QUERY_URL=https://federate.neurobagel.org/\nNB_ENABLE_AUTH=true\nNB_QUERY_CLIENT_ID=mockclientid\n' > .env
 npm run build
-npm run preview &
-npm run test:e2e
-kill %1
 ```
+
+Then start the preview server in a second terminal, also from `tools/query-tool/`:
+
+```bash
+npm run preview
+```
+
+and run the tests in the first one:
+
+```bash
+npm run test:e2e
+```
+
+Stop the preview server with Ctrl+C when done.
 
 From the repository root, `just test query-tool` runs `npm ci`, the static checks and the component tests. CI runs everything above, plus codespell, whenever a pull request changes `tools/query-tool/` or `examples/`.
 
