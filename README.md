@@ -33,6 +33,14 @@ just check-unchanged  # check that imported tools' source and tests are unchange
 
 `just lint` needs [actionlint](https://github.com/rhysd/actionlint) and [shellcheck](https://www.shellcheck.net/).
 
+## Repository-wide workflows
+
+| Workflow | What it does |
+| --- | --- |
+| `ci.yml` | Lints workflows and scripts, detects which tools a change touches, runs those tools' tests, and checks that imported source and tests are unchanged |
+| `docs.yml` | Builds the docs on pull requests and deploys them to GitHub Pages on merge |
+| `linkspector.yml` | Checks the links in api's `README.md` (configured by `tools/api/.linkspector.yml`) on changes to api's Markdown |
+
 ## Migration
 
 `migration/` holds the migration's records: the upstream test baseline, the paths that must stay unchanged, and the imported upstream commits. `scripts/` holds the scripts that import tools and check them.
@@ -52,3 +60,4 @@ just check-unchanged  # check that imported tools' source and tests are unchange
 | R1 (Step 7a) | api and query-tool compose files refer to `../../stack` and `../../examples` directly; their `recipes` symlinks are removed. query-tool's `test` profile gains the `init_data` service and `neurobagel_data` volume it was missing, so it starts again, and its federation API mounts the committed `stack/local_nb_nodes.template.json` (the profile's own node API) instead of a `local_nb_nodes.json` that did not exist. | Makes the dependency on the shared stack explicit and removes two symlinks; query-tool's test profile was already broken upstream (see `migration/baseline.md`) | api, query-tool | [api README](tools/api/README.md#setup), [query-tool README](tools/query-tool/README.md#docker-compose-testing-environment-for-development) |
 | R2 (Step 7b) | api, federation-api and query-tool images are built from the repository root (`docker build -f tools/<tool>/Dockerfile .`, or `just build <tool>`), with an allowlist `tools/<tool>/Dockerfile.dockerignore` per image; query-tool's Dockerfile copies `examples/` directly; the temporary `scripts/materialize-context.sh` is removed | Docker does not follow symlinks out of a tool folder; one build context for all images, with each image's files listed explicitly | api, federation-api, query-tool | [api](tools/api/README.md#docker-image), [federation-api](tools/federation-api/README.md#docker-image), [query-tool](tools/query-tool/README.md#docker-image) |
 | R3 (Step 7c) | The bagel-cli image installs one pre-built wheel (`tools/bagel-cli/dist/*.whl`), the same file that is published to PyPI, instead of running `pip install bagel` from PyPI; `Dockerfile.nightly` is removed and nightly and release images share one Dockerfile | The image always contains exactly the released (or nightly) artifact, and the build no longer depends on PyPI having the new release yet | bagel-cli | [bagel-cli README: Docker image](tools/bagel-cli/README.md#docker-image) |
+| Step 7d | api's link check runs from the root workflow `linkspector.yml`, in `tools/api`; the other upstream repository-automation workflows are not carried over (`handle_external_pr`, `add_iss2project`, `stale`, `scorecard`, query-tool's example-diff workflows) or are replaced later | GitHub only runs root workflows | api | [Repository-wide workflows](#repository-wide-workflows) |

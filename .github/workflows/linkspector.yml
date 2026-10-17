@@ -1,12 +1,23 @@
 name: Linkspector
 
+# Ported from the api repository's linkspector.yml. It checks the Markdown
+# files listed in tools/api/.linkspector.yml (api's README.md), from tools/api.
+
 permissions:
   contents: read
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'tools/api/**/*.md'
+      - 'tools/api/.linkspector.yml'
+      - '.github/workflows/linkspector.yml'
   pull_request:
+    paths:
+      - 'tools/api/**/*.md'
+      - 'tools/api/.linkspector.yml'
+      - '.github/workflows/linkspector.yml'
   workflow_dispatch:
 
 jobs:
@@ -32,7 +43,8 @@ jobs:
       shell: bash
       run: npx --yes puppeteer@^24 browsers install chrome
 
-    - name: Run linkspector 
+    - name: Run linkspector
       uses: umbrelladocs/action-linkspector@v1
       with:
+        workdir: tools/api
         config_file: .linkspector.yml
