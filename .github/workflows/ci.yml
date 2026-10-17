@@ -35,6 +35,7 @@ jobs:
     outputs:
       federation-api: ${{ steps.filter.outputs.federation-api }}
       api: ${{ steps.filter.outputs.api }}
+      bagel-cli: ${{ steps.filter.outputs.bagel-cli }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -51,6 +52,11 @@ jobs:
               - 'tools/api/**'
               - 'stack/**'
               - 'examples/**'
+              - '.github/workflows/test-python.yml'
+            bagel-cli:
+              - 'tools/bagel-cli/**'
+              - 'examples/**'
+              - '.gitmodules'
               - '.github/workflows/test-python.yml'
 
   check-unchanged:
@@ -82,3 +88,14 @@ jobs:
       python-versions: '["3.10", "3.11", "3.12", "3.13"]'
       pytest-args: -m "integration or not integration"
       needs-graph: true
+
+  bagel-cli:
+    needs: changes
+    if: needs.changes.outputs.bagel-cli == 'true'
+    uses: ./.github/workflows/test-python.yml
+    with:
+      tool: bagel-cli
+      python-versions: '["3.11", "3.12", "3.13", "3.14"]'
+      sync-args: --group dev --upgrade
+      pytest-args: -m "integration or not integration"
+      submodules: true

@@ -1,0 +1,9 @@
+[submodule "tools/bagel-cli/tests/bids-examples"]
+	path = tools/bagel-cli/tests/bids-examples
+	url = https://github.com/bids-standard/bids-examples.git
+[submodule "tools/bagel-cli/bagel/pipeline-catalog"]
+	path = tools/bagel-cli/bagel/pipeline-catalog
+	url = https://github.com/nipoppy/pipeline-catalog.git
+[submodule "tools/bagel-cli/bagel/communities"]
+	path = tools/bagel-cli/bagel/communities
+	url = https://github.com/neurobagel/communities.git

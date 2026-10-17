@@ -2,8 +2,7 @@
 
 # Neurobagel CLI
 
-[![Main branch checks status](https://img.shields.io/github/check-runs/neurobagel/bagel-cli/main?style=flat-square&logo=github)](https://github.com/neurobagel/bagel-cli/actions?query=branch:main)
-[![Tests status](https://img.shields.io/github/actions/workflow/status/neurobagel/bagel-cli/test.yml?branch=main&style=flat-square&logo=github&label=tests)](https://github.com/neurobagel/bagel-cli/actions/workflows/test.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/neurobagel/develop/ci.yml?branch=main&style=flat-square&logo=github&label=ci)](https://github.com/neurobagel/develop/actions/workflows/ci.yml?query=branch%3Amain)
 [![Codecov](https://img.shields.io/codecov/c/github/neurobagel/bagel-cli?token=R1KI9KIP8D&style=flat-square&logo=codecov&link=https%3A%2F%2Fcodecov.io%2Fgh%2Fneurobagel%2Fbagel-cli)](https://app.codecov.io/gh/neurobagel/bagel-cli)
 [![Python versions static](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue?style=flat-square&logo=python)](https://www.python.org)
 [![License](https://img.shields.io/github/license/neurobagel/bagel-cli?style=flat-square&color=purple&link=LICENSE)](LICENSE)
@@ -28,51 +27,78 @@ pip install bagel
 
 (If you prefer to run the CLI using Docker or Singularity containers instead, please refer to the [Neurobagel documentation](https://neurobagel.org/user_guide/cli/).)
 
-## Development environment
+## Development in the Neurobagel monorepo
 
-### Setting up a local development environment
-To work on the CLI, we suggest that you create a development environment 
-that is as close as possible to the environment we run in production.
+This tool lives in `tools/bagel-cli/` of https://github.com/neurobagel/develop.
+
+### Setup
+
+To work on the CLI, we suggest a development environment that is as close as possible to the one we run in production.
 We [use uv](https://docs.astral.sh/uv/getting-started/installation/) to set up local development environments.
 
-1. Clone the repository
+Clone with submodules, then install the CLI and all development dependencies in editable mode:
 
-    ```bash
-    git clone https://github.com/neurobagel/bagel-cli.git
-    cd bagel-cli
-    ```
+```bash
+git clone --recurse-submodules https://github.com/neurobagel/develop.git
+cd develop/tools/bagel-cli
+uv sync --group dev
+```
 
-2. Install the CLI and all development dependencies in editable mode with `uv`:
+If you already cloned without `--recurse-submodules`, run `git submodule update --init` from the repository root.
 
-    ```bash
-    uv sync --group dev
-    ```
+bagel-cli uses three external repositories as git submodules, registered in the repository's root `.gitmodules`:
 
-3. Install the `bids-examples` and `neurobagel_examples` submodules needed to run the test suite:
-    ```bash
-    git submodule init
-    git submodule update
-    ```
+| Path in `tools/bagel-cli/` | Repository | Used for |
+| --- | --- | --- |
+| `bagel/communities` | [neurobagel/communities](https://github.com/neurobagel/communities) | Community configurations, bundled into the package |
+| `bagel/pipeline-catalog` | [nipoppy/pipeline-catalog](https://github.com/nipoppy/pipeline-catalog) | Processing pipeline catalog, bundled into the package |
+| `tests/bids-examples` | [bids-standard/bids-examples](https://github.com/bids-standard/bids-examples) | Example BIDS datasets for the tests |
 
-Confirm that everything works well by running the tests: 
-`uv run pytest .`
+The Neurobagel example data used by the tests comes from the monorepo's `examples/` folder through the symlink `tests/neurobagel_examples -> ../../../examples`.
 
-To run the CLI during local development, use:
+The version is derived from the repository's `bagel-cli-v*` tags, so the clone needs its full history and tags (the default for `git clone`).
+
+To run the CLI during local development, from `tools/bagel-cli/`:
 
 ```bash
 uv run bagel
 ```
 
-### Setting up code formatting and linting (recommended)
+### Tests
 
-[pre-commit](https://pre-commit.com/) is configured in the development environment for this repository, and can be set up to automatically run a number of code linters and formatters on any commit you make according to the consistent code style set for this project.
+From `tools/bagel-cli/`:
 
-Run the following from the repository root to install the configured pre-commit "hooks" for your local clone of the repo:
 ```bash
-uv run pre-commit install
+uv run pytest -m "integration or not integration"
 ```
 
-pre-commit will now run automatically whenever you run `git commit`.
+Or from the repository root: `just test bagel-cli`. CI runs the tests on Python 3.11 to 3.14 whenever a pull request changes `tools/bagel-cli/`, `examples/` or `.gitmodules`. Like the upstream repository's CI, it installs with `uv sync --group dev --upgrade`, so it also tests against the newest allowed dependency versions.
+
+### Package
+
+From `tools/bagel-cli/`:
+
+```bash
+uv build
+```
+
+The wheel bundles `bagel/communities/` and `bagel/pipeline-catalog/`; the source distribution leaves out `tests/`.
+
+### Docker image
+
+From the repository root:
+
+```bash
+docker build -t neurobagel/bagelcli:local tools/bagel-cli
+```
+
+`tools/bagel-cli/Dockerfile` installs the latest `bagel` release from PyPI, not the code in this checkout. `Dockerfile.nightly` builds from source but needs a `.git` folder inside its build context, so it cannot be built from this repository as it stands.
+
+### Releases
+
+Tags: `bagel-cli-vX.Y.Z`. Published to: PyPI `bagel`, Docker Hub `neurobagel/bagelcli`.
+Release automation (release-please) is not set up in this repository yet, so no releases are made from it.
+PR titles must follow Conventional Commits with scope `bagel-cli`, for example `fix(bagel-cli): ...`.
 
 ### Updating dependencies
 If new runtime or development dependencies are needed, [add them with `uv add`](https://docs.astral.sh/uv/concepts/projects/dependencies/#adding-dependencies). 
@@ -87,7 +113,7 @@ uploaded to new Neurobagel graph deployments.
 This vocabulary is used by Neurobagel APIs to fetch available attributes and attribute instances from a graph store.
 
 When the Neurobagel graph data model is updated (e.g., if new classes or subclasses are created), 
-this file should be regenerated by running:
+this file should be regenerated by running, from `tools/bagel-cli/`:
 ```bash
 uv run python helper_scripts/generate_nb_vocab_file.py
 ```
