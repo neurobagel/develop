@@ -62,6 +62,12 @@ build tool:
       api) image=api ;;
       federation-api) image=federation_api ;;
       query-tool) image=query_tool ;;
+      bagel-cli)
+        # The image installs the wheel built here, the same artifact that is published to PyPI
+        image=bagelcli
+        rm -rf tools/bagel-cli/dist
+        (cd tools/bagel-cli && uv build --wheel)
+        ;;
       *) echo "No image build configured for '{{tool}}'" >&2; exit 1 ;;
     esac
     docker build -f "tools/{{tool}}/Dockerfile" -t "neurobagel/${image}:local" .

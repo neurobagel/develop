@@ -86,13 +86,39 @@ The wheel bundles `bagel/communities/` and `bagel/pipeline-catalog/`; the source
 
 ### Docker image
 
-From the repository root:
+The `neurobagel/bagelcli` image contains exactly the `bagel` wheel that is
+published to PyPI for the same version. Nightly images contain the wheel
+built from `main` at that commit.
+
+How the image is built:
+- The release workflow builds the wheel once.
+- It uploads that wheel to PyPI.
+- It then builds the Docker image from the same wheel file.
+- If the PyPI upload fails, no image is pushed.
+
+The image no longer runs `pip install bagel` from PyPI while building.
+So the build does not depend on PyPI having the new release yet, and the
+image cannot end up with a different version than its tag.
+
+Using the image is unchanged: `docker pull neurobagel/bagelcli`,
+`docker run --rm neurobagel/bagelcli --help`, and Apptainer via
+`apptainer pull bagel.sif docker://neurobagel/bagelcli`.
+
+Build the image locally (from the repository root):
 
 ```bash
-docker build -t neurobagel/bagelcli:local tools/bagel-cli
+rm -rf tools/bagel-cli/dist
+(cd tools/bagel-cli && uv build --wheel)
+docker build -f tools/bagel-cli/Dockerfile -t neurobagel/bagelcli:local .
 ```
 
-`tools/bagel-cli/Dockerfile` installs the latest `bagel` release from PyPI, not the code in this checkout. `Dockerfile.nightly` builds from source but needs a `.git` folder inside its build context, so it cannot be built from this repository as it stands.
+`just build bagel-cli` runs the same three commands. The build context is the repository root; `tools/bagel-cli/Dockerfile.dockerignore` lets in only the wheel, and the build fails unless `tools/bagel-cli/dist/` holds exactly one.
+
+Check which version an image contains:
+
+```bash
+docker run --rm neurobagel/bagelcli:<tag> --version
+```
 
 ### Releases
 
