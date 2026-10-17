@@ -24,6 +24,11 @@ test tool:
         uv sync --group dev
         uv run pytest -m "integration or not integration"
         ;;
+      bagel-cli)
+        cd tools/bagel-cli
+        uv sync --group dev
+        uv run pytest -m "integration or not integration"
+        ;;
       *) echo "No tests configured for '{{tool}}'" >&2; exit 1 ;;
     esac
 

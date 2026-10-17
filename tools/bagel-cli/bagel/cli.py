@@ -1,0 +1,882 @@
+from pathlib import Path
+
+import bids2table as b2t2
+import click
+import pandas as pd
+import typer
+from bids import BIDSLayout, exceptions
+from rich.progress import Progress, SpinnerColumn, TextColumn, track
+
+from bagel import mappings, models
+from bagel._version import __version__
+
+from .logger import VerbosityLevel, configure_logger, log_error, logger
+from .utilities import (
+    bids_utils,
+    derivative_utils,
+    file_utils,
+    model_utils,
+    pheno_utils,
+)
+from .utilities.derivative_utils import PROC_STATUS_COLS
+
+OPTION_GROUP_NAMES = {
+    "troubleshooting": "Troubleshooting",
+    "config": "Configuration",
+}
+
+CUSTOM_SESSION_LABEL = "ses-unnamed"
+
+bagel = typer.Typer(
+    help=(
+        "A command-line tool for creating valid, subject-level instances of the Neurobagel graph data model.\n\n"
+        "[red]NOTE: The 'pheno' command must always be run first on a new dataset to generate the input .jsonld file required for the 'bids' command.[/red]"
+    ),
+    # From https://github.com/tiangolo/typer/issues/201#issuecomment-744151303
+    context_settings={"help_option_names": ["--help", "-h"]},
+    # NOTE: invoking bagel with no options still results in a non-zero exit code
+    # even though the help text is printed and there are no errors,
+    # because required options are still detected as missing
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+    epilog=(
+        "Run 'bagel COMMAND --help' for more information on a command.\n\n"
+        "Or visit the documentation at https://neurobagel.org/user_guide/cli/"
+    ),
+)
+
+
+# NOTE: We use a reusable option instead of a callback to avoid the complexity
+# of needing to specify the flag before the actual CLI command names
+def verbosity_option():
+    """Create a reusable verbosity option for commands."""
+    return typer.Option(
+        VerbosityLevel.INFO,
+        "--verbosity",
+        "-v",
+        callback=configure_logger,
+        help="Set the verbosity level of the output. 0 = show errors only; 1 = show errors, warnings, and informational messages; 3 = show all logs, including debug messages.",
+        rich_help_panel=OPTION_GROUP_NAMES["troubleshooting"],
+    )
+
+
+def overwrite_option():
+    """Create a reusable overwrite option for commands."""
+    return typer.Option(
+        False,
+        "--overwrite",
+        "-f",
+        help="Overwrite output file if it already exists.",
+    )
+
+
+def show_help(ctx: typer.Context, value: bool):
+    """
+    Callback to display the command help and exit.
+    Adapted from https://github.com/fastapi/typer/discussions/833#discussioncomment-9551792.
+    """
+    if value:
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
+
+
+def help_option():
+    """
+    Create a reusable help option for commands.
+    Used to override the default location of the --help option in the help text
+    so that it appears in a different named option group.
+    """
+    return typer.Option(
+        False,
+        "--help",
+        "-h",
+        callback=show_help,
+        help="Show this message and exit.",
+        rich_help_panel=OPTION_GROUP_NAMES["troubleshooting"],
+    )
+
+
+def show_version(value: bool):
+    """Callback to show package version number and exit."""
+    if value:
+        print(f"bagel {__version__}")
+        raise typer.Exit()
+
+
+@bagel.callback()
+def main(
+    version: bool = typer.Option(
+        None,
+        "--version",
+        help="Show the version and exit.",
+        callback=show_version,
+        is_eager=True,
+    )
+):
+    """Handle options for the main CLI command 'bagel'."""
+    return
+
+
+@bagel.command()
+def bids2tsv(
+    bids_dir: Path = typer.Option(
+        ...,
+        "--bids-dir",
+        "-b",
+        help="Path to the BIDS dataset directory.",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        resolve_path=True,
+    ),
+    output: Path = typer.Option(
+        "bids.tsv",
+        "--output",
+        "-o",
+        help="Path to save the output .tsv file.",
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    strip_id_prefixes: bool = typer.Option(
+        False,
+        "--strip-id-prefixes",
+        help="Strip 'sub-' and 'ses-' prefixes from subject and session IDs in the output BIDS table. "
+        "Useful if your phenotypic data table does not contain a BIDS subject ID column, "
+        "and you want to ensure that your BIDS subject IDs match those in your phenotypic data "
+        "(as required for the 'bagel bids' command).",
+    ),
+    overwrite: bool = overwrite_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
+):
+    """
+    Convert a BIDS dataset into a minimal tabular format (.tsv) containing information about subject, session, suffix (image contrast), and file path for imaging files.
+    """
+    file_utils.check_overwrite(output, overwrite)
+
+    logger.info(f"Input BIDS directory:  {bids_dir}")
+
+    try:
+        # NOTE: If there are no subjects in the BIDS dataset, the validation should fail.
+        # The rest of this workflow assumes there's at least one subject in the BIDS dataset.
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            transient=True,
+        ) as progress:
+            # Add a spinner during BIDS parsing - this spinner disappears once the process is done
+            # and won't be present in logs
+            progress.add_task(
+                "Validating BIDS dataset. This may take a while...", total=None
+            )
+            BIDSLayout(bids_dir, validate=True)
+        logger.info("BIDS validation passed.")
+    except exceptions.BIDSValidationError as e:
+        log_error(
+            logger,
+            f"Invalid BIDS dataset at {bids_dir}. Validation error: {e}",
+        )
+
+    output_columns = ["sub", "ses", "suffix", "path"]
+    dataset_tab = b2t2.index_dataset(bids_dir)
+    dataset_df = dataset_tab.to_pandas()
+
+    nb_bids_suffix_term_map = bids_utils.get_bids_suffix_to_std_term_mapping()
+
+    bids_recognized_suffixes, bids_unrecognized_suffixes = (
+        bids_utils.partition_suffixes(
+            suffixes=dataset_df["suffix"].unique().tolist(),
+            reference_suffixes=bids_utils.get_all_bids_suffixes(),
+        )
+    )
+    if bids_unrecognized_suffixes:
+        logger.warning(
+            f"Files with suffixes not recognized by BIDS were found: {list(bids_unrecognized_suffixes)}. "
+            "These will be ignored. "
+            "Please refer to the BIDS specification https://bids-specification.readthedocs.io/en/stable/ for file naming conventions."
+        )
+    # We don't care about and don't warn for valid BIDS file suffixes that don't correspond to raw data files
+    bids_raw_data_suffixes, _ = bids_utils.partition_suffixes(
+        suffixes=bids_recognized_suffixes,
+        reference_suffixes=bids_utils.get_bids_raw_data_suffixes(),
+    )
+    neurobagel_supported_suffixes, neurobagel_unsupported_suffixes = (
+        bids_utils.partition_suffixes(
+            suffixes=bids_raw_data_suffixes,
+            reference_suffixes=nb_bids_suffix_term_map.keys(),
+        )
+    )
+    if neurobagel_unsupported_suffixes:
+        logger.warning(
+            f"Data files with valid BIDS suffixes that are not supported by Neurobagel were found: {list(neurobagel_unsupported_suffixes)}. "
+            f"These will be ignored. Supported BIDS suffixes: {list(nb_bids_suffix_term_map.keys())}."
+        )
+    if not neurobagel_supported_suffixes:
+        log_error(
+            logger,
+            f"No image files with supported BIDS suffixes were found in {bids_dir}. "
+            "A BIDS metadata table could not be generated. "
+            "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
+            f"(Supported suffixes: {list(nb_bids_suffix_term_map.keys())}).",
+        )
+
+    dataset_df = dataset_df[
+        dataset_df["suffix"].isin(neurobagel_supported_suffixes)
+    ].copy()
+
+    dataset_df["path"] = dataset_df.apply(
+        lambda row: (Path(row["root"]) / row["path"]).as_posix(), axis=1
+    )
+    dataset_df = dataset_df[output_columns]
+
+    # bids2table returns the IDs without the 'sub-' and 'ses-' prefixes by default
+    if not strip_id_prefixes:
+        dataset_df["sub"] = dataset_df["sub"].apply(lambda id: f"sub-{id}")
+        dataset_df["ses"] = dataset_df["ses"].apply(
+            lambda id: f"ses-{id}" if pd.notna(id) else id
+        )
+
+    dataset_df.to_csv(output, sep="\t", index=False)
+    logger.info(f"Saved output to:  {output}")
+
+
+@bagel.command()
+def pheno(
+    pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
+        ...,
+        "--pheno",
+        "-t",  # for tabular
+        help="Path to a phenotypic .tsv file",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    dictionary: Path = typer.Option(
+        ...,
+        "--dictionary",
+        "-d",
+        help="Path to the .json data dictionary corresponding to the phenotypic .tsv file.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    dataset_description: Path = typer.Option(
+        ...,
+        "--dataset-description",
+        "-m",  # for metadata
+        help="Path to a .json file describing the dataset and access information. "
+        "If your dataset is BIDS-compliant, you may reuse the BIDS dataset_description.json here."
+        "See the documentation at https://neurobagel.org/user_guide/dataset_description/",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    output: Path = typer.Option(
+        "pheno.jsonld",
+        "--output",
+        "-o",
+        help="Path to the output .jsonld file.",
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    config: str = typer.Option(
+        mappings.DEFAULT_CONFIG,
+        "--config",
+        "-c",
+        # Solution for providing preset choices taken from https://github.com/fastapi/typer/issues/182#issuecomment-1708245110
+        # NOTE: Alternatively, we could dynamically create a string listing the available config names
+        # to include in the option description in the help text. We would then use a callback to validate the config name manually,
+        # instead of using click.Choice which handles displaying the choices and validation automatically.
+        # This might be useful once/if we have many community configurations to choose from or want more flexibility in errors.
+        click_type=click.Choice(
+            pheno_utils.get_available_configs(
+                mappings.CONFIG_NAMESPACES_MAPPING
+            ),
+            case_sensitive=False,
+        ),
+        help="Name of the vocabulary configuration used to generate your data dictionary in the annotation tool. "
+        "If you are processing data for a Neurobagel subcommunity, choose the subcommunity name here. "
+        f"{pheno_utils.additional_config_help_text()}",
+        rich_help_panel=OPTION_GROUP_NAMES["config"],
+    ),
+    overwrite: bool = overwrite_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
+):
+    """
+    Process a tabular phenotypic file (.tsv) that has been successfully annotated with the Neurobagel annotation tool, with annotations stored in a data dictionary (.json).
+
+    This command will create a valid, subject-level instance of the Neurobagel graph data model for the provided phenotypic file in the JSON-LD format. You can upload this .jsonld file to the Neurobagel graph.
+    """
+    file_utils.check_overwrite(output, overwrite)
+
+    data_dictionary = file_utils.load_json(dictionary)
+    pheno_df = file_utils.load_tabular(pheno)
+    dataset_metadata = file_utils.load_json(dataset_description)
+
+    pheno_utils.check_if_remote_config_namespaces_used()
+
+    logger.info("Running initial checks of inputs...")
+    # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
+    # It is arbitrarily calculated as = length of the longest string + 2 extra spaces
+    width = 30
+    logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
+    logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
+    logger.info(
+        "%-*s%s", width, "Dataset description (.json):", dataset_description
+    )
+    pheno_utils.validate_inputs(data_dictionary, pheno_df, config)
+    dataset_metadata = pheno_utils.validate_dataset_description(
+        dataset_metadata
+    )
+
+    # TODO: Remove once we no longer support annotation tool v1 data dictionaries
+    data_dictionary = pheno_utils.convert_transformation_to_format(
+        data_dictionary
+    )
+
+    logger.info("Processing phenotypic annotations...")
+    subject_list = []
+
+    column_mapping = pheno_utils.map_std_vars_to_columns(data_dictionary)
+    tool_mapping = pheno_utils.map_tools_to_columns(data_dictionary)
+
+    # TODO: needs refactoring once we handle multiple participant IDs
+    participants = column_mapping["participant"][0]
+
+    # Note that `session_column will be None if there is no session column in the pheno.tsv
+    session_column = column_mapping.get("session")
+
+    for participant in pheno_df[participants].unique():
+        _sub_pheno = pheno_df.query(
+            f"`{participants}` == '{str(participant)}'"
+        )
+
+        sessions = []
+        for session_row_idx, session_row in _sub_pheno.iterrows():
+            # Our data model requires a session. To support phenotypic data without sessions,
+            # we create a session with a fixed, but unusual CUSTOM_SESSION_LABEL and add the
+            # phenotypic data to that session.
+            if session_column is None:
+                session_label = CUSTOM_SESSION_LABEL
+            else:
+                # NOTE: We take the name from the first session column - we don't know how to handle multiple session columns yet
+                session_label = session_row[session_column[0]]
+
+            session = models.PhenotypicSession(hasLabel=str(session_label))
+            _ses_pheno = session_row
+
+            if "sex" in column_mapping.keys():
+                _sex_vals = pheno_utils.get_transformed_values(
+                    column_mapping["sex"], _ses_pheno, data_dictionary
+                )
+                if _sex_vals:
+                    # NOTE: Our data model only allows a single sex value, so we only take the first instance if multiple columns are about sex
+                    session.hasSex = models.Sex(identifier=_sex_vals[0])
+
+            if "diagnosis" in column_mapping.keys():
+                _dx_vals = pheno_utils.get_transformed_values(
+                    column_mapping["diagnosis"], _ses_pheno, data_dictionary
+                )
+                if _dx_vals:
+                    session.hasDiagnosis = [
+                        models.Diagnosis(identifier=_dx_val)
+                        for _dx_val in _dx_vals
+                    ]
+
+            if "subject_group" in column_mapping.keys():
+                _group_vals = pheno_utils.get_transformed_values(
+                    column_mapping["subject_group"],
+                    _ses_pheno,
+                    data_dictionary,
+                )
+                if _group_vals:
+                    session.isSubjectGroup = models.SubjectGroup(
+                        identifier=_group_vals[0]
+                    )
+
+            if "age" in column_mapping.keys():
+                # NOTE: At the moment, our data model only supports a single age value per subject.
+                # To achieve this, we transform the values from ALL columns annotated as about age
+                # (so we expect each of them to be valid according to the data dictionary model),
+                # but we take and store only the first instance in the graph data.
+                _age_vals = pheno_utils.get_transformed_values(
+                    column_mapping["age"], _ses_pheno, data_dictionary
+                )
+                if _age_vals:
+                    session.hasAge = _age_vals[0]
+
+            if tool_mapping:
+                _assessments = [
+                    models.Assessment(identifier=tool)
+                    for tool, columns in tool_mapping.items()
+                    if pheno_utils.are_any_available(
+                        columns, _ses_pheno, data_dictionary
+                    )
+                ]
+                if _assessments:
+                    # Only set assessments for the subject if at least one has a non-missing item
+                    session.hasAssessment = _assessments
+            sessions.append(session)
+
+        subject = models.Subject(
+            hasLabel=str(participant), hasSession=sessions
+        )
+        subject_list.append(subject)
+
+    dataset_graph_attributes = (
+        pheno_utils.dataset_description_to_graph_attributes(dataset_metadata)
+    )
+
+    dataset = models.Dataset(
+        **dataset_graph_attributes,
+        hasSamples=subject_list,
+    )
+
+    file_utils.save_jsonld(
+        data=model_utils.dataset_to_jsonld(
+            context=model_utils.generate_context(config),
+            dataset=dataset,
+        ),
+        filename=output,
+    )
+
+
+@bagel.command()
+def bids(
+    # TODO: Rename to --jsonld? Since other file options do not have the _path suffix.
+    jsonld_path: Path = typer.Option(
+        ...,
+        "--jsonld-path",
+        "-p",  # for pheno
+        help="Path to the .jsonld file containing the phenotypic data for your dataset, created using the 'bagel pheno' command. "
+        "This file may optionally also include the processing pipeline metadata for the dataset (created using the 'bagel derivatives' command).",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    bids_table: Path = typer.Option(
+        ...,
+        "--bids-table",
+        "-b",
+        help="Path to a .tsv file containing the BIDS metadata for image files including 'sub', 'ses', 'suffix', and 'path' columns. "
+        "This file can be created using the 'bagel bids2tsv' command.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    # TODO: Should we include a tip in the help text for using the repository root for DataLad datasets?
+    # NOTE: dataset_source_path or dataset_root_path?
+    dataset_source_dir: Path = typer.Option(
+        None,
+        "--dataset-source-dir",
+        "-s",
+        callback=bids_utils.check_absolute_path,
+        help="Absolute path to the root directory of the BIDS dataset at the source location/file server. "
+        "If provided, this path will be combined with the subject and session IDs from the BIDS table "
+        "to create absolute source paths to the imaging data for each subject and session.",
+        exists=False,
+        file_okay=False,
+        dir_okay=True,
+        resolve_path=False,
+    ),
+    # TODO: Should we rename the default output file to something more generic to account for the fact that
+    # the file may also include derivatives data? e.g., dataset_bids.jsonld
+    output: Path = typer.Option(
+        "bids.jsonld",
+        "--output",
+        "-o",
+        help="Path to the output .jsonld file.",
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    overwrite: bool = overwrite_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
+):
+    """
+    Extract and integrate imaging metadata from a BIDS dataset with harmonized subject phenotypic data (from 'bagel pheno') and, optionally, processing pipeline metadata (from 'bagel derivatives') in a single .jsonld file.
+    [red]NOTE: Must be run AFTER 'bagel pheno'.[/red]
+
+    This command will create a valid, subject-level instance of the Neurobagel graph data model for the combined metadata in the JSON-LD format. You can upload this .jsonld file to the Neurobagel graph.
+    """
+
+    file_utils.check_overwrite(output, overwrite)
+
+    width = 51
+    logger.info("Running initial checks of inputs...")
+    logger.info(
+        "%-*s%s",
+        width,
+        "Existing subject graph data to augment (.jsonld):",
+        jsonld_path,
+    )
+    logger.info("%-*s%s", width, "BIDS dataset table (.tsv):", bids_table)
+    if dataset_source_dir:
+        logger.info(
+            "%-*s%s",
+            width,
+            "Dataset root directory at the data source location (used to construct imaging data paths):",
+            dataset_source_dir,
+        )
+
+    jsonld_context, jsonld_dataset = (
+        model_utils.extract_and_validate_jsonld_dataset(jsonld_path)
+    )
+    bids_dataset = file_utils.load_tabular(bids_table, input_type="BIDS")
+
+    nb_bids_suffix_term_map = bids_utils.get_bids_suffix_to_std_term_mapping()
+    # NOTE: The BIDS table model validation will check for required columns and for empty values in the "suffix" column
+    # and error out for any problem. Because we want to ignore unsupported suffixes with a warning instead of a validation error,
+    # we check the suffix column separately here and then remove any offending values.
+    # For our custom suffix-check to work, we need to ensure that the "suffix" column exists here.
+    if "suffix" in bids_dataset.columns:
+        # We assume that most input BIDS TSVs will have been generated by the 'bids2tsv' command,
+        # so we only log a generic warning here for any suffixes found in the table that are not supported by Neurobagel
+        neurobagel_supported_suffixes, neurobagel_unsupported_suffixes = (
+            bids_utils.partition_suffixes(
+                suffixes=bids_dataset["suffix"],
+                reference_suffixes=nb_bids_suffix_term_map.keys(),
+            )
+        )
+        if not neurobagel_supported_suffixes:
+            log_error(
+                logger,
+                f"No Neurobagel-supported BIDS suffixes found in BIDS table 'suffix' column: {bids_table}. "
+                "No imaging metadata could be added to the subject graph data. "
+                "Please ensure your dataset includes at least one image file with a Neurobagel-supported BIDS suffix "
+                f"(supported suffixes: {list(nb_bids_suffix_term_map.keys())}).",
+            )
+        if neurobagel_unsupported_suffixes:
+            logger.warning(
+                f"BIDS table 'suffix' column contains file suffixes unsupported by Neurobagel: {list(neurobagel_unsupported_suffixes)}. "
+                f"These records will be ignored. Supported file suffixes: {list(nb_bids_suffix_term_map.keys())}."
+            )
+
+        bids_dataset = bids_dataset[
+            bids_dataset["suffix"].isin(neurobagel_supported_suffixes)
+        ].copy()
+
+    bids_utils.validate_bids_table(bids_dataset)
+
+    existing_subs_dict = model_utils.get_subject_instances(jsonld_dataset)
+    bids_subject_ids = list(bids_dataset["sub"].unique())
+
+    model_utils.confirm_subs_match_pheno_data(
+        subjects=bids_subject_ids,
+        subject_source_for_err="BIDS dataset file",
+        pheno_subjects=existing_subs_dict.keys(),
+    )
+
+    logger.info("Initial checks of inputs passed.")
+
+    logger.info(
+        "Subject metadata for the following Neurobagel-supported imaging modalities "
+        f"will be added to the subject graph data: {list(neurobagel_supported_suffixes)}"
+    )
+
+    logger.info("Merging BIDS metadata with existing subject annotations...")
+
+    disable_progress_bar = verbosity == VerbosityLevel.ERROR
+    for bids_sub_id in track(
+        bids_subject_ids,
+        description="Processing BIDS subjects...",
+        disable=disable_progress_bar,
+    ):
+        _bids_sub = bids_dataset[bids_dataset["sub"] == bids_sub_id]
+        existing_subject = existing_subs_dict[bids_sub_id]
+        existing_sessions_dict = model_utils.get_imaging_session_instances(
+            existing_subject
+        )
+
+        bids_sessions = list(_bids_sub["ses"].unique())
+        # TODO: Do we need to explicitly preprocess cases where ses values are other types of whitespace?
+        # Ensure the sessions are in alphanumeric order for readability
+        for session_id in sorted(bids_sessions):
+            _bids_session = _bids_sub[_bids_sub["ses"] == session_id]
+            image_list = bids_utils.create_acquisitions(
+                session_df=_bids_session,
+                bids_suffix_term_map=nb_bids_suffix_term_map,
+            )
+
+            if not image_list:
+                continue
+
+            # TODO: Currently if a subject has BIDS data but no "ses-" directories (e.g., only 1 session),
+            # we create a session with a fixed, but unusual CUSTOM_SESSION_LABEL
+            # and add the imaging data info to a session with that label (or create it first).
+            # However, we still provide the BIDS SUBJECT directory as the session path, instead of making up a path.
+            # This should be revisited in the future as for these cases the resulting dataset object is not
+            # an exact representation of what's on disk.
+            session_label = (
+                CUSTOM_SESSION_LABEL
+                if session_id.strip() == ""
+                else session_id
+            )
+            session_path = bids_utils.get_session_path(
+                dataset_root=dataset_source_dir,
+                bids_sub_id=bids_sub_id,
+                session_id=session_id,
+            )
+
+            # If a custom Neurobagel-created session already exists (if `bagel derivatives` was run first),
+            # we add to that session when there is no session layer in the BIDS directory
+            if session_label in existing_sessions_dict:
+                existing_img_session = existing_sessions_dict[session_label]
+                existing_img_session.hasAcquisition = image_list
+                existing_img_session.hasFilePath = session_path
+            else:
+                new_imaging_session = models.ImagingSession(
+                    hasLabel=session_label,
+                    hasFilePath=session_path,
+                    hasAcquisition=image_list,
+                )
+                existing_subject.hasSession.append(new_imaging_session)
+
+    # NOTE: We currently reuse the context from the input JSONLD instead of regenerating it to avoid
+    # asking the user to specify a config for each command.
+    # However, this means that we are not fully protected against the (hopefully rare) case where the context has changed between
+    # the generation of the input JSONLD and when this command is run (e.g., if the data model underwent an update in the interim).
+    # This may be resolved with https://github.com/neurobagel/bagel-cli/issues/492.
+    file_utils.save_jsonld(
+        data=model_utils.dataset_to_jsonld(
+            context={"@context": jsonld_context},
+            dataset=jsonld_dataset,
+        ),
+        filename=output,
+    )
+
+
+@bagel.command()
+def derivatives(
+    tabular: Path = typer.Option(
+        ...,
+        "--tabular",
+        "-t",
+        help="Path to a .tsv containing subject-level processing pipeline status info. Expected to comply with the Nipoppy processing status file schema.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    # TODO: Remove _path?
+    jsonld_path: Path = typer.Option(
+        ...,
+        "--jsonld-path",
+        "-p",  # for pheno
+        help="Path to a .jsonld file containing the phenotypic data for your dataset, created using the 'bagel pheno' command. This file may optionally also include the BIDS metadata for the dataset (created using the 'bagel bids' command).",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    output: Path = typer.Option(
+        "derivatives.jsonld",
+        "--output",
+        "-o",
+        help="Path to the output .jsonld file.",
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    overwrite: bool = overwrite_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
+):
+    """
+    Extract subject processing pipeline and derivative metadata from a tabular processing status file and integrate them in a single .jsonld with harmonized subject phenotypic data (from 'bagel pheno') and optionally, BIDS metadata (from 'bagel bids').
+    [red]NOTE: Must be run AFTER 'bagel pheno'.[/red]
+
+    This command will create a valid, subject-level instance of the Neurobagel graph data model for the combined metadata in the JSON-LD format. You can upload this .jsonld file to the Neurobagel graph.
+    """
+
+    file_utils.check_overwrite(output, overwrite)
+    derivative_utils.check_if_pipeline_catalog_available()
+
+    width = 51
+    logger.info("Processing subject-level derivative metadata...")
+    logger.info(
+        "%-*s%s",
+        width,
+        "Existing subject graph data to augment (.jsonld):",
+        jsonld_path,
+    )
+    logger.info("%-*s%s", width, "Processing status file (.tsv):", tabular)
+
+    status_df = file_utils.load_tabular(
+        tabular, input_type="processing status"
+    )
+
+    # We don't allow empty values in the participant ID column
+    if row_indices := pheno_utils.get_rows_with_empty_strings(
+        status_df, [PROC_STATUS_COLS["participant"]]
+    ):
+        log_error(
+            logger,
+            f"Your processing status file contains missing values in the column '{PROC_STATUS_COLS['participant']}'. "
+            "Please ensure that every row has a non-empty participant id. "
+            f"We found missing values in the following rows (first row is zero): {row_indices}.",
+        )
+
+    known_pipeline_uris, known_pipeline_versions = (
+        derivative_utils.parse_pipeline_catalog(mappings.PIPELINE_CATALOG)
+    )
+
+    derivative_utils.check_at_least_one_pipeline_version_is_recognized(
+        status_df=status_df,
+        known_pipeline_uris=known_pipeline_uris,
+        known_pipeline_versions=known_pipeline_versions,
+    )
+
+    jsonld_context, jsonld_dataset = (
+        model_utils.extract_and_validate_jsonld_dataset(jsonld_path)
+    )
+
+    existing_subs_dict = model_utils.get_subject_instances(jsonld_dataset)
+
+    model_utils.confirm_subs_match_pheno_data(
+        subjects=status_df[PROC_STATUS_COLS["participant"]].unique(),
+        subject_source_for_err="processing status file",
+        pheno_subjects=existing_subs_dict.keys(),
+    )
+
+    # Create sub-dataframes for each subject
+    for subject, sub_proc_df in status_df.groupby(
+        PROC_STATUS_COLS["participant"]
+    ):
+        existing_subject = existing_subs_dict[subject]
+
+        # Note: Dictionary of existing imaging sessions can be empty if only bagel pheno was run
+        existing_sessions_dict = model_utils.get_imaging_session_instances(
+            existing_subject
+        )
+
+        for session_label, sub_ses_proc_df in sub_proc_df.groupby(
+            PROC_STATUS_COLS["session"]
+        ):
+            completed_pipelines = derivative_utils.create_completed_pipelines(
+                session_proc_df=sub_ses_proc_df,
+                known_pipeline_uris=known_pipeline_uris,
+                known_pipeline_versions=known_pipeline_versions,
+            )
+
+            if not completed_pipelines:
+                continue
+
+            session_label = (
+                CUSTOM_SESSION_LABEL if session_label == "" else session_label
+            )
+            if session_label in existing_sessions_dict:
+                existing_img_session = existing_sessions_dict[session_label]
+                existing_img_session.hasCompletedPipeline = completed_pipelines
+            else:
+                new_img_session = models.ImagingSession(
+                    hasLabel=session_label,
+                    hasCompletedPipeline=completed_pipelines,
+                )
+                existing_subject.hasSession.append(new_img_session)
+
+    # NOTE: We currently reuse the context from the input JSONLD instead of regenerating it to avoid
+    # asking the user to specify a config for each command.
+    # However, this means that we are not fully protected against the (hopefully rare) case where the context has changed between
+    # the generation of the input JSONLD and when this command is run (e.g., if the data model underwent an update in the interim).
+    # This may be resolved with https://github.com/neurobagel/bagel-cli/issues/492.
+    file_utils.save_jsonld(
+        data=model_utils.dataset_to_jsonld(
+            context={"@context": jsonld_context},
+            dataset=jsonld_dataset,
+        ),
+        filename=output,
+    )
+
+
+@bagel.command()
+def harmonize_pheno(
+    pheno: Path = typer.Option(  # TODO: Rename argument to something clearer, like --tabular.
+        ...,
+        "--pheno",
+        "-t",  # for tabular
+        help="Path to a phenotypic .tsv file",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    dictionary: Path = typer.Option(
+        ...,
+        "--dictionary",
+        "-d",
+        help="Path to the .json data dictionary corresponding to the phenotypic .tsv file.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    output: Path = typer.Option(
+        "harmonized.tsv",
+        "--output",
+        "-o",
+        help="Path to save the output harmonized .tsv file.",
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    overwrite: bool = overwrite_option(),
+    verbosity: VerbosityLevel = verbosity_option(),
+    help_: bool = help_option(),
+):
+    """
+    [dim][red]Experimental command, please avoid using in production unless explicitly advised![/red]
+    Harmonize the contents of a tabular phenotypic file (.tsv) using the annotations defined in its corresponding Neurobagel data dictionary (.json, generated using the Neurobagel annotation tool).[/dim]
+    """
+    file_utils.check_overwrite(output, overwrite)
+
+    data_dictionary = file_utils.load_json(dictionary)
+    pheno_df = file_utils.load_tabular(pheno)
+
+    logger.info("Running initial checks of inputs...")
+    # NOTE: `width` determines the amount of padding (in num. characters) before the file paths in the print statement.
+    # It is calculated as = length of the longer string + 2 extra spaces
+    width = 26
+    logger.info("%-*s%s", width, "Tabular file (.tsv):", pheno)
+    logger.info("%-*s%s", width, "Data dictionary (.json):", dictionary)
+    pheno_utils.validate_inputs(data_dictionary, pheno_df)
+
+    # TODO: Remove once we no longer support annotation tool v1 data dictionaries
+    data_dictionary = pheno_utils.convert_transformation_to_format(
+        data_dictionary
+    )
+
+    logger.info("Harmonizing raw tabular file...")
+
+    column_mapping = pheno_utils.map_std_vars_to_columns(data_dictionary)
+    collection_mapping = pheno_utils.map_tools_to_columns(data_dictionary)
+
+    # Prepare list of annotated columns that will be harmonized and included in the output table
+    cols_to_harmonize = []
+    for std_var_name, columns in column_mapping.items():
+        if std_var_name == "assessment_tool":
+            cols_to_harmonize.extend(columns)
+        else:
+            # NOTE: By default, we use only the first column mapped to a specific std_var
+            # to avoid duplicate harmonized column names in the output TSV.
+            cols_to_harmonize.append(columns[0])
+
+    transformed_rows = []
+    for _, row in pheno_df.iterrows():
+        transformed_row = pheno_utils.get_transformed_row_for_table(
+            cols_to_harmonize, row, data_dictionary, collection_mapping
+        )
+        transformed_rows.append(transformed_row)
+    harmonized_pheno_df = pd.DataFrame(transformed_rows)
+
+    harmonized_pheno_df.to_csv(output, sep="\t", index=False)
+    logger.info(f"Saved harmonized table to:  {output}")
