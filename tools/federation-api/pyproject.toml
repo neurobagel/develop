@@ -53,6 +53,9 @@ version-file = "app/_version.py"  # useful for accessing dynamically calculated 
 
 [tool.hatch.version.raw-options]
 local_scheme = "no-local-version"  # do not append local version info to the version string to avoid PyPI upload errors
+root = "../.."
+tag_regex = '^federation-api-v(?P<version>\d+\.\d+\.\d+.*)$'
+git_describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "federation-api-v*"]
 
 [tool.black]
 line-length = 79

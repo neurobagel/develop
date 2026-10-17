@@ -24,6 +24,7 @@ Tasks are run with [just](https://github.com/casey/just) from the repository roo
 ```bash
 just --list           # show all recipes
 just lint             # lint GitHub workflows and shell scripts
+just test <tool>      # run a tool's tests, for example `just test federation-api`
 just check-unchanged  # check that imported tools' source and tests are unchanged
 ```
 
@@ -37,3 +38,4 @@ just check-unchanged  # check that imported tools' source and tests are unchange
 
 | ID | What changed | Why | Affected tools | Details |
 | --- | --- | --- | --- | --- |
+| Step 2 | federation-api imported with full history; tags renamed from `vX.Y.Z` to `federation-api-vX.Y.Z`; hatch-vcs reads versions from those tags at the repository root; CI moved to the root `ci.yml` and `test-python.yml` | One tag namespace per tool in a shared repository; GitHub only runs root workflows | federation-api | [README: Development in the Neurobagel monorepo](tools/federation-api/README.md#development-in-the-neurobagel-monorepo) |

@@ -5,6 +5,11 @@ test tool:
     #!/usr/bin/env bash
     set -euo pipefail
     case "{{tool}}" in
+      federation-api)
+        cd tools/federation-api
+        uv sync --group dev
+        uv run pytest
+        ;;
       *) echo "No tests configured for '{{tool}}'" >&2; exit 1 ;;
     esac
 

@@ -2,8 +2,7 @@
 
 # Federation API
 
-[![Main branch check status](https://img.shields.io/github/check-runs/neurobagel/federation-api/main?style=flat-square&logo=github)](https://github.com/neurobagel/federation-api/actions?query=branch:main)
-[![Tests status](https://img.shields.io/github/actions/workflow/status/neurobagel/federation-api/test.yaml?branch=main&style=flat-square&logo=github&label=tests&link=https%3A%2F%2Fgithub.com%2Fneurobagel%2Ffederation-api%2Factions%2Fworkflows%2Ftest.yaml)](https://github.com/neurobagel/federation-api/actions/workflows/test.yaml)
+[![CI](https://img.shields.io/github/actions/workflow/status/neurobagel/develop/ci.yml?branch=main&style=flat-square&logo=github&label=ci)](https://github.com/neurobagel/develop/actions/workflows/ci.yml?query=branch%3Amain)
 [![Codecov](https://img.shields.io/codecov/c/github/neurobagel/federation-api?token=B827PI9W1U&style=flat-square&logo=codecov&link=https%3A%2F%2Fcodecov.io%2Fgh%2Fneurobagel%2Ffederation-api)](https://app.codecov.io/gh/neurobagel/federation-api)
 [![Python versions static](https://img.shields.io/badge/python-3.10--3.13-blue?style=flat-square&logo=python)](https://www.python.org)
 [![License](https://img.shields.io/github/license/neurobagel/federation-api?style=flat-square&color=purple&link=LICENSE)](LICENSE)
@@ -63,27 +62,50 @@ docker run -d -v ${PWD}/local_nb_nodes.json:/usr/src/local_nb_nodes.json:ro \
 ```
 NOTE: You can replace the port number `8080` for the `-p` flag with any port on the host you wish to use for the API.
 
-## Setting up a local development environment
+## Development in the Neurobagel monorepo
 
-We [use `uv`](https://docs.astral.sh/uv/getting-started/installation/)
-for our local dev environment.
+This tool lives in `tools/federation-api/` of https://github.com/neurobagel/develop.
 
-Once `uv` is installed, just run
+### Setup
+
+We [use `uv`](https://docs.astral.sh/uv/getting-started/installation/) for the local development environment.
 
 ```bash
+git clone https://github.com/neurobagel/develop.git
+cd develop/tools/federation-api
 uv sync --group dev
 ```
 
-to set up the project in editable mode.
-
-And then launch the API with 
+This installs the project in editable mode. Launch the API from `tools/federation-api/` with
 
 ```bash
 uv run uvicorn app.main:app
 ```
 
-Also don't forget to set up pre-commit with
+The version is derived from the repository's `federation-api-v*` tags, so the clone needs its full history and tags (the default for `git clone`).
+
+### Tests
+
+From `tools/federation-api/`:
 
 ```bash
-uv run pre-commit install
+uv run pytest
 ```
+
+Or from the repository root: `just test federation-api`. CI runs the tests on Python 3.10 to 3.13 whenever a pull request changes `tools/federation-api/`.
+
+### Docker image
+
+From the repository root:
+
+```bash
+docker build -t neurobagel/federation_api:local tools/federation-api
+```
+
+The image contains the `app` package and its runtime dependencies, exported from `uv.lock`, and serves the API on port 8000.
+
+### Releases
+
+Tags: `federation-api-vX.Y.Z`. Published to: Docker Hub `neurobagel/federation_api`.
+Release automation (release-please) is not set up in this repository yet, so no releases are made from it.
+PR titles must follow Conventional Commits with scope `federation-api`, for example `fix(federation-api): ...`.
