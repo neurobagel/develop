@@ -4,11 +4,9 @@ Verbatim copies of workflows from the tools' upstream `.github/workflows/` folde
 
 | Workflow | From | Plan |
 | --- | --- | --- |
-| `handle_external_pr.yml` | every tool (identical in the five tool repositories; documentation's differs) | Ported to one root workflow in migration Step 7d |
-| `linkspector.yml` | api (uses `tools/api/.linkspector.yml`) | Ported to a root workflow in Step 7d |
-| `cff_validation.yml` | api, bagel-cli | Ported to a root workflow in Step 7d, validating `tools/api/CITATION.cff` and `tools/bagel-cli/CITATION.cff` |
-| `updated_examples.yaml`, `generate_examples_diff.yaml`, `comment_examples_diff.yaml` | query-tool | Kept pending a maintainer decision |
+| `linkspector.yml` | api (uses `tools/api/.linkspector.yml`) | Ported to a root workflow in migration Step 7d |
+| `cff_validation.yml` | api, bagel-cli | Source for validating the single root `CITATION.cff`, which replaces the per-tool files after cutover (Step 19) |
 
-Not kept: `stale.yml` (to be set up again manually), `add_iss2project.yml` (no longer needed with one repository), `scorecard.yml` (replaced by one Scorecard for the monorepo).
+Not kept: `handle_external_pr.yml` (no longer needed), `add_iss2project.yml` (not needed with one repository), `stale.yml` (to be set up again manually), `scorecard.yml` (replaced by one Scorecard for the monorepo at cutover), and query-tool's example-diff workflows (replaced by a check that the committed query-tool example results are current, after cutover, Step 18).
 
-Step 7d deletes this folder once every workflow is ported or decided on.
+This folder is deleted once its last file is ported.
