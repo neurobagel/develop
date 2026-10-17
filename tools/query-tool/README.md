@@ -159,14 +159,18 @@ Commit hooks (husky and lint-staged) do not run in the monorepo: husky only inst
 
 ##### Docker compose testing environment for development
 
-Since the query tool relies on other neurobagel tools to function, their presence is often required during development. `docker-compose.yml` in `tools/query-tool/` defines a `test` profile for this, built on the monorepo's shared `stack/` folder (reached through the symlink `recipes -> ../../stack`) and example data in `examples/` (through `neurobagel_examples -> ../../examples`).
+Since the query tool relies on other neurobagel tools to function, their presence is often required during development. `docker-compose.yml` in `tools/query-tool/` defines a `test` profile for this. It builds on the monorepo's shared development and test stack in `stack/` and loads example data from `examples/`, referring to both by relative path (`../../stack`, `../../examples`). It starts the example data preparation (`init_data`), a graph with the example dataset, a node API and a federation API. The federation API federates over that node API, as defined in `stack/local_nb_nodes.template.json`, plus the public Neurobagel nodes.
 
-_Known issue: the `test` profile currently does not start. `docker compose --profile test config` reports `service "api" depends on undefined service "init_data"`, because the shared stack's `api` and `graph` services depend on an `init_data` service that this compose file does not define._
-
-Once that is fixed, pull the latest images and bring up the stack from `tools/query-tool/` with:
+Pull the latest images and bring up the stack from `tools/query-tool/` with:
 
 ```bash
 docker compose --profile test pull && docker compose --profile test up -d
+```
+
+The graph is ready when `docker logs query-tool-graph-1` shows `Finished setting up the Neurobagel graph backend.`. The node API is then served on port 8000 and the federation API on port 8080. Stop and remove the stack with:
+
+```bash
+docker compose --profile test down -v
 ```
 
 _NOTE: Make sure your .env file in `tools/query-tool/` doesn't contain any of the environment variables used in the docker compose file as it will conflict with the configuration, since docker compose will use `.env` by default._
