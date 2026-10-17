@@ -2,20 +2,20 @@ services:
 
   init_data:
     extends:
-      file: recipes/docker-compose.yml
+      file: ../../stack/docker-compose.yml
       service: init_data
     volumes:
-      - "./neurobagel_examples/data-upload/pheno-bids-derivatives-output:/input_data"
+      - "../../examples/data-upload/pheno-bids-derivatives-output:/input_data"
       - "neurobagel_data:/data"
 
   test_graph:
     extends:
-      file: recipes/docker-compose.yml
+      file: ../../stack/docker-compose.yml
       service: graph
     volumes:
       - "graphdb_home:/opt/graphdb/home"
-      - "./recipes/scripts:/usr/src/neurobagel/scripts"
-      - "./recipes/vocab:/usr/src/neurobagel/vocab"
+      - "../../stack/scripts:/usr/src/neurobagel/scripts"
+      - "../../stack/vocab:/usr/src/neurobagel/vocab"
       - "neurobagel_data:/data"
     environment:
       NB_GRAPH_USERNAME: "DBUSER"
@@ -38,9 +38,9 @@ services:
 
 secrets:
   db_admin_password:
-    file: ./recipes/secrets/NB_GRAPH_ADMIN_PASSWORD.txt
+    file: ../../stack/secrets/NB_GRAPH_ADMIN_PASSWORD.txt
   db_user_password:
-    file: ./recipes/secrets/NB_GRAPH_PASSWORD.txt
+    file: ../../stack/secrets/NB_GRAPH_PASSWORD.txt
 
 volumes:
   graphdb_home:

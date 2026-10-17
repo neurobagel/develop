@@ -184,7 +184,7 @@ uv sync --group dev
 
 The version is derived from the repository's `api-v*` tags, so the clone needs its full history and tags (the default for `git clone`).
 
-The tests use example data and the test graph configuration from the monorepo's shared folders, reached through two symlinks in `tools/api/`: `neurobagel_examples -> ../../examples` and `recipes -> ../../stack`. No submodules are needed.
+The test graph and its example data come from the monorepo's shared folders: `docker-compose.yml` in `tools/api/` builds on the development and test stack in `stack/` and loads example data from `examples/`, referring to both by relative path (`../../stack`, `../../examples`). The tests read example files through the symlink `neurobagel_examples -> ../../examples`. No submodules are needed.
 
 ### Tests
 
