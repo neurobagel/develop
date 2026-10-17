@@ -1,0 +1,39 @@
+name: end to end tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Set up node env
+        uses: actions/setup-node@v7
+        with:
+          node-version: 20
+
+      - name: Create .env file
+        run: |
+          echo -e "NB_API_QUERY_URL=https://federate.neurobagel.org/\nNB_ENABLE_AUTH=true\nNB_QUERY_CLIENT_ID=mockclientid" > .env
+
+      - name: build
+        run: npm install && npm run build
+
+      - name: Run end to end tests
+        uses: cypress-io/github-action@v7
+        with:
+          wait-on: http://localhost:5173
+          start: npm run preview
+          component: false

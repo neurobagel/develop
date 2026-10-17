@@ -1,0 +1,715 @@
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import axios, { AxiosResponse } from 'axios';
+import { Alert, Button, IconButton } from '@mui/material';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import CloseIcon from '@mui/icons-material/Close';
+import type { AlertColor } from '@mui/material/Alert';
+import { SnackbarKey, SnackbarProvider, closeSnackbar, enqueueSnackbar } from 'notistack';
+import { useAuth0 } from '@auth0/auth0-react';
+import { v4 as uuidv4 } from 'uuid';
+import { FilterList } from '@mui/icons-material';
+import { baseAPIURL, nodesURL, enableAuth } from './utils/constants';
+import {
+  AttributeOption,
+  RetrievedPipelineVersions,
+  NodeOption,
+  FieldInput,
+  FieldInputOption,
+  PipelineOption,
+  Pipelines,
+  DatasetsResponse,
+  QueryParams,
+  Notification,
+  QueryFormState,
+  ImagingModalityOption,
+  AttributeResponse,
+  ImagingModalitiesMetadata,
+} from './utils/types';
+import QueryForm from './components/QueryForm';
+import ResultContainer from './components/ResultContainer';
+import Navbar from './components/Navbar';
+import AuthDialog from './components/AuthDialog';
+import SmallScreenSizeDialog from './components/SmallScreenSizeDialog';
+import ErrorAlert from './components/ErrorAlert';
+import NodeAdmonition from './components/NodeAdmonition';
+import './App.css';
+import logo from './assets/logo.png';
+import areFormStatesEqual, {
+  normalizeFieldInputOptions,
+  parseNumericValue,
+  sendDatasetsQuery,
+  sendSubjectsQuery,
+} from './utils/utils';
+
+function App() {
+  // Screen is considered small if the width is less than 768px (according to tailwind docs)
+  const [isScreenSizeSmall, setIsScreenSizeSmall] = useState<boolean>(
+    useMediaQuery('(max-width: 767px)')
+  );
+  const [diagnosisOptions, setDiagnosisOptions] = useState<AttributeOption[]>([]);
+  const [assessmentOptions, setAssessmentOptions] = useState<AttributeOption[]>([]);
+  const [imagingModalityOptions, setImagingModalityOptions] = useState<ImagingModalityOption[]>([]);
+  const [imagingModalitiesMetadata, setImagingModalitiesMetadata] =
+    useState<ImagingModalitiesMetadata>({});
+  const [availableNodes, setAvailableNodes] = useState<NodeOption[]>([
+    { NodeName: 'All', ApiURL: 'allNodes' },
+  ]);
+  const [pipelines, setPipelines] = useState<Pipelines>({});
+  // Track pipeline IDs for which version fetching has already been initiated to prevent
+  // duplicate in-flight requests or infinite fetch loops when a pipeline has no versions.
+  const fetchedPipelineURIs = useRef<Set<keyof Pipelines>>(new Set());
+
+  // Track which node admonitions have been dismissed
+  const [dismissedNodeAdmonitions, setDismissedNodeAdmonitions] = useState<string[]>([]);
+
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const [result, setResult] = useState<DatasetsResponse | null>(null);
+  const [resultStatus, setResultStatus] = useState<string>('success');
+
+  const [minAge, setMinAge] = useState<string>('');
+  const [maxAge, setMaxAge] = useState<string>('');
+  const [sex, setSex] = useState<FieldInput>(null);
+  const [diagnosis, setDiagnosis] = useState<FieldInput>(null);
+  const [minNumImagingSessions, setMinNumSessions] = useState<string>('');
+  const [minNumPhenotypicSessions, setMinNumPhenotypicSessions] = useState<string>('');
+  const [assessmentTool, setAssessmentTool] = useState<FieldInput>(null);
+  const [imagingModality, setImagingModality] = useState<FieldInput>(null);
+  const [selectedPipelines, setSelectedPipelines] = useState<PipelineOption[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [activeQueryParams, setActiveQueryParams] = useState<QueryParams | null>(null);
+  const [activeQueryParamsState, setActiveQueryParamsState] = useState<QueryFormState | null>(null);
+
+  const [openAuthDialog, setOpenAuthDialog] = useState(false);
+  const [IDToken, setIDToken] = useState<string | undefined>('');
+  const { isAuthenticated, isLoading, getIdTokenClaims } = useAuth0();
+
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isQueryFormOpen, setIsQueryFormOpen] = useState(true);
+  const isSmallViewport = useMediaQuery('(max-width: 1024px)');
+
+  const [prevAuthState, setPrevAuthState] = useState({ isLoading, isAuthenticated });
+
+  if (isLoading !== prevAuthState.isLoading || isAuthenticated !== prevAuthState.isAuthenticated) {
+    setPrevAuthState({ isLoading, isAuthenticated });
+    if (enableAuth && !isLoading) {
+      setOpenAuthDialog(!isAuthenticated);
+    }
+  }
+
+  // Extract the raw OIDC ID token from the Auth0 SDK
+  useEffect(() => {
+    if (enableAuth && !isLoading && isAuthenticated) {
+      (async () => {
+        const tokenClaims = await getIdTokenClaims();
+        setIDToken(tokenClaims?.__raw);
+      })();
+    }
+  }, [isAuthenticated, isLoading, getIdTokenClaims]);
+
+  const selectedNode: FieldInputOption[] = availableNodes
+    .filter((option) => searchParams.getAll('node').includes(option.NodeName))
+    .map((filteredOption) => ({ label: filteredOption.NodeName, id: filteredOption.ApiURL }));
+
+  const sortedDatasetResults: DatasetsResponse | null = result
+    ? {
+        ...result,
+        responses: result.responses.sort((a, b) => a.dataset_name.localeCompare(b.dataset_name)),
+      }
+    : null;
+
+  const action = (snackbarId: SnackbarKey) => (
+    <IconButton
+      onClick={() => {
+        closeSnackbar(snackbarId);
+      }}
+    >
+      <CloseIcon className="text-white" />
+    </IconButton>
+  );
+
+  const currentQueryFormState: QueryFormState = {
+    nodes: [...searchParams.getAll('node')],
+    minAge,
+    maxAge,
+    sex,
+    diagnosis,
+    minNumImagingSessions,
+    minNumPhenotypicSessions,
+    assessmentTool,
+    imagingModality,
+    selectedPipelines,
+  };
+
+  useEffect(() => {
+    // T is constrained to include a Label so we can safely filter out missing labels when needed.
+    async function getAttributes<T extends { Label: string | null }>(
+      NBResource: string,
+      dataElementURI: string,
+      onSuccess: (items: T[]) => void,
+      options: { removeMissingLabels?: boolean } = {}
+    ) {
+      const removeMissingLabels = options.removeMissingLabels ?? true;
+      try {
+        const response: AxiosResponse<AttributeResponse<T>> = await axios.get(
+          `${baseAPIURL}${NBResource}`
+        );
+        if (response.data.nodes_response_status === 'fail') {
+          enqueueSnackbar(`Failed to retrieve ${NBResource} options`, {
+            variant: 'error',
+            action,
+          });
+          return;
+        }
+
+        response.data.errors.forEach((error) => {
+          setNotifications((prev) => [
+            ...prev,
+            {
+              id: uuidv4(),
+              type: 'warning',
+              message: `Failed to retrieve ${NBResource} options from ${error.node_name}`,
+            },
+          ]);
+        });
+
+        const items = response.data.responses[dataElementURI];
+        if (!items || items.length === 0) {
+          const resourceLabel = NBResource.replace(/-/g, ' ');
+          setNotifications((prev) => [
+            ...prev,
+            {
+              id: uuidv4(),
+              type: 'info',
+              message: `No ${resourceLabel} options were available`,
+            },
+          ]);
+          return;
+        }
+
+        let filteredItems = items;
+        if (removeMissingLabels && items.some((item) => item.Label == null)) {
+          setNotifications((prev) => [
+            ...prev,
+            {
+              id: uuidv4(),
+              type: 'warning',
+              message: `Warning: Missing labels were removed for ${NBResource}`,
+            },
+          ]);
+          filteredItems = items.filter((item) => item.Label != null);
+        }
+
+        onSuccess(filteredItems as T[]);
+      } catch {
+        enqueueSnackbar(`Failed to retrieve ${NBResource} options`, { variant: 'error', action });
+      }
+    }
+
+    getAttributes<AttributeOption>('diagnoses', 'nb:Diagnosis', (diagnosisResponse) => {
+      setDiagnosisOptions(diagnosisResponse);
+    });
+
+    getAttributes<AttributeOption>('assessments', 'nb:Assessment', (assessmentResponse) => {
+      setAssessmentOptions(assessmentResponse);
+    });
+
+    getAttributes<ImagingModalityOption>('imaging-modalities', 'nb:Image', (modalities) => {
+      setImagingModalityOptions(modalities);
+      const modalityMap = modalities.reduce<ImagingModalitiesMetadata>((acc, modality) => {
+        const [, suffix] = modality.TermURL.split(':');
+        const fullIRI = suffix ? `http://purl.org/nidash/nidm#${suffix}` : modality.TermURL;
+        acc[modality.TermURL] = modality;
+        acc[fullIRI] = modality;
+        return acc;
+      }, {});
+      setImagingModalitiesMetadata(modalityMap);
+    });
+
+    getAttributes<AttributeOption>(
+      'pipelines',
+      'nb:Pipeline',
+      (pipelineResponse) => {
+        pipelineResponse.forEach((option) => {
+          setPipelines((prevPipelines) => ({ ...prevPipelines, [option.TermURL]: [] }));
+        });
+      },
+      // TODO to revisit once pipelines come with Label
+      { removeMissingLabels: false }
+    );
+
+    async function getNodeOptions(fetchURL: string) {
+      try {
+        const response: AxiosResponse<NodeOption[]> = await axios.get(fetchURL);
+        return response.data;
+      } catch {
+        return null;
+      }
+    }
+
+    getNodeOptions(nodesURL).then((nodeResponse) => {
+      if (nodeResponse === null) {
+        enqueueSnackbar('Failed to retrieve Node options', { variant: 'error', action });
+      } else if (nodeResponse.length === 0) {
+        setNotifications((prev) => [
+          ...prev,
+          {
+            id: uuidv4(),
+            type: 'info',
+            message: 'No options found for Node',
+          },
+        ]);
+      } else {
+        setAvailableNodes([...nodeResponse, { NodeName: 'All', ApiURL: 'allNodes' }]);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    async function getPipelineVersions(pipelineURI: FieldInputOption) {
+      try {
+        const response: AxiosResponse<RetrievedPipelineVersions> = await axios.get(
+          `${baseAPIURL}pipelines/${pipelineURI.id}/versions`
+        );
+        if (response.data.nodes_response_status === 'fail') {
+          enqueueSnackbar(`Failed to retrieve ${pipelineURI.label} versions`, {
+            variant: 'error',
+            action,
+          });
+        } else {
+          // If any errors occurred, report them
+          response.data.errors.forEach((error) => {
+            setNotifications((prev) => [
+              ...prev,
+              {
+                id: uuidv4(),
+                type: 'warning',
+                message: `Failed to retrieve ${pipelineURI.label} versions from ${error.node_name}`,
+              },
+            ]);
+          });
+          // If the results are empty, report that
+          if (Object.keys(response.data.responses[pipelineURI.id]).length === 0) {
+            setNotifications((prev) => [
+              ...prev,
+              {
+                id: uuidv4(),
+                type: 'info',
+                message: `No ${pipelineURI.label} versions were available`,
+              },
+            ]);
+          }
+        }
+        return response.data.responses[pipelineURI.id];
+      } catch {
+        return [];
+      }
+    }
+
+    const pipelineURIs = Object.keys(pipelines);
+
+    pipelineURIs.forEach((pId) => {
+      // Only initiate fetching if this pipeline has not already been requested.
+      // This ensures each pipeline is fetched once, avoiding duplicate in-flight
+      // requests and preventing infinite loops when a pipeline has zero versions.
+      if (!fetchedPipelineURIs.current.has(pId)) {
+        fetchedPipelineURIs.current.add(pId);
+        const pOption: FieldInputOption = {
+          id: pId,
+          label: pId.startsWith('np:') ? pId.slice(3) : pId,
+        };
+        getPipelineVersions(pOption).then((pipelineVersionsResponse) => {
+          setPipelines((prevPipelines) => ({
+            ...prevPipelines,
+            [pId]: pipelineVersionsResponse,
+          }));
+        });
+      }
+    });
+  }, [pipelines]);
+
+  useEffect(() => {
+    if (availableNodes.length > 1) {
+      const searchParamNodes: string[] = searchParams.getAll('node');
+
+      if (searchParamNodes) {
+        const matchedNodeNames: string[] = searchParamNodes.filter((nodeName) =>
+          availableNodes.some((option) => option.NodeName === nodeName)
+        );
+
+        // If there is no node in the search params, set it to All
+        if (matchedNodeNames.length === 0) setSearchParams({ node: ['All'] });
+        // If there is any node besides All selected, remove All from the list
+        else if (matchedNodeNames.length > 1 && matchedNodeNames.includes('All')) {
+          const filteredNodeNames = matchedNodeNames.filter((nodeName) => nodeName !== 'All');
+          setSearchParams({ node: filteredNodeNames });
+        }
+      }
+    }
+  }, [searchParams, setSearchParams, availableNodes]);
+
+  const hasFormChanged =
+    activeQueryParams && activeQueryParamsState
+      ? !areFormStatesEqual(currentQueryFormState, activeQueryParamsState)
+      : false;
+
+  function updateCategoricalQueryParams(fieldLabel: string, value: FieldInput) {
+    switch (fieldLabel) {
+      case 'Neurobagel graph':
+        if (Array.isArray(value)) {
+          const isAllSelectedNow = value.some((n) => n.label === 'All');
+          const wasAllSelectedBefore = Array.isArray(selectedNode)
+            ? selectedNode.some((n) => n.label === 'All')
+            : false;
+
+          // Case 1: User explicitly selected "All" after some other nodes were already selected.
+          // Approach: keep "All", remove all other options
+          if (isAllSelectedNow && !wasAllSelectedBefore) {
+            setSearchParams({ node: ['All'] });
+            break;
+          }
+
+          // Case 2: User clicked the "x" dismiss button to clear all options.
+          // Approach: set "All" as the only option
+          if (value.length === 0) {
+            setSearchParams({ node: ['All'] });
+            break;
+          }
+
+          // Case 3: User selected some nodes, but not "All" option.
+          // OR User selected some nodes while "All" was already selected (implying they want specific nodes, not All)
+          // Approach: Remove "All" if it was in the selected options and keep the rest
+          if (isAllSelectedNow && wasAllSelectedBefore && value.length > 1) {
+            const withoutAll = value.filter((n) => n.label !== 'All').map((n) => n.label);
+            setSearchParams({ node: withoutAll });
+            break;
+          }
+
+          // Default case: Just update with whatever is selected (excluding All if it was somehow mixed in but shouldn't be)
+          // But standard behavior is handled above. If we are here, it means isAllSelectedNow is false (normal selection).
+          if (!isAllSelectedNow) {
+            setSearchParams({ node: value.map((n) => n.label) });
+          }
+        }
+        break;
+      case 'Sex':
+        setSex(value);
+        break;
+      case 'Diagnosis':
+        setDiagnosis(value);
+        break;
+      case 'Assessment tool':
+        setAssessmentTool(value);
+        break;
+      case 'Imaging modality':
+        setImagingModality(value);
+        break;
+      default:
+        break;
+    }
+  }
+
+  function updateContinuousQueryParams(fieldLabel: string, value: string) {
+    switch (fieldLabel) {
+      case 'Minimum age':
+        setMinAge(value);
+        break;
+      case 'Maximum age':
+        setMaxAge(value);
+        break;
+      case 'Minimum number of imaging sessions':
+        setMinNumSessions(value);
+        break;
+      case 'Minimum number of phenotypic sessions':
+        setMinNumPhenotypicSessions(value);
+        break;
+      default:
+        break;
+    }
+  }
+
+  /**
+   * Constructs the request body for the datasets endpoint.
+   *
+   * @returns The request body object.
+   */
+  function constructDatasetsRequestBody(): QueryParams {
+    const requestBody: QueryParams = {
+      nodes: [],
+    };
+
+    // If "All" is selected send empty array
+    if (!selectedNode.some((n) => n.id === 'allNodes')) {
+      requestBody.nodes = selectedNode.map((node) => ({ node_url: node.id }));
+    }
+
+    // Add optional parameters only if they have values
+    const minAgeNumber = parseNumericValue(minAge);
+    if (minAgeNumber !== null) requestBody.min_age = minAgeNumber;
+
+    const maxAgeNumber = parseNumericValue(maxAge);
+    if (maxAgeNumber !== null) requestBody.max_age = maxAgeNumber;
+    if (sex && !Array.isArray(sex)) requestBody.sex = sex.id;
+
+    const selectedDiagnoses = normalizeFieldInputOptions(diagnosis);
+    if (selectedDiagnoses.length > 0) {
+      requestBody.diagnosis = selectedDiagnoses.map((d) => d.id);
+    }
+
+    const minNumImagingSessionsNumber = parseNumericValue(minNumImagingSessions);
+    if (minNumImagingSessionsNumber !== null)
+      requestBody.min_num_imaging_sessions = minNumImagingSessionsNumber;
+
+    const minNumPhenotypicSessionsNumber = parseNumericValue(minNumPhenotypicSessions);
+    if (minNumPhenotypicSessionsNumber !== null)
+      requestBody.min_num_phenotypic_sessions = minNumPhenotypicSessionsNumber;
+
+    const selectedAssessments = normalizeFieldInputOptions(assessmentTool);
+    if (selectedAssessments.length > 0) {
+      requestBody.assessment = selectedAssessments.map((a) => a.id);
+    }
+
+    const selectedImagingModalities = normalizeFieldInputOptions(imagingModality);
+    if (selectedImagingModalities.length > 0) {
+      requestBody.image_modal = selectedImagingModalities.map((m) => m.id);
+    }
+
+    if (selectedPipelines.length > 0) {
+      requestBody.pipeline = selectedPipelines.map((p) =>
+        p.version ? { name: p.pipelineId, version: p.version } : { name: p.pipelineId }
+      );
+    }
+
+    return requestBody;
+  }
+
+  async function submitQuery() {
+    setLoading(true);
+    const datasetsRequestBody = constructDatasetsRequestBody();
+    const formStateOnSubmit = currentQueryFormState;
+
+    try {
+      const data = await sendDatasetsQuery(datasetsRequestBody, IDToken);
+
+      setResult(data);
+      setResultStatus(data.nodes_response_status);
+      setActiveQueryParams(datasetsRequestBody);
+      setActiveQueryParamsState(formStateOnSubmit);
+    } catch {
+      setResultStatus('network error');
+    }
+
+    setLoading(false);
+  }
+
+  function undoQueryFormChanges() {
+    if (!activeQueryParamsState) {
+      return;
+    }
+
+    setMinAge(activeQueryParamsState.minAge);
+    setMaxAge(activeQueryParamsState.maxAge);
+    setSex(activeQueryParamsState.sex);
+    setDiagnosis(activeQueryParamsState.diagnosis);
+    setMinNumSessions(activeQueryParamsState.minNumImagingSessions);
+    setMinNumPhenotypicSessions(activeQueryParamsState.minNumPhenotypicSessions);
+    setAssessmentTool(activeQueryParamsState.assessmentTool);
+    setImagingModality(activeQueryParamsState.imagingModality);
+    setSelectedPipelines(activeQueryParamsState.selectedPipelines);
+    setSearchParams({ node: activeQueryParamsState.nodes });
+  }
+
+  const queryHasFailed = resultStatus !== 'success';
+  const queryErrorMessage = result ? JSON.stringify(result.errors, null, 2) : '';
+  const queryErrorMapping: {
+    [key: string]: { errorTitle: string; explanation: React.ReactNode; severity: string };
+  } = {
+    'network error': {
+      errorTitle: 'Unable to reach Neurobagel server',
+      explanation: (
+        <>
+          We were unable to establish a connection to the Neurobagel server. This could indicate a
+          network issue or a temporary problem with the server. Please check our internet connection
+          and the Neurobagel status page at
+          <a href="https://status.neurobagel.org/">https://status.neurobagel.org/</a> and then try
+          again.
+        </>
+      ),
+      severity: 'error',
+    },
+    'partial success': {
+      errorTitle: 'Only some nodes responded',
+      explanation: (
+        <>
+          Some of the selected nodes did not respond to the query. This could be a temporary issue,
+          so a good idea is to try running your query again. If the issue persists, copy the error
+          message below and open an issue on{' '}
+          <a href="https://github.com/neurobagel/query-tool/issues">our GitHub page</a>.
+        </>
+      ),
+      severity: 'warning',
+    },
+    fail: {
+      errorTitle: 'No nodes responded',
+      explanation: (
+        <>
+          The query failed because none of the selected nodes responded. This could be a temporary
+          issue. Try to run your query again. If the issue persists, copy the error message below
+          and open an issue on{' '}
+          <a href="https://github.com/neurobagel/query-tool/issues/">our GitHub page</a>.
+        </>
+      ),
+      severity: 'error',
+    },
+  };
+
+  const queryFormHasChanged = Boolean(activeQueryParams && hasFormChanged);
+
+  async function handleDownload(_buttonIndex: number, datasetSelection: string[]) {
+    if (!activeQueryParams || !result) {
+      throw new Error('No results available for download');
+    }
+
+    return sendSubjectsQuery(
+      {
+        queryParams: activeQueryParams,
+        datasetSelection,
+        datasetResponses: result.responses,
+        nodes: availableNodes,
+      },
+      IDToken
+    );
+  }
+
+  // Determine which node admonitions to show based on selection and availability
+  const hasAllSelected = selectedNode.some((n) => n.label === 'All');
+  const admonitionNodeNames = ['OpenNeuro', 'EBRAINS'];
+
+  const admonitionNodes = admonitionNodeNames.filter((nodeName) => {
+    if (dismissedNodeAdmonitions.includes(nodeName)) return false;
+    if (availableNodes.some((n) => n.NodeName === nodeName)) {
+      return selectedNode.some((n) => n.label === nodeName) || hasAllSelected;
+    }
+    return false;
+  });
+
+  return (
+    <>
+      <AuthDialog open={openAuthDialog} onClose={() => setOpenAuthDialog(false)} />
+      <SmallScreenSizeDialog open={isScreenSizeSmall} onClose={() => setIsScreenSizeSmall(false)} />
+      <SnackbarProvider
+        autoHideDuration={6000}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        maxSnack={7}
+      />
+      <Navbar
+        isLoggedIn={isAuthenticated}
+        onLogin={() => setOpenAuthDialog(true)}
+        notifications={notifications}
+        setNotifications={setNotifications}
+      />
+      <NodeAdmonition
+        nodes={admonitionNodes}
+        onDismiss={(nodeName) => {
+          setDismissedNodeAdmonitions((prev) => [...prev, nodeName]);
+        }}
+      />
+
+      <div className="flex flex-wrap gap-3">
+        {/* 380px is currently the smallest width for the query form without dropdowns being affected */}
+        {isSmallViewport && (
+          <div className="flex w-full items-end justify-end p-2">
+            <Button
+              data-cy="filter-toggle-button"
+              className="flex items-center gap-2"
+              onClick={() => setIsQueryFormOpen(!isQueryFormOpen)}
+            >
+              <FilterList /> <span>{isQueryFormOpen ? 'Hide Query Form' : 'Show Query Form'}</span>
+            </Button>
+          </div>
+        )}
+
+        {(isQueryFormOpen || !isSmallViewport) && (
+          <div data-cy="query-form-container" className="min-w-[380px] max-w-sm flex-1">
+            <QueryForm
+              availableNodes={availableNodes}
+              diagnosisOptions={diagnosisOptions}
+              assessmentOptions={assessmentOptions}
+              imagingModalityOptions={imagingModalityOptions}
+              selectedNode={selectedNode}
+              minAge={minAge}
+              maxAge={maxAge}
+              sex={sex}
+              diagnosis={diagnosis}
+              minNumImagingSessions={minNumImagingSessions}
+              minNumPhenotypicSessions={minNumPhenotypicSessions}
+              assessmentTool={assessmentTool}
+              imagingModality={imagingModality}
+              selectedPipelines={selectedPipelines}
+              pipelines={pipelines}
+              onPipelineChange={setSelectedPipelines}
+              updateCategoricalQueryParams={(label, value) =>
+                updateCategoricalQueryParams(label, value)
+              }
+              updateContinuousQueryParams={(label, value) =>
+                updateContinuousQueryParams(label, value)
+              }
+              loading={loading}
+              onSubmitQuery={() => submitQuery()}
+            />
+          </div>
+        )}
+        <div
+          className={
+            loading
+              ? 'flex flex-1 animate-pulse items-center justify-center'
+              : 'min-w-[600px] flex-1'
+          }
+        >
+          {loading ? (
+            <img src={logo} alt="Logo " className="max-h-20 animate-bounce" />
+          ) : (
+            <>
+              {queryHasFailed && (
+                <ErrorAlert
+                  errorTitle={queryErrorMapping[resultStatus].errorTitle}
+                  errorContent={queryErrorMessage}
+                  errorExplanation={queryErrorMapping[resultStatus].explanation}
+                  severity={queryErrorMapping[resultStatus].severity as AlertColor}
+                />
+              )}
+              {queryFormHasChanged && (
+                <Alert
+                  severity="error"
+                  className="mb-2"
+                  action={
+                    <Button color="inherit" size="small" onClick={() => undoQueryFormChanges()}>
+                      Undo changes
+                    </Button>
+                  }
+                  data-cy="query-form-changed-alert"
+                >
+                  You have edited the query form fields since you&apos;ve submitted your query.
+                  Downloading is disabled until you undo the changes or submit a new query.
+                </Alert>
+              )}
+              <ResultContainer
+                datasetsResponse={sortedDatasetResults || null}
+                diagnosisOptions={diagnosisOptions}
+                assessmentOptions={assessmentOptions}
+                imagingModalitiesMetadata={imagingModalitiesMetadata}
+                queryForm={activeQueryParams}
+                disableDownloads={queryFormHasChanged}
+                onDownload={(buttonIndex, selection) => handleDownload(buttonIndex, selection)}
+              />
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default App;

@@ -1,0 +1,9 @@
+# Ignore the CHANGELOG made by the auto release bot
+CHANGELOG.md
+
+# Ignore workflow files
+.github/
+
+# Ignore our submodules
+recipes
+neurobagel_examples

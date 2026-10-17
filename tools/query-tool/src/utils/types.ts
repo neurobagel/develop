@@ -1,0 +1,215 @@
+export interface FieldInputOption {
+  label: string;
+  id: string;
+}
+
+export interface HierarchicalOption {
+  id: string;
+  label: string;
+  parentId: string;
+  parentLabel: string;
+  isTopLevel?: boolean;
+}
+
+export interface PipelineOption {
+  pipelineId: string;
+  pipelineLabel: string;
+  version?: string;
+}
+
+export interface AttributeOption {
+  Label: string | null;
+  TermURL: string;
+}
+
+export interface ImagingModalityOption extends AttributeOption {
+  Abbreviation: string | null;
+  DataType: string | null;
+}
+
+export interface ImagingModalitiesMetadata {
+  [key: string]: ImagingModalityOption;
+}
+
+export interface NodeOption {
+  NodeName: string;
+  ApiURL: string;
+}
+
+export interface NodeError {
+  node_name: string;
+  error: string;
+}
+
+export interface BaseAPIResponse {
+  nodes_response_status: string;
+  errors: NodeError[];
+}
+
+export interface RetrievedAttributeOption extends BaseAPIResponse {
+  responses: {
+    [key: string]: AttributeOption[];
+  };
+}
+
+export interface RetrievedPipelineVersions extends BaseAPIResponse {
+  responses: {
+    [key: string]: string[];
+  };
+}
+
+export interface RetrievedImagingModalities extends BaseAPIResponse {
+  responses: {
+    [key: string]: ImagingModalityOption[];
+  };
+}
+
+export interface AttributeResponse<T> {
+  nodes_response_status: string;
+  errors: { node_name: string; error: string }[];
+  responses: Record<string, T[]>;
+}
+
+export interface Pipelines {
+  [key: string]: string[];
+}
+
+export type QueryFormState = {
+  nodes: string[];
+  minAge: string;
+  maxAge: string;
+  sex: FieldInput;
+  diagnosis: FieldInput;
+  minNumImagingSessions: string;
+  minNumPhenotypicSessions: string;
+  assessmentTool: FieldInput;
+  imagingModality: FieldInput;
+  selectedPipelines: PipelineOption[];
+};
+
+export interface Subject {
+  sub_id: string;
+  session_id: string;
+  age: string;
+  sex: string;
+  diagnosis: string[];
+  subject_group: string;
+  assessment: string[];
+  image_modal: string[];
+  session_file_path: string;
+  completed_pipelines: Pipelines;
+  session_type: string;
+  num_matching_phenotypic_sessions: string;
+  num_matching_imaging_sessions: string;
+}
+
+export interface SubjectsQueryParams {
+  queryParams: QueryParams;
+  datasetSelection: string[];
+  datasetResponses: DatasetsResponse['responses'];
+  nodes: NodeOption[];
+}
+
+export interface DatasetsResult {
+  node_name: string;
+  dataset_uuid: string;
+  dataset_name: string;
+  authors: string[];
+  homepage: string | null;
+  references_and_links: string[];
+  keywords: string[];
+  repository_url: string | null;
+  access_instructions: string | null;
+  access_type: 'public' | 'registered' | 'restricted' | null;
+  access_email: string | null;
+  access_link: string | null;
+  dataset_total_subjects: number;
+  records_protected: boolean;
+  num_matching_subjects: number | null;
+  image_modals: string[];
+  available_pipelines: Pipelines;
+}
+
+export interface SubjectsResult {
+  node_name: string;
+  dataset_uuid: string;
+  subject_data: Subject[] | string;
+}
+
+export interface DatasetsResponse extends BaseAPIResponse {
+  responses: DatasetsResult[];
+}
+
+export interface SubjectsResponse extends BaseAPIResponse {
+  responses: SubjectsResult[];
+}
+
+export interface PipelineQueryParam {
+  name: string;
+  version?: string;
+}
+
+export interface QueryParams {
+  min_age?: number;
+  max_age?: number;
+  sex?: string;
+  diagnosis?: string[];
+  min_num_imaging_sessions?: number;
+  min_num_phenotypic_sessions?: number;
+  assessment?: string[];
+  image_modal?: string[];
+  pipeline?: PipelineQueryParam[];
+  nodes: Array<{ node_url: string }>;
+}
+
+export interface SubjectsRequestBody {
+  min_age?: number;
+  max_age?: number;
+  sex?: string;
+  diagnosis?: string[];
+  min_num_imaging_sessions?: number;
+  min_num_phenotypic_sessions?: number;
+  assessment?: string[];
+  image_modal?: string[];
+  pipeline?: PipelineQueryParam[];
+  nodes: Array<{ node_url: string; dataset_uuids: string[] }>;
+}
+
+export type ToastProps = {
+  key?: number | string;
+  title?: string;
+  message?: string;
+  children?: React.ReactElement;
+  duration?: number;
+  severity?: 'success' | 'info' | 'warning' | 'error';
+  position?: {
+    vertical?: 'top' | 'bottom';
+    horizontal?: 'left' | 'right' | 'center';
+  };
+  onClose?: () => void;
+};
+
+export type FieldInput = FieldInputOption | FieldInputOption[] | null;
+
+export interface GoogleJWT {
+  aud: string;
+  azp: string;
+  email: string;
+  email_verified: boolean;
+  exp: number;
+  family_name?: string;
+  given_name: string;
+  iat: number;
+  iss: string;
+  jti: string;
+  name: string;
+  nbf: number;
+  picture: string;
+  sub: string;
+}
+
+export type Notification = {
+  id: string;
+  type: 'info' | 'warning';
+  message: string;
+};
