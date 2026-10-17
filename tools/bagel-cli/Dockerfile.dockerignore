@@ -1,0 +1,4 @@
+# Build context is the repository root: docker build -f tools/bagel-cli/Dockerfile .
+# The image installs exactly one pre-built wheel from tools/bagel-cli/dist/.
+*
+!tools/bagel-cli/dist/*.whl
