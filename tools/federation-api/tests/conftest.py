@@ -1,0 +1,146 @@
+import logging
+
+import httpx
+import pytest
+from starlette.testclient import TestClient
+
+from app.api import utility as util
+from app.main import app
+
+
+@pytest.fixture(scope="module")
+def test_app():
+    client = TestClient(app)
+    yield client
+
+
+@pytest.fixture(autouse=True, scope="session")
+def silence_httpx_info_logs():
+    """Silence httpx info-level logs during tests to reduce noise."""
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+
+
+@pytest.fixture()
+def enable_auth(monkeypatch):
+    """Enable the authentication requirement for the API."""
+    monkeypatch.setattr("app.api.security.AUTH_ENABLED", True)
+
+
+@pytest.fixture()
+def disable_auth(monkeypatch):
+    """
+    Disable the authentication requirement for the API to skip startup checks
+    (for when the tested route does not require authentication).
+    """
+    monkeypatch.setattr("app.api.security.AUTH_ENABLED", False)
+
+
+@pytest.fixture()
+def mock_verify_token():
+    """Mock a successful token verification that does not raise any exceptions."""
+
+    def _verify_token(token):
+        return None
+
+    return _verify_token
+
+
+@pytest.fixture()
+def set_mock_verify_token(monkeypatch, mock_verify_token):
+    """Set the verify_token function to a mock that does not raise any exceptions."""
+    monkeypatch.setattr(
+        "app.api.routers.subjects.verify_token",
+        mock_verify_token,
+    )
+
+
+@pytest.fixture(scope="function")
+def set_valid_test_federation_nodes(monkeypatch):
+    """Set two correctly formatted federation nodes for a test function (mocks the result of reading/parsing available public and local nodes on startup)."""
+    monkeypatch.setattr(
+        util,
+        "FEDERATION_NODES",
+        {
+            "https://firstpublicnode.org/": "First Public Node",
+            "https://secondpublicnode.org/": "Second Public Node",
+        },
+    )
+
+
+@pytest.fixture()
+def mock_failed_connection_httpx_request():
+    """Return a mock for the httpx.AsyncClient.post method that raises a ConnectError when called."""
+
+    async def _mock_httpx_request_with_connect_error(
+        self, method, url, **kwargs
+    ):
+        # The self parameter is necessary to match the signature of the method being mocked,
+        # which is a class method of the httpx.AsyncClient class (see https://www.python-httpx.org/api/#asyncclient).
+        raise httpx.ConnectError("Some connection error")
+
+    return _mock_httpx_request_with_connect_error
+
+
+@pytest.fixture()
+def mocked_subjects_query_response_for_single_dataset():
+    """Valid aggregate query response for a single matching dataset from a request to POST /subjects."""
+    return {
+        "dataset_uuid": "http://neurobagel.org/vocab/12345",
+        "subject_data": "protected",
+    }
+
+
+@pytest.fixture()
+def mocked_datasets_query_response_for_single_dataset():
+    """Valid aggregate query response for a single matching dataset from a request to POST /datasets."""
+    return {
+        "dataset_uuid": "http://neurobagel.org/vocab/12345",
+        "dataset_name": "QPN",
+        "authors": ["First Author", "Second Author"],
+        "homepage": "https://rpq-qpn.ca/en/home/",
+        "references_and_links": [],
+        "keywords": ["Parkinson's disease", "Neuroimaging"],
+        "repository_url": None,
+        "access_instructions": None,
+        "access_type": "restricted",
+        "access_email": None,
+        "access_link": "https://rpq-qpn.ca/en/researchers-section/databases/",
+        "dataset_total_subjects": 200,
+        "num_matching_subjects": 5,
+        "records_protected": True,
+        "image_modals": [
+            "http://purl.org/nidash/nidm#T1Weighted",
+            "http://purl.org/nidash/nidm#T2Weighted",
+        ],
+        "available_pipelines": {
+            "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/fmriprep": [
+                "23.1.3"
+            ],
+            "https://github.com/nipoppy/pipeline-catalog/tree/main/processing/freesurfer": [
+                "7.3.2"
+            ],
+        },
+    }
+
+
+@pytest.fixture()
+def mocked_datasets_query_response_for_single_dataset_from_catalog_node():
+    """Valid aggregate query response for a single matching dataset from a catalog node from a request to POST /datasets."""
+    return {
+        "dataset_uuid": "http://neurobagel.org/vocab/12345",
+        "dataset_name": "QPN",
+        "authors": ["First Author", "Second Author"],
+        "homepage": "https://rpq-qpn.ca/en/home/",
+        "references_and_links": [],
+        "keywords": ["Parkinson's disease", "Neuroimaging"],
+        "repository_url": None,
+        "access_instructions": None,
+        "access_type": "restricted",
+        "access_email": None,
+        "access_link": "https://rpq-qpn.ca/en/researchers-section/databases/",
+        "dataset_total_subjects": 200,
+        "num_matching_subjects": None,
+        "records_protected": True,
+        "image_modals": [],
+        "available_pipelines": {},
+    }

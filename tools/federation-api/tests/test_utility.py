@@ -1,0 +1,544 @@
+import json
+from copy import deepcopy
+
+import httpx
+import pytest
+from fastapi import HTTPException
+
+from app.api import utility as util
+
+
+@pytest.mark.parametrize(
+    "url, expected_url",
+    [
+        ("https://publicnode.org", "https://publicnode.org/"),
+        ("https://publicnode.org/", "https://publicnode.org/"),
+    ],
+)
+def test_add_trailing_slash(url, expected_url):
+    """
+    Test that a trailing slash is added to a
+    URL if it does not already have one.
+    """
+    assert util.add_trailing_slash(url) == expected_url
+
+
+@pytest.mark.parametrize(
+    "set_nodes, expected_nodes",
+    [
+        (
+            {
+                "ApiURL": "http://firstnode.neurobagel.org/",
+                "NodeName": "firstnode",
+            },
+            {"http://firstnode.neurobagel.org/": "firstnode"},
+        ),
+        (
+            [
+                {
+                    "ApiURL": "http://firstnode.neurobagel.org/",
+                    "NodeName": "firstnode",
+                }
+            ],
+            {"http://firstnode.neurobagel.org/": "firstnode"},
+        ),
+        (
+            [
+                {
+                    "ApiURL": "https://firstnode.neurobagel.org/",
+                    "NodeName": "firstnode",
+                },
+                {
+                    "ApiURL": "https://secondnode.neurobagel.org/",
+                    "NodeName": "secondnode",
+                },
+            ],
+            {
+                "https://firstnode.neurobagel.org/": "firstnode",
+                "https://secondnode.neurobagel.org/": "secondnode",
+            },
+        ),
+    ],
+)
+def test_parse_nodes_as_dict(set_nodes, expected_nodes, tmp_path):
+    """Test that Neurobagel nodes provided via a JSON file are correctly parsed into a list."""
+    # First create a temporary input config file for the test to read
+    with open(tmp_path / "local_nb_nodes.json", "w") as f:
+        f.write(json.dumps(set_nodes, indent=2))
+
+    assert (
+        util.parse_nodes_as_dict(tmp_path / "local_nb_nodes.json")
+        == expected_nodes
+    )
+
+
+def test_recognized_query_nodes_do_not_raise_error(monkeypatch):
+    """Test that node URLs found in the federation node index do not raise an error."""
+    monkeypatch.setattr(
+        util,
+        "FEDERATION_NODES",
+        {
+            "https://firstknownnode.org/": "My First Node",
+            "https://secondknownnode.org/": "My Second Node",
+        },
+    )
+
+    util.check_nodes_are_recognized(["https://firstknownnode.org/"])
+
+
+@pytest.mark.parametrize(
+    "node_url_list, unrecognized_urls",
+    [
+        (
+            ["https://firstknownnode.org/", "https://mysterynode.org/"],
+            "['https://mysterynode.org/']",
+        ),
+        (
+            ["https://mysterynode.org/", "https://unknownnode.org/"],
+            "['https://mysterynode.org/', 'https://unknownnode.org/']",
+        ),
+    ],
+)
+def test_unrecognized_query_nodes_raise_error(
+    monkeypatch, node_url_list, unrecognized_urls
+):
+    """Test that we raise a helpful error when the user is trying to query an unknown node."""
+    monkeypatch.setattr(
+        util,
+        "FEDERATION_NODES",
+        {
+            "https://firstknownnode.org/": "My First Node",
+            "https://secondknownnode.org/": "My Second Node",
+        },
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        util.check_nodes_are_recognized(node_url_list)
+    assert (
+        f"Unrecognized Neurobagel node URL(s): {unrecognized_urls}"
+        in exc_info.value.detail
+    )
+
+
+@pytest.mark.parametrize(
+    "raw_nodes, expected_nodes",
+    [
+        (
+            [
+                {
+                    "node_url": "https://firstknownnode.org/node",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/12345",
+                        "http://neurobagel.org/vocab/67890",
+                    ],
+                },
+                {
+                    "node_url": "https://secondknownnode.org/node",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/23456",
+                        "http://neurobagel.org/vocab/34567",
+                    ],
+                },
+            ],
+            [
+                {
+                    "node_url": "https://firstknownnode.org/node/",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/12345",
+                        "http://neurobagel.org/vocab/67890",
+                    ],
+                },
+                {
+                    "node_url": "https://secondknownnode.org/node/",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/23456",
+                        "http://neurobagel.org/vocab/34567",
+                    ],
+                },
+            ],
+        ),
+        (
+            [],
+            [
+                {
+                    "node_url": "https://firstknownnode.org/node/",
+                },
+                {
+                    "node_url": "https://secondknownnode.org/node/",
+                },
+            ],
+        ),
+        (
+            None,
+            [
+                {
+                    "node_url": "https://firstknownnode.org/node/",
+                },
+                {
+                    "node_url": "https://secondknownnode.org/node/",
+                },
+            ],
+        ),
+    ],
+)
+def test_validate_queried_nodes(monkeypatch, raw_nodes, expected_nodes):
+    """
+    Test that a trailing slash is added to node URLs, dataset UUIDs are preserved (when provided),
+    and the default list of all known federation nodes is used if none are specified.
+    """
+    monkeypatch.setattr(
+        util,
+        "FEDERATION_NODES",
+        {
+            "https://firstknownnode.org/node/": "My First Node",
+            "https://secondknownnode.org/node/": "My Second Node",
+        },
+    )
+
+    assert util.validate_and_format_queried_nodes(raw_nodes) == expected_nodes
+
+
+@pytest.mark.parametrize(
+    "set_nodes,expected_nodes",
+    [
+        (
+            {
+                "IMakeMyOwnRules": "http://firstnode.neurobagel.org/query",
+                "WhatAreSchemas": "firstnode",
+            },
+            {},
+        ),
+        (
+            {
+                "ApiURL": "this.is.not.a.url",
+                "NodeName": "firstnode",
+            },
+            {},
+        ),
+        (
+            [
+                {
+                    "ApiURL": "https://firstnode.neurobagel.org/query/",
+                    "NodeName": "firstnode",
+                },
+                {
+                    "ApiURL": "invalidurl",
+                    "NodeName": "secondnode",
+                },
+            ],
+            {
+                "https://firstnode.neurobagel.org/query/": "firstnode",
+            },
+        ),
+        ({}, {}),
+    ],
+)
+def test_schema_invalid_nodes_raise_warning(
+    set_nodes, expected_nodes, tmp_path, caplog
+):
+    """
+    If the JSON is valid but parts of the schema are invalid, expect to raise a warning
+    and only return the parts that fit the schema.
+    """
+    # First create a temporary input config file for the test to read
+    with open(tmp_path / "local_nb_nodes.json", "w") as f:
+        f.write(json.dumps(set_nodes, indent=2))
+
+    nodes = util.parse_nodes_as_dict(tmp_path / "local_nb_nodes.json")
+    warnings = [
+        record for record in caplog.records if record.levelname == "WARNING"
+    ]
+
+    assert len(warnings) == 1
+    assert (
+        "Some of the nodes in the JSON are invalid" in warnings[0].getMessage()
+    )
+    assert nodes == expected_nodes
+
+
+def test_invalid_json_raises_warning(tmp_path, caplog):
+    """Ensure that an invalid JSON file raises a warning but doesn't crash the app."""
+
+    with open(tmp_path / "local_nb_nodes.json", "w") as f:
+        f.write("this is not valid JSON")
+
+    util.parse_nodes_as_dict(tmp_path / "local_nb_nodes.json")
+
+    warnings = [
+        record for record in caplog.records if record.levelname == "WARNING"
+    ]
+    assert len(warnings) == 1
+    assert "invalid JSON file" in warnings[0].getMessage()
+
+
+def test_empty_json_does_not_error(tmp_path):
+    """Ensure that an empty JSON file does not raise an error."""
+
+    with open(tmp_path / "local_nb_nodes.json", "w") as f:
+        f.write("")
+
+    assert util.parse_nodes_as_dict(tmp_path / "local_nb_nodes.json") == {}
+
+
+@pytest.mark.asyncio
+async def test_federate_only_local_nodes(tmp_path, monkeypatch):
+    """Ensure that the API only federates local nodes when NB_FEDERATE_REMOTE_PUBLIC_NODES env var is set to False."""
+
+    local_nodes = {
+        "https://firstlocalnode.org/": "First Local Node",
+        "https://secondlocalnode.org/": "Second Local Node",
+    }
+
+    def mock_parse_nodes_as_dict(path):
+        return local_nodes
+
+    def mock_httpx_get(**kwargs):
+        return httpx.Response(
+            status_code=200,
+            json=[
+                {
+                    "NodeName": "First Public Node",
+                    "ApiURL": "https://firstpublicnode.org",
+                },
+            ],
+        )
+
+    monkeypatch.setattr(util, "parse_nodes_as_dict", mock_parse_nodes_as_dict)
+    monkeypatch.setattr(httpx, "get", mock_httpx_get)
+    monkeypatch.setattr(
+        util, "IS_FEDERATE_REMOTE_PUBLIC_NODES", util.EnvVar("", False)
+    )
+
+    await util.create_federation_node_index()
+
+    assert util.FEDERATION_NODES == local_nodes
+
+
+@pytest.mark.parametrize(
+    "node_response, expected_is_valid_result, expected_error",
+    [
+        ({"nb:Assessment": []}, True, ""),
+        (
+            HTTPException(status_code=404, detail="Not found"),
+            False,
+            "Not found",
+        ),
+        (
+            {
+                "nb:Assessment": [
+                    {
+                        "TermURL": "snomed:273640001",
+                        "Label": "National adult reading test",
+                    },
+                    {
+                        "TermURL": "snomed:859351000000102",
+                        "Label": "Montreal cognitive assessment",
+                    },
+                ]
+            },
+            True,
+            "",
+        ),
+        ([], False, "Unexpected response format received from node"),
+        (
+            {"nb:WrongKey": []},
+            False,
+            "Unexpected response format received from node",
+        ),
+    ],
+)
+def test_is_valid_dict_response(
+    node_response, expected_is_valid_result, expected_error
+):
+    """
+    Test that node responses are correctly validated for expected keys,
+    with appropriate messages for unexpected responses or errors.
+    """
+    assert util.is_valid_dict_response(
+        response=node_response, find_key="nb:Assessment"
+    ) == (expected_is_valid_result, expected_error)
+
+
+@pytest.mark.parametrize(
+    "path,nodes_filter,query,expected_node_requests",
+    [
+        (
+            "datasets",
+            [
+                {"node_url": "https://firstnode.org/node/"},
+                {"node_url": "https://secondnode.org/node/"},
+            ],
+            {
+                "min_age": 16,
+                "max_age": 25,
+                "nodes": [
+                    {"node_url": "https://firstnode.org/node/"},
+                    {"node_url": "https://secondnode.org/node/"},
+                ],
+            },
+            {
+                "https://firstnode.org/node/datasets": {
+                    "min_age": 16,
+                    "max_age": 25,
+                },
+                "https://secondnode.org/node/datasets": {
+                    "min_age": 16,
+                    "max_age": 25,
+                },
+            },
+        ),
+        (
+            "subjects",
+            [
+                {
+                    "node_url": "https://firstnode.org/node/",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-001",
+                        "http://neurobagel.org/vocab/ds-002",
+                    ],
+                },
+                {
+                    "node_url": "https://secondnode.org/node/",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-003",
+                    ],
+                },
+            ],
+            {
+                "min_age": 16,
+                "max_age": 25,
+                "nodes": [
+                    {
+                        "node_url": "https://firstnode.org/node/",
+                        "dataset_uuids": [
+                            "http://neurobagel.org/vocab/ds-001",
+                            "http://neurobagel.org/vocab/ds-002",
+                        ],
+                    },
+                    {
+                        "node_url": "https://secondnode.org/node/",
+                        "dataset_uuids": [
+                            "http://neurobagel.org/vocab/ds-003",
+                        ],
+                    },
+                ],
+            },
+            {
+                "https://firstnode.org/node/subjects": {
+                    "min_age": 16,
+                    "max_age": 25,
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-001",
+                        "http://neurobagel.org/vocab/ds-002",
+                    ],
+                },
+                "https://secondnode.org/node/subjects": {
+                    "min_age": 16,
+                    "max_age": 25,
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-003",
+                    ],
+                },
+            },
+        ),
+        (
+            "subjects",
+            [
+                {
+                    "node_url": "https://firstnode.org/node/",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-001",
+                        "http://neurobagel.org/vocab/ds-002",
+                    ],
+                },
+                {
+                    "node_url": "https://secondnode.org/node/",
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-003",
+                    ],
+                },
+            ],
+            {
+                "nodes": [
+                    {
+                        "node_url": "https://firstnode.org/node/",
+                        "dataset_uuids": [
+                            "http://neurobagel.org/vocab/ds-001",
+                            "http://neurobagel.org/vocab/ds-002",
+                        ],
+                    },
+                    {
+                        "node_url": "https://secondnode.org/node/",
+                        "dataset_uuids": [
+                            "http://neurobagel.org/vocab/ds-003",
+                        ],
+                    },
+                ]
+            },
+            {
+                "https://firstnode.org/node/subjects": {
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-001",
+                        "http://neurobagel.org/vocab/ds-002",
+                    ],
+                },
+                "https://secondnode.org/node/subjects": {
+                    "dataset_uuids": [
+                        "http://neurobagel.org/vocab/ds-003",
+                    ],
+                },
+            },
+        ),
+    ],
+)
+def test_build_node_requests_for_query(
+    path, nodes_filter, query, expected_node_requests
+):
+    """
+    Test that each node request for a federated query to /subjects or /datasets contains the
+    - correct base query parameters
+    - specific dataset_uuids (where applicable)
+    - and does not include the raw 'nodes' field
+    """
+    assert (
+        util.build_node_requests_for_query(
+            path=path,
+            nodes_filter=nodes_filter,
+            query=query,
+        )
+        == expected_node_requests
+    )
+
+
+def test_raw_subjects_query_not_mutated_by_node_requests():
+    """Test that a query sent to /subjects is not mutated by build_node_requests_for_query."""
+    original_query = {
+        "min_age": 18,
+        "max_age": 25,
+        "nodes": [
+            {
+                "node_url": "https://firstnode.org/node",
+                "dataset_uuids": [
+                    "http://neurobagel.org/vocab/ds-001",
+                ],
+            },
+        ],
+    }
+    original_query_nodes = [
+        {
+            "node_url": "https://firstnode.org/node/",
+            "dataset_uuids": [
+                "http://neurobagel.org/vocab/ds-001",
+            ],
+        },
+    ]
+
+    query_copy = deepcopy(original_query)
+
+    util.build_node_requests_for_query(
+        path="subjects",
+        nodes_filter=original_query_nodes,
+        query=original_query,
+    )
+
+    assert original_query == query_copy

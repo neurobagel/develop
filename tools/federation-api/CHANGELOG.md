@@ -1,0 +1,372 @@
+# v0.10.0 (Mon Sep 14 2026)
+
+#### 💥 Breaking Changes
+
+- [ENH] Support AND queries for categorical variables other than sex [#270](https://github.com/neurobagel/federation-api/pull/270) ([@alyssadai](https://github.com/alyssadai))
+- [REF] Remove legacy `/query` endpoint [#266](https://github.com/neurobagel/federation-api/pull/266) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [TST] Migrate tests in legacy test module `test_query.py` [#271](https://github.com/neurobagel/federation-api/pull/271) ([@alyssadai](https://github.com/alyssadai))
+
+####  🧪 Tests
+
+- [TST] Add test runners for Python 3.11-3.13 [#272](https://github.com/neurobagel/federation-api/pull/272) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🔩 Dependency Updates
+
+- [MNT] Remove deprecated `orjson` dependency [#268](https://github.com/neurobagel/federation-api/pull/268) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.9.1 (Wed Sep 02 2026)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Limit timeout for instances endpoints to 5s [#265](https://github.com/neurobagel/federation-api/pull/265) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.9.0 (Thu Jun 04 2026)
+
+#### 🚀 Enhancements
+
+- [ENH] Support requests to catalog-mode nodes [#252](https://github.com/neurobagel/federation-api/pull/252) ([@rmanaem](https://github.com/rmanaem))
+
+#### 🏠 Internal
+
+- [MNT] Add uv for dependency management [#239](https://github.com/neurobagel/federation-api/pull/239) ([@surchs](https://github.com/surchs) [@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 3
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
+# v0.8.1 (Wed Mar 04 2026)
+
+#### 🚀 Enhancements
+
+- [MNT] Disable authentication by default [#229](https://github.com/neurobagel/federation-api/pull/229) ([@alyssadai](https://github.com/alyssadai))
+- [MNT] Standardize warnings and error logging using logger [#228](https://github.com/neurobagel/federation-api/pull/228) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.8.0 (Thu Jan 15 2026)
+
+#### 💥 Breaking Changes
+
+- [ENH] Return expanded dataset metadata for `POST /datasets` only [#218](https://github.com/neurobagel/federation-api/pull/218) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Use named logger instead of root logging for logs [#217](https://github.com/neurobagel/federation-api/pull/217) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.7.1 (Tue Dec 23 2025)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Add back missing configured root path to docs link in root UI [#216](https://github.com/neurobagel/federation-api/pull/216) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.7.0 (Thu Dec 11 2025)
+
+#### 🚀 Enhancements
+
+- [ENH] Add `GET /imaging-modalities` for querying unique available imaging modalities across nodes [#213](https://github.com/neurobagel/federation-api/pull/213) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.6.2 (Wed Dec 03 2025)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Ensure each node API receives its intended dataset UUIDs for `POST /subjects` [#209](https://github.com/neurobagel/federation-api/pull/209) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.6.1 (Mon Nov 03 2025)
+
+#### 🔩 Dependency Updates
+
+- [REF] Upgrade to Pydantic 2 [#202](https://github.com/neurobagel/federation-api/pull/202) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.6.0 (Wed Oct 22 2025)
+
+#### 🚀 Enhancements
+
+- [ENH] Added `POST /datasets` endpoint [#201](https://github.com/neurobagel/federation-api/pull/201) ([@rmanaem](https://github.com/rmanaem))
+- [ENH] Add `POST /subjects` endpoint [#196](https://github.com/neurobagel/federation-api/pull/196) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Better handle invalid node responses to variable instance or pipeline version requests [#200](https://github.com/neurobagel/federation-api/pull/200) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 2
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+
+---
+
+# v0.5.0 (Thu Sep 11 2025)
+
+#### 💥 Breaking Changes
+
+- [MNT] Removed `is_control` query parameter [#188](https://github.com/neurobagel/federation-api/pull/188) ([@rmanaem](https://github.com/rmanaem))
+
+#### 🚀 Enhancements
+
+- [ENH] Added bells and whistles to the root ui [#186](https://github.com/neurobagel/federation-api/pull/186) ([@rmanaem](https://github.com/rmanaem))
+
+#### Authors: 1
+
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+
+---
+
+# v0.4.5 (Thu Feb 13 2025)
+
+#### 🐛 Bug Fixes
+
+- [FIX] Remove trailing slash from forwarded requests [#159](https://github.com/neurobagel/federation-api/pull/159) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.4.4 (Wed Feb 12 2025)
+
+#### 🚀 Enhancements
+
+- [MNT] Remove trailing slashes from all paths + rename `NB_FAPI_ROOT_PATH` [#157](https://github.com/neurobagel/federation-api/pull/157) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Make `root_path` for app configurable [#154](https://github.com/neurobagel/federation-api/pull/154) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.4.3 (Mon Dec 02 2024)
+
+#### 🏠 Internal
+
+- [REF] Manually verify ID token using PyJWT instead of google_auth [#139](https://github.com/neurobagel/federation-api/pull/139) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.4.2 (Fri Nov 01 2024)
+
+#### 🚀 Enhancements
+
+- [FIX] Ensure token forwarded to n-APIs does not include an extra scheme string [#134](https://github.com/neurobagel/federation-api/pull/134) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.4.1 (Thu Oct 31 2024)
+
+#### 🚀 Enhancements
+
+- [FIX] Ensure Google auth token is forwarded in request to n-API [#132](https://github.com/neurobagel/federation-api/pull/132) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.4.0 (Thu Oct 24 2024)
+
+#### 💥 Breaking Changes
+
+- [ENH] Split `/attributes` into attribute-specific resources [#126](https://github.com/neurobagel/federation-api/pull/126) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Implemented `pipeline_name` and `pipeline_version` query params [#121](https://github.com/neurobagel/federation-api/pull/121) ([@rmanaem](https://github.com/rmanaem))
+
+#### 🚀 Enhancements
+
+- [ENH] Add route for fetching available versions of a pipeline across n-APIs [#125](https://github.com/neurobagel/federation-api/pull/125) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Allow only `"true"` or `None` for `is_control` query parameter [#129](https://github.com/neurobagel/federation-api/pull/129) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🏠 Internal
+
+- [MNT] Removed build docker nightly workflow file [#114](https://github.com/neurobagel/federation-api/pull/114) ([@rmanaem](https://github.com/rmanaem))
+
+#### 📝 Documentation
+
+- [FIX] Docs link [#119](https://github.com/neurobagel/federation-api/pull/119) ([@surchs](https://github.com/surchs))
+
+#### Authors: 3
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+---
+
+# v0.3.0 (Fri Aug 02 2024)
+
+#### 💥 Breaking Changes
+
+- [FIX] Disable redirect slashes and remove trailing slashes from routes [#109](https://github.com/neurobagel/federation-api/pull/109) ([@alyssadai](https://github.com/alyssadai))
+- Add authentication to `/query` route [#104](https://github.com/neurobagel/federation-api/pull/104) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.2.1 (Thu Jun 20 2024)
+
+#### 🚀 Enhancements
+
+- [MNT] Add welcome page at / [#99](https://github.com/neurobagel/federation-api/pull/99) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Explicitly check that `local_nb_nodes.json` is an existing file [#98](https://github.com/neurobagel/federation-api/pull/98) ([@alyssadai](https://github.com/alyssadai))
+
+#### Authors: 1
+
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+---
+
+# v0.2.0 (Wed Jun 12 2024)
+
+#### 🚀 Enhancements
+
+- [ENH] Implemented `NB_FEDERATE_REMOTE_PUBLIC_NODES` env var [#90](https://github.com/neurobagel/federation-api/pull/90) ([@rmanaem](https://github.com/rmanaem))
+- [MNT] Set default timeout to `None` [#94](https://github.com/neurobagel/federation-api/pull/94) ([@rmanaem](https://github.com/rmanaem))
+
+#### Authors: 1
+
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+
+---
+
+# v0.1.0 (Thu Apr 11 2024)
+
+:tada: This release contains work from new contributors! :tada:
+
+Thanks for all your work!
+
+:heart: Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+
+:heart: Sebastian Urchs ([@surchs](https://github.com/surchs))
+
+:heart: Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+
+### Release Notes
+
+#### [MNT] Release new data model ([#82](https://github.com/neurobagel/federation-api/pull/82))
+
+We have updated the Neurobagel data model to allow users to specify phenotypic information at the session level (https://github.com/neurobagel/planning/issues/83). This release updates the federation API so it can understand the new node API responses.
+
+---
+
+#### 💥 Breaking Changes
+
+- [ENH] Support partial term fetching failures [#65](https://github.com/neurobagel/federation-api/pull/65) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] split session query parameter into phenotypic + imaging [#64](https://github.com/neurobagel/federation-api/pull/64) ([@alyssadai](https://github.com/alyssadai))
+
+#### 🚀 Enhancements
+
+- [MNT] Release new data model [#82](https://github.com/neurobagel/federation-api/pull/82) ([@rmanaem](https://github.com/rmanaem))
+- [MNT] Switch to using logging for all non-user warnings and errors [#77](https://github.com/neurobagel/federation-api/pull/77) ([@surchs](https://github.com/surchs))
+- [DOC] Update Copyright holders [#71](https://github.com/neurobagel/federation-api/pull/71) ([@surchs](https://github.com/surchs))
+- [CI] Update image tag for default build [#59](https://github.com/neurobagel/federation-api/pull/59) ([@alyssadai](https://github.com/alyssadai))
+- [CI] Stop pre-commit auto-fixing PRs [#57](https://github.com/neurobagel/federation-api/pull/57) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Handle partial nodes success [#55](https://github.com/neurobagel/federation-api/pull/55) ([@alyssadai](https://github.com/alyssadai))
+- [FIX] Update example config to use `host.docker.internal` instead of `localhost` [#50](https://github.com/neurobagel/federation-api/pull/50) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] partially validate local node JSON config [#43](https://github.com/neurobagel/federation-api/pull/43) ([@surchs](https://github.com/surchs) [@pre-commit-ci[bot]](https://github.com/pre-commit-ci[bot]))
+- [FIX] Fix docker run command in README.md [#42](https://github.com/neurobagel/federation-api/pull/42) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Switch node config format [#39](https://github.com/neurobagel/federation-api/pull/39) ([@alyssadai](https://github.com/alyssadai))
+- [REF] Refactor tests [#37](https://github.com/neurobagel/federation-api/pull/37) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Add new query param for nodes that defaults to a prepopulated index [#30](https://github.com/neurobagel/federation-api/pull/30) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Implemented new endpoint to return known node APIs [#29](https://github.com/neurobagel/federation-api/pull/29) ([@rmanaem](https://github.com/rmanaem))
+- [CI] Set up coveralls [#24](https://github.com/neurobagel/federation-api/pull/24) ([@rmanaem](https://github.com/rmanaem))
+- [MNT] Implemented logic to make sure node URLs end with `/` [#25](https://github.com/neurobagel/federation-api/pull/25) ([@rmanaem](https://github.com/rmanaem))
+- [DOC] Update constraints and example for `NB_NODES` variable value [#22](https://github.com/neurobagel/federation-api/pull/22) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Changed the favicon to neurobagel logo [#20](https://github.com/neurobagel/federation-api/pull/20) ([@rmanaem](https://github.com/rmanaem))
+- [CI] Set up `test` workflow [#17](https://github.com/neurobagel/federation-api/pull/17) ([@rmanaem](https://github.com/rmanaem))
+- [ENH] Added node API vocabulary endpoints and logic [#14](https://github.com/neurobagel/federation-api/pull/14) ([@rmanaem](https://github.com/rmanaem))
+- [DOCS] Added link to official docs [#16](https://github.com/neurobagel/federation-api/pull/16) ([@surchs](https://github.com/surchs))
+- [FIX] Ensure the value of `NB_NODES` can be properly parsed as a list by the API [#11](https://github.com/neurobagel/federation-api/pull/11) ([@alyssadai](https://github.com/alyssadai))
+- [FIX] Fix syntax error in docker workflow and add relevant pre-commit hook [#10](https://github.com/neurobagel/federation-api/pull/10) ([@alyssadai](https://github.com/alyssadai))
+- [ENH] Set up federation prototype and CI workflows [#9](https://github.com/neurobagel/federation-api/pull/9) ([@rmanaem](https://github.com/rmanaem) [@surchs](https://github.com/surchs) [@alyssadai](https://github.com/alyssadai))
+- [CI] Set up workflows [#7](https://github.com/neurobagel/federation-api/pull/7) ([@rmanaem](https://github.com/rmanaem))
+- [ENH] Turned `NEUROBAGEL_NODES` to an env var [#6](https://github.com/neurobagel/federation-api/pull/6) ([@rmanaem](https://github.com/rmanaem))
+- [MNT] Cleaned up the existing code [#3](https://github.com/neurobagel/federation-api/pull/3) ([@rmanaem](https://github.com/rmanaem))
+- [ENH] Very inspired first federation prototype [#1](https://github.com/neurobagel/federation-api/pull/1) ([@surchs](https://github.com/surchs))
+
+#### 🐛 Bug Fixes
+
+- [FIX] Expanded error catching during API request federation [#74](https://github.com/neurobagel/federation-api/pull/74) ([@alyssadai](https://github.com/alyssadai))
+- [FIX] Handle empty local nodes file [#67](https://github.com/neurobagel/federation-api/pull/67) ([@alyssadai](https://github.com/alyssadai))
+
+#### ⚠️ Pushed to `main`
+
+- Added pre-commit config file ([@rmanaem](https://github.com/rmanaem))
+- Added requirements.txt ([@rmanaem](https://github.com/rmanaem))
+- Initial commit ([@rmanaem](https://github.com/rmanaem))
+
+#### Authors: 4
+
+- [@pre-commit-ci[bot]](https://github.com/pre-commit-ci[bot])
+- Alyssa Dai ([@alyssadai](https://github.com/alyssadai))
+- Arman Jahanpour ([@rmanaem](https://github.com/rmanaem))
+- Sebastian Urchs ([@surchs](https://github.com/surchs))
