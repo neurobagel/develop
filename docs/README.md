@@ -77,7 +77,7 @@ npx tailwindcss build docs/stylesheets/tailwind.css -o docs/stylesheets/output.c
 
 The docs live in `docs/` of https://github.com/neurobagel/develop.
 
-### Setup
+### Clone and install
 
 ```bash
 git clone https://github.com/neurobagel/develop.git
@@ -87,7 +87,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Build
+### Strict build
 
 From `docs/`, build the site the way CI does, failing on any warning:
 
