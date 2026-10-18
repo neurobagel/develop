@@ -121,7 +121,7 @@ Python 3.10 (as in upstream CD).
 
 ## Already failing upstream
 
-None of the test suites. Two checks fail upstream:
+None of the test suites. Three checks fail upstream:
 
 - The documentation `markdown-link-check` hook above.
 - query-tool `docker compose --profile test config --quiet` (found in Step 5, 2026-10-17), at query-tool `b3366bb` with recipes `v0.9.1`:
@@ -131,6 +131,7 @@ None of the test suites. Two checks fail upstream:
   ```
 
   (The monorepo reports the same problem for `api`; compose picks the first service it finds.) query-tool's `docker-compose.yml` extends recipes' `api` and `graph` services, which depend on an `init_data` service that query-tool's file does not define. Upstream CI never uses this compose file. Fixed in migration Step 7a.
+- api's linkspector check (found in Step 7d, 2026-10-17, linkspector 0.4.7 at api `0375375`): 55 working links, 1 failed: `README.md:41: http://purl.bioontology.org/ontology/SNOMEDCT/248152002 Status:403`. The link is external; upstream's workflow reports it as a check annotation on added lines only and does not fail the job.
 
 ## Environment and deviations
 
