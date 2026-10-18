@@ -27,6 +27,43 @@ jobs:
       - name: Run shellcheck
         run: shellcheck scripts/*.sh
 
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      # markdown-link-check runs in its own job below. The frontends' lint-staged
+      # hooks only check staged files; test-node.yml runs the same checks.
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        env:
+          SKIP: markdown-link-check-docs,lint-staged-query-tool,lint-staged-annotation-tool
+
+  markdown-link-check:
+    name: Docs link check (non-blocking)
+    runs-on: ubuntu-latest
+    # Already fails upstream on an external link (see migration/baseline.md)
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Run markdown-link-check
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: markdown-link-check-docs --all-files
+
   changes:
     runs-on: ubuntu-latest
     permissions:

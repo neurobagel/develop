@@ -155,7 +155,7 @@ You can verify the tool is running by watching for the` info messages from Vite 
 
 #### Developer setup
 
-Commit hooks (husky and lint-staged) do not run in the monorepo: husky only installs hooks at the root of a git repository. Run the lint and format checks listed under [Tests](#tests) before committing.
+The repository's commit hooks (root `.pre-commit-config.yaml`) run this tool's `lint-staged.config.js` (typecheck, eslint, prettier) on staged files in `tools/query-tool/`. Install them once with `pre-commit install` from the repository root (for example after `pip install pre-commit`); they need `npm ci` to have been run here. The same install adds a `post-merge` hook that reruns `npm ci` here after a merge or pull that changed `package.json` or `package-lock.json`.
 
 ##### Docker compose testing environment for development
 

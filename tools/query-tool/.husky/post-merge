@@ -1,3 +1,0 @@
-#!/bin/sh
-
-git diff HEAD^ HEAD --exit-code -- ./package.json || npm ci

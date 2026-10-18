@@ -184,6 +184,12 @@ uv sync --group dev
 
 The version is derived from the repository's `api-v*` tags, so the clone needs its full history and tags (the default for `git clone`).
 
+To check your changes on every commit, install the repository's commit hooks (configured in the root `.pre-commit-config.yaml`; the api hooks are black, flake8, isort, codespell and the other checks api used before):
+
+```bash
+uv run pre-commit install
+```
+
 The test graph and its example data come from the monorepo's shared folders: `docker-compose.yml` in `tools/api/` builds on the development and test stack in `stack/` and loads example data from `examples/`, referring to both by relative path (`../../stack`, `../../examples`). The tests read example files through the symlink `neurobagel_examples -> ../../examples`. No submodules are needed.
 
 ### Tests

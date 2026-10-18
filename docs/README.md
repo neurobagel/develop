@@ -108,9 +108,19 @@ The docs are not versioned or released; every merge to `main` that changes `docs
 We use several tools in this repository to enforce our style guide (codespell, prettier, markdownlint...).
 They can all be run in an orchestrated manner using [pre-commit](https://pre-commit.com/) python package.
 
-The hooks are configured in `.pre-commit-config.yaml` in this folder.
-In the monorepo, pre-commit only reads a configuration at the repository root,
-so these hooks do not run on commit and are not checked in CI at the moment.
+The hooks for the docs are part of the repository's root `.pre-commit-config.yaml`
+(scoped to `docs/`, with the docs' own `.markdownlint.jsonc`, `.codespellrc` and
+`md_link_check_config.json`). Install them from the repository root:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+After this the style guide will be enforced every time you commit:
+some pre-commit 'hooks' will try to fix some of the errors they find,
+so you may have to restage your file before committing.
+CI runs the same hooks on every pull request; the link check runs as a separate, non-blocking job.
 
 For markdownlint, you can also use
 the [VS-code extension](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint)

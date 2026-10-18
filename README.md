@@ -33,11 +33,29 @@ just check-unchanged  # check that imported tools' source and tests are unchange
 
 `just lint` needs [actionlint](https://github.com/rhysd/actionlint) and [shellcheck](https://www.shellcheck.net/).
 
+## Commit hooks
+
+One [pre-commit](https://pre-commit.com/) configuration at the root, `.pre-commit-config.yaml`, holds every tool's hooks, each scoped to its folder and using the tool's own config files. Install it once:
+
+```bash
+pip install pre-commit   # or: uv tool install pre-commit
+pre-commit install
+```
+
+This installs two git hooks: `pre-commit` runs the checks on every commit, and `post-merge` runs `npm ci` in a frontend after a merge or pull that changed its `package.json` or `package-lock.json`, so local `node_modules` stay in sync.
+
+The frontends' hooks run their `lint-staged` configs and need `npm ci` in `tools/query-tool/` and `tools/annotation-tool/` (they fail with that instruction otherwise). To run all hooks on all files:
+
+```bash
+(cd tools/query-tool && npm ci) && (cd tools/annotation-tool && npm ci)
+SKIP=markdown-link-check-docs pre-commit run --all-files
+```
+
 ## Repository-wide workflows
 
 | Workflow | What it does |
 | --- | --- |
-| `ci.yml` | Lints workflows and scripts, detects which tools a change touches, runs those tools' tests, and checks that imported source and tests are unchanged |
+| `ci.yml` | Runs the pre-commit hooks (and the docs link check, non-blocking), lints workflows and scripts, detects which tools a change touches, runs those tools' tests, and checks that imported source and tests are unchanged |
 | `docs.yml` | Builds the docs on pull requests and deploys them to GitHub Pages on merge |
 | `linkspector.yml` | Checks the links in api's `README.md` (configured by `tools/api/.linkspector.yml`) on changes to api's Markdown |
 
@@ -61,3 +79,4 @@ just check-unchanged  # check that imported tools' source and tests are unchange
 | R2 (Step 7b) | api, federation-api and query-tool images are built from the repository root (`docker build -f tools/<tool>/Dockerfile .`, or `just build <tool>`), with an allowlist `tools/<tool>/Dockerfile.dockerignore` per image; query-tool's Dockerfile copies `examples/` directly; the temporary `scripts/materialize-context.sh` is removed | Docker does not follow symlinks out of a tool folder; one build context for all images, with each image's files listed explicitly | api, federation-api, query-tool | [api](tools/api/README.md#docker-image), [federation-api](tools/federation-api/README.md#docker-image), [query-tool](tools/query-tool/README.md#docker-image) |
 | R3 (Step 7c) | The bagel-cli image installs one pre-built wheel (`tools/bagel-cli/dist/*.whl`), the same file that is published to PyPI, instead of running `pip install bagel` from PyPI; `Dockerfile.nightly` is removed and nightly and release images share one Dockerfile | The image always contains exactly the released (or nightly) artifact, and the build no longer depends on PyPI having the new release yet | bagel-cli | [bagel-cli README: Docker image](tools/bagel-cli/README.md#docker-image) |
 | Step 7d | api's link check runs from the root workflow `linkspector.yml`, in `tools/api`; the other upstream repository-automation workflows are not carried over (`handle_external_pr`, `add_iss2project`, `stale`, `scorecard`, query-tool's example-diff workflows) or are replaced later | GitHub only runs root workflows | api | [Repository-wide workflows](#repository-wide-workflows) |
+| Step 8 | One root `.pre-commit-config.yaml` replaces the per-tool configs of api, federation-api, bagel-cli and docs, and the frontends' husky hooks; CI runs it on every pull request | pre-commit only reads a config at the repository root, and husky only installs hooks there | all | [Commit hooks](#commit-hooks) |
