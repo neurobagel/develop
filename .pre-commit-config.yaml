@@ -171,6 +171,7 @@ repos:
     hooks:
       - id: check-github-workflows
         files: ^\.github/workflows/
+      - id: check-dependabot
 
   # --------------------------------------------------------------- docs
   - repo: https://github.com/tcort/markdown-link-check

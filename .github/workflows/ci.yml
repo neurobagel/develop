@@ -147,6 +147,41 @@ jobs:
       pytest-args: -m "integration or not integration"
       submodules: true
 
+  # The wheel bundles two submodules (communities, pipeline-catalog); check that
+  # they are packaged, e.g. on Dependabot PRs that move their pins.
+  bagel-cli-package:
+    needs: changes
+    if: needs.changes.outputs.bagel-cli == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/bagel-cli
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # hatch-vcs derives the version from tags
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Build wheel and sdist
+        run: uv build
+
+      - name: Check package contents
+        run: |
+          unzip -l dist/*.whl > wheel-files.txt
+          for dir in bagel/communities/ bagel/pipeline-catalog/; do
+            count=$(grep -c "$dir" wheel-files.txt || true)
+            echo "wheel files under $dir: $count"
+            [ "$count" -gt 0 ] || { echo "::error::wheel has no files under $dir"; exit 1; }
+          done
+          tests=$(tar -tzf dist/*.tar.gz | grep -c '^[^/]*/tests/' || true)
+          echo "sdist entries under tests/: $tests"
+          [ "$tests" -eq 0 ] || { echo "::error::sdist contains tests/"; exit 1; }
+
   query-tool:
     needs: changes
     if: needs.changes.outputs.query-tool == 'true'

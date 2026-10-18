@@ -54,6 +54,8 @@ bagel-cli uses three external repositories as git submodules, registered in the 
 | `bagel/pipeline-catalog` | [nipoppy/pipeline-catalog](https://github.com/nipoppy/pipeline-catalog) | Processing pipeline catalog, bundled into the package |
 | `tests/bids-examples` | [bids-standard/bids-examples](https://github.com/bids-standard/bids-examples) | Example BIDS datasets for the tests |
 
+Dependabot checks these three submodules weekly and proposes pin updates together in one pull request, which runs bagel-cli's tests and a check that the wheel still contains `bagel/communities/` and `bagel/pipeline-catalog/`. To update a pin by hand instead, check out the new commit in the submodule and commit the changed submodule path.
+
 The Neurobagel example data used by the tests comes from the monorepo's `examples/` folder through the symlink `tests/neurobagel_examples -> ../../../examples`.
 
 The version is derived from the repository's `bagel-cli-v*` tags, so the clone needs its full history and tags (the default for `git clone`).
