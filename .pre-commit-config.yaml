@@ -219,10 +219,10 @@ repos:
         language: system
         files: ^tools/query-tool/
         pass_filenames: false
-        entry: bash -c 'cd tools/query-tool && npx --no-install lint-staged'
+        entry: bash -c 'cd tools/query-tool && if [ ! -d node_modules ]; then echo "Run npm ci in tools/query-tool first"; exit 1; fi && npx --no-install lint-staged'
       - id: lint-staged-annotation-tool
         name: lint-staged (annotation-tool)
         language: system
         files: ^tools/annotation-tool/
         pass_filenames: false
-        entry: bash -c 'cd tools/annotation-tool && npx --no-install lint-staged'
+        entry: bash -c 'cd tools/annotation-tool && if [ ! -d node_modules ]; then echo "Run npm ci in tools/annotation-tool first"; exit 1; fi && npx --no-install lint-staged'

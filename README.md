@@ -42,7 +42,12 @@ pip install pre-commit   # or: uv tool install pre-commit
 pre-commit install
 ```
 
-The frontends' hooks run their `lint-staged` configs and need `npm ci` in `tools/query-tool/` and `tools/annotation-tool/`. Run all hooks on all files with `SKIP=markdown-link-check-docs pre-commit run --all-files`.
+The frontends' hooks run their `lint-staged` configs and need `npm ci` in `tools/query-tool/` and `tools/annotation-tool/` (they fail with that instruction otherwise). To run all hooks on all files:
+
+```bash
+(cd tools/query-tool && npm ci) && (cd tools/annotation-tool && npm ci)
+SKIP=markdown-link-check-docs pre-commit run --all-files
+```
 
 ## Repository-wide workflows
 
