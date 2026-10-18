@@ -75,7 +75,7 @@ cd develop/tools/annotation-tool
 npm ci
 ```
 
-The repository's commit hooks (root `.pre-commit-config.yaml`) run this tool's `lint-staged.config.js` (typecheck, eslint, prettier) on staged files in `tools/annotation-tool/`. Install them once with `pre-commit install` from the repository root (for example after `pip install pre-commit`); they need `npm ci` to have been run here.
+The repository's commit hooks (root `.pre-commit-config.yaml`) run this tool's `lint-staged.config.js` (typecheck, eslint, prettier) on staged files in `tools/annotation-tool/`. Install them once with `pre-commit install` from the repository root (for example after `pip install pre-commit`); they need `npm ci` to have been run here. The same install adds a `post-merge` hook that reruns `npm ci` here after a merge or pull that changed `package.json` or `package-lock.json`.
 
 ### Tests
 

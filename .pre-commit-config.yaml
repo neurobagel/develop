@@ -10,6 +10,11 @@
 # The frontends keep their lint-staged configs; the local hooks at the end run
 # lint-staged in the tool folder on staged files (this replaces husky).
 
+# `pre-commit install` sets up both hook types. Hooks run at commit time unless
+# they set `stages:` (the frontends' post-merge hooks below).
+default_install_hook_types: [pre-commit, post-merge]
+default_stages: [pre-commit]
+
 ci:
   autofix_prs: false
   skip: [docker-compose-check-api]
@@ -226,3 +231,23 @@ repos:
         files: ^tools/annotation-tool/
         pass_filenames: false
         entry: bash -c 'cd tools/annotation-tool && if [ ! -d node_modules ]; then echo "Run npm ci in tools/annotation-tool first"; exit 1; fi && npx --no-install lint-staged'
+
+  # After a merge or pull (git sets ORIG_HEAD to the previous HEAD), reinstall a
+  # frontend's dependencies if its package.json or package-lock.json changed.
+  # Replaces the frontends' husky post-merge hooks.
+  - repo: local
+    hooks:
+      - id: npm-ci-on-merge-query-tool
+        name: npm ci after merge (query-tool)
+        language: system
+        stages: [post-merge]
+        always_run: true
+        pass_filenames: false
+        entry: bash -c 'git diff --quiet ORIG_HEAD HEAD -- tools/query-tool/package.json tools/query-tool/package-lock.json || (cd tools/query-tool && npm ci)'
+      - id: npm-ci-on-merge-annotation-tool
+        name: npm ci after merge (annotation-tool)
+        language: system
+        stages: [post-merge]
+        always_run: true
+        pass_filenames: false
+        entry: bash -c 'git diff --quiet ORIG_HEAD HEAD -- tools/annotation-tool/package.json tools/annotation-tool/package-lock.json || (cd tools/annotation-tool && npm ci)'

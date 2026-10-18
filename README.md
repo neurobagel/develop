@@ -42,6 +42,8 @@ pip install pre-commit   # or: uv tool install pre-commit
 pre-commit install
 ```
 
+This installs two git hooks: `pre-commit` runs the checks on every commit, and `post-merge` runs `npm ci` in a frontend after a merge or pull that changed its `package.json` or `package-lock.json`, so local `node_modules` stay in sync.
+
 The frontends' hooks run their `lint-staged` configs and need `npm ci` in `tools/query-tool/` and `tools/annotation-tool/` (they fail with that instruction otherwise). To run all hooks on all files:
 
 ```bash
