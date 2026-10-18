@@ -1,0 +1,228 @@
+# Root pre-commit configuration for the Neurobagel monorepo.
+#
+# Merged from the upstream configs of api, federation-api, bagel-cli and the
+# docs, keeping each repository's hook versions and arguments. Hooks run from
+# the repository root, so every hook is scoped to its folder with `files:` and
+# is given that folder's own config file explicitly: tools such as flake8,
+# isort, codespell and markdownlint otherwise look for config files in the
+# current directory only. Each hook has an alias `<hook>-<folder>` for SKIP=.
+#
+# The frontends keep their lint-staged configs; the local hooks at the end run
+# lint-staged in the tool folder on staged files (this replaces husky).
+
+ci:
+  autofix_prs: false
+  skip: [docker-compose-check-api]
+
+repos:
+  # ------------------------------------------------- Python tools and docs
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.10.1
+    hooks:
+      - id: black
+        alias: black-api
+        files: ^tools/api/
+        args: [--config=tools/api/pyproject.toml]
+      - id: black
+        alias: black-federation-api
+        files: ^tools/federation-api/
+        args: [--config=tools/federation-api/pyproject.toml]
+      - id: black
+        alias: black-bagel-cli
+        files: ^tools/bagel-cli/
+        args: [--config=tools/bagel-cli/pyproject.toml]
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.4.1
+    hooks:
+      - id: flake8
+        alias: flake8-api
+        files: ^tools/api/
+        language_version: python3
+        # TODO: replace this with ruff to bring all config into pyproject.toml
+        args: [--config=tools/api/.flake8]
+      - id: flake8
+        alias: flake8-federation-api
+        files: ^tools/federation-api/
+        language_version: python3
+        args:
+          - --extend-ignore=E501
+          - --extend-select=B950
+          - --per-file-ignores=tools/federation-api/app/api/models.py:F722
+      - id: flake8
+        alias: flake8-bagel-cli
+        files: ^tools/bagel-cli/
+        language_version: python3
+        args: [--config=tools/bagel-cli/.flake8]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-yaml
+        alias: check-yaml-api
+        files: ^tools/api/
+      - id: check-toml
+        alias: check-toml-api
+        files: ^tools/api/
+      - id: pretty-format-json
+        alias: pretty-format-json-api
+        files: ^tools/api/
+        args: ["--autofix", "--no-sort-keys"]
+      - id: check-yaml
+        alias: check-yaml-federation-api
+        files: ^tools/federation-api/
+      - id: check-yaml
+        alias: check-yaml-bagel-cli
+        files: ^tools/bagel-cli/
+      - id: check-toml
+        alias: check-toml-bagel-cli
+        files: ^tools/bagel-cli/
+      # docs
+      - id: check-ast
+        alias: check-ast-docs
+        files: ^docs/
+      - id: check-case-conflict
+        alias: check-case-conflict-docs
+        files: ^docs/
+      - id: check-json
+        alias: check-json-docs
+        files: ^docs/
+      - id: check-merge-conflict
+        alias: check-merge-conflict-docs
+        files: ^docs/
+      - id: check-yaml
+        alias: check-yaml-docs
+        files: ^docs/
+        exclude: ^docs/mkdocs\.yml$
+      - id: end-of-file-fixer
+        alias: end-of-file-fixer-docs
+        files: ^docs/
+      - id: mixed-line-ending
+        alias: mixed-line-ending-docs
+        files: ^docs/
+        args: [--fix=lf]
+      - id: trailing-whitespace
+        alias: trailing-whitespace-docs
+        files: ^docs/
+
+  - repo: https://github.com/pycqa/isort
+    rev: 9.0.2
+    hooks:
+      # src_paths default to the settings file's folder, so each tool's package
+      # (app, bagel) stays first-party, as when upstream ran isort in the tool folder
+      - id: isort
+        alias: isort-api
+        files: ^tools/api/
+        args: [--settings-path=tools/api/pyproject.toml]
+      - id: isort
+        alias: isort-federation-api
+        files: ^tools/federation-api/
+        args: [--settings-path=tools/federation-api/pyproject.toml]
+      - id: isort
+        alias: isort-bagel-cli
+        files: ^tools/bagel-cli/
+        args: [--settings-path=tools/bagel-cli/pyproject.toml]
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.3
+    hooks:
+      - id: codespell
+        alias: codespell-api
+        files: ^tools/api/
+        additional_dependencies: [tomli]
+        args: [--config=tools/api/.codespellrc, --toml=tools/api/pyproject.toml]
+      - id: codespell
+        alias: codespell-federation-api
+        files: ^tools/federation-api/
+      - id: codespell
+        alias: codespell-bagel-cli
+        files: ^tools/bagel-cli/
+        additional_dependencies: [tomli]
+        args: [--toml=tools/bagel-cli/pyproject.toml]
+
+  - repo: https://github.com/iamthefij/docker-pre-commit
+    rev: v3.0.1
+    hooks:
+      - id: docker-compose-check
+        alias: docker-compose-check-api
+        files: ^tools/api/(.*/)?(docker-)?compose\.ya?ml$
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.4.0
+    hooks:
+      - id: mypy
+        alias: mypy-api
+        files: ^tools/api/
+        additional_dependencies: [pydantic]
+        args: [--config-file=tools/api/pyproject.toml]
+      - id: mypy
+        alias: mypy-bagel-cli
+        files: ^tools/bagel-cli/
+        args: [--config-file=tools/bagel-cli/pyproject.toml]
+
+  # federation-api validated its own GitHub workflows; in the monorepo those are the root workflows
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.38.2
+    hooks:
+      - id: check-github-workflows
+        files: ^\.github/workflows/
+
+  # --------------------------------------------------------------- docs
+  - repo: https://github.com/tcort/markdown-link-check
+    rev: v3.14.2
+    hooks:
+      - id: markdown-link-check
+        alias: markdown-link-check-docs
+        files: ^docs/
+        args: [--quiet, --config=docs/md_link_check_config.json]
+
+  # Check formatting of CSS, JSON (prettier: https://prettier.io/)
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: v3.8.1
+    hooks:
+      - id: prettier
+        alias: prettier-docs
+        files: ^docs/
+        types_or: [css, json]
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        alias: codespell-docs
+        files: ^docs/
+        args: [--config=docs/.codespellrc]
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.47.0
+    hooks:
+      - id: markdownlint
+        alias: markdownlint-docs
+        files: ^docs/
+        args: [-c, docs/.markdownlint.jsonc]
+
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.1.0
+    hooks:
+      - id: black
+        alias: black-docs
+        files: ^docs/
+        args: [--safe]
+
+  # ---------------------------------------------------------- frontends
+  # Same checks as the tools' lint-staged configs (typecheck, eslint, prettier),
+  # run by lint-staged on staged files. Needs `npm ci` in the tool folder.
+  - repo: local
+    hooks:
+      - id: lint-staged-query-tool
+        name: lint-staged (query-tool)
+        language: system
+        files: ^tools/query-tool/
+        pass_filenames: false
+        entry: bash -c 'cd tools/query-tool && npx --no-install lint-staged'
+      - id: lint-staged-annotation-tool
+        name: lint-staged (annotation-tool)
+        language: system
+        files: ^tools/annotation-tool/
+        pass_filenames: false
+        entry: bash -c 'cd tools/annotation-tool && npx --no-install lint-staged'

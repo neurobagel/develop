@@ -14,8 +14,7 @@
     "test:e2e": "cypress run --e2e",
     "test:component": "cypress run --component",
     "test:unit": "vitest --run --coverage",
-    "typecheck": "tsc  --noEmit --pretty",
-    "prepare": "husky install"
+    "typecheck": "tsc  --noEmit --pretty"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

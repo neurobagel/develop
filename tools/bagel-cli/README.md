@@ -58,6 +58,12 @@ The Neurobagel example data used by the tests comes from the monorepo's `example
 
 The version is derived from the repository's `bagel-cli-v*` tags, so the clone needs its full history and tags (the default for `git clone`).
 
+To check your changes on every commit, install the repository's commit hooks (configured in the root `.pre-commit-config.yaml`; the bagel-cli hooks are black, flake8, isort, codespell and the other checks bagel-cli used before):
+
+```bash
+uv run pre-commit install
+```
+
 To run the CLI during local development, from `tools/bagel-cli/`:
 
 ```bash
