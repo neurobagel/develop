@@ -51,6 +51,21 @@ The frontends' hooks run their `lint-staged` configs and need `npm ci` in `tools
 SKIP=markdown-link-check-docs pre-commit run --all-files
 ```
 
+## Dependency updates
+
+One `.github/dependabot.yml` covers every tool, checked weekly:
+
+| Ecosystem | Folders | Updates |
+| --- | --- | --- |
+| npm | `tools/query-tool`, `tools/annotation-tool`, `docs` | Version updates, grouped into production and development dependencies across the folders; semver-major updates ignored |
+| uv | `tools/api`, `tools/federation-api`, `tools/bagel-cli` | Security updates only |
+| pip | `docs` | Security updates only |
+| docker | the four Dockerfiles in `tools/` | Base images, grouped; major updates ignored, and minor updates of `python` (which change the Python version) ignored |
+| gitsubmodule | bagel-cli's three submodules | Pin updates, grouped |
+| github-actions | workflows and `.github/actions/` | Version updates |
+
+Each pull request runs CI only for the folders it touches.
+
 ## Repository-wide workflows
 
 | Workflow | What it does |
@@ -80,3 +95,5 @@ SKIP=markdown-link-check-docs pre-commit run --all-files
 | R3 (Step 7c) | The bagel-cli image installs one pre-built wheel (`tools/bagel-cli/dist/*.whl`), the same file that is published to PyPI, instead of running `pip install bagel` from PyPI; `Dockerfile.nightly` is removed and nightly and release images share one Dockerfile | The image always contains exactly the released (or nightly) artifact, and the build no longer depends on PyPI having the new release yet | bagel-cli | [bagel-cli README: Docker image](tools/bagel-cli/README.md#docker-image) |
 | Step 7d | api's link check runs from the root workflow `linkspector.yml`, in `tools/api`; the other upstream repository-automation workflows are not carried over (`handle_external_pr`, `add_iss2project`, `stale`, `scorecard`, query-tool's example-diff workflows) or are replaced later | GitHub only runs root workflows | api | [Repository-wide workflows](#repository-wide-workflows) |
 | Step 8 | One root `.pre-commit-config.yaml` replaces the per-tool configs of api, federation-api, bagel-cli and docs, and the frontends' husky hooks; CI runs it on every pull request | pre-commit only reads a config at the repository root, and husky only installs hooks there | all | [Commit hooks](#commit-hooks) |
+| Step 9 | One root `.github/dependabot.yml` replaces the tools' identical per-repository files; updates of the same group across tools arrive in one pull request; Dependabot also updates Docker base images (new) | One configuration for all tools; fewer, grouped update PRs | all | [Dependency updates](#dependency-updates) |
+| R4 (Step 9) | Dependabot proposes pin updates for bagel-cli's external submodules (`tests/bids-examples`, `bagel/pipeline-catalog`, `bagel/communities`) weekly, grouped in one PR; a CI job checks that the wheel still bundles `communities` and `pipeline-catalog` | Replaces manual pin bumps while keeping the external repositories' provenance | bagel-cli | [bagel-cli README: Setup](tools/bagel-cli/README.md#setup) |

@@ -1,0 +1,102 @@
+# Dependabot for the Neurobagel monorepo.
+#
+# Replaces the per-repository dependabot.yml files, which all used the same
+# template: weekly updates, labels `_bot` and `dependencies`, npm updates
+# grouped into production and development dependencies with semver-major
+# updates ignored, and Python version updates disabled
+# (open-pull-requests-limit: 0, so only security updates). Using `directories`,
+# one entry per ecosystem covers every tool, and a group's updates across tools
+# arrive in one pull request.
+
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/"
+      - "/.github/actions/docker-build"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "_bot"
+      - "dependencies"
+
+  # bagel-cli's external submodules: tests/bids-examples, bagel/pipeline-catalog
+  # and bagel/communities (the last two are bundled into the bagel wheel)
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      bagel-cli-submodules:
+        patterns:
+          - "*"
+    labels:
+      - "_bot"
+      - "dependencies"
+
+  - package-ecosystem: "npm"
+    directories:
+      - "/tools/query-tool"
+      - "/tools/annotation-tool"
+      - "/docs"
+    schedule:
+      interval: "weekly"
+    groups:
+      production-dependencies:
+        applies-to: version-updates
+        dependency-type: "production"
+      development-dependencies:
+        applies-to: version-updates
+        dependency-type: "development"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    labels:
+      - "_bot"
+      - "dependencies"
+
+  # Security updates only, as upstream
+  - package-ecosystem: "uv"
+    directories:
+      - "/tools/api"
+      - "/tools/federation-api"
+      - "/tools/bagel-cli"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    labels:
+      - "_bot"
+      - "dependencies"
+
+  # The docs' requirements.txt; security updates only, as upstream
+  - package-ecosystem: "pip"
+    directory: "/docs"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    labels:
+      - "_bot"
+      - "dependencies"
+
+  # Base images of the Dockerfiles (new in the monorepo)
+  - package-ecosystem: "docker"
+    directories:
+      - "/tools/api"
+      - "/tools/federation-api"
+      - "/tools/bagel-cli"
+      - "/tools/query-tool"
+    schedule:
+      interval: "weekly"
+    groups:
+      docker-base-images:
+        patterns:
+          - "*"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      # python:3.10 -> 3.13 counts as a minor update but changes the runtime Python
+      - dependency-name: "python"
+        update-types: ["version-update:semver-minor"]
+    labels:
+      - "_bot"
+      - "dependencies"
