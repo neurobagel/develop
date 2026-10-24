@@ -28,7 +28,13 @@ done
 
 post() {
   # post <url> <output file>
-  curl -sS -X POST "$1" -H "Content-Type: application/json" -d '{}' | jq . > "$OUT/$2"
+  # --fail-with-body: an HTTP error (e.g. 500) stops the script with the response shown, not a jq parse error
+  local body
+  if ! body=$(curl -sS --fail-with-body -X POST "$1" -H "Content-Type: application/json" -d '{}'); then
+    echo "POST $1 failed: $body" >&2
+    exit 1
+  fi
+  jq . <<< "$body" > "$OUT/$2"
   echo "Wrote $2"
 }
 
@@ -42,6 +48,10 @@ wait_http() {
 
 if [ "$prepared" = false ]; then
   "$NODES" prepare --no-public-nodes
+fi
+if [ "$keep" = false ]; then
+  # Stop the deployment also when generating a response fails
+  trap '"$NODES" down' EXIT
 fi
 
 # Only the protected node is up: the federation API cannot reach "BIDS Synthetic"
@@ -76,7 +86,3 @@ post http://localhost:8000/subjects napi_post_subjects_counts_results.json
 post http://localhost:8001/subjects napi_post_subjects_records_results.json
 # The shape of POST /datasets does not depend on response granularity, so one node is enough
 post http://localhost:8000/datasets napi_post_datasets_results.json
-
-if [ "$keep" = false ]; then
-  "$NODES" down
-fi
