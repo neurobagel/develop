@@ -121,7 +121,11 @@ Python 3.10 (as in upstream CD).
 
 ## Already failing upstream
 
-None of the test suites. Three checks fail upstream:
+None of the test suites as CI runs them. One suite fails upstream when run as its README says rather than as CI does (found in Step 10, 2026-10-24):
+
+- bagel-cli on Python 3.11 with the locked dependencies (`uv sync --group dev`, no `--upgrade`): `ImportError while loading conftest` — `tests/conftest.py` imports `bids2table`, whose `_pathlib.py` creates a cloudpathlib `S3Client` at import time; on Python < 3.12 the lock pins `cloudpathlib` 0.20.0 without `boto3`, so it raises `NameError: name 'Session' is not defined`. Identical at upstream `9d50d2e`. Python 3.13 with the lock passes (215), and so does 3.11 with `--upgrade` (215), which is what upstream CI and this repository's CI run.
+
+Three checks fail upstream:
 
 - The documentation `markdown-link-check` hook above.
 - query-tool `docker compose --profile test config --quiet` (found in Step 5, 2026-10-17), at query-tool `b3366bb` with recipes `v0.9.1`:
