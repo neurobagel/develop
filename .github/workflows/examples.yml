@@ -1,0 +1,79 @@
+name: Examples
+
+# Regenerate the example API responses in examples/api-responses/ from the APIs
+# built from this commit (scripts/make-api-responses.sh), and open a pull request
+# if they changed. Ported from neurobagel_examples' make_api_responses.yml, which
+# recorded the responses from the published images.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  make-api-responses:
+    name: Make API responses
+    runs-on: ubuntu-latest
+    steps:
+      # The bot token lets the pull request trigger CI; without the bot app,
+      # fall back to GITHUB_TOKEN (then CI must be started by hand on the PR).
+      - name: Generate a token
+        id: generate-token
+        if: vars.NB_BOT_ID != ''
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.NB_BOT_ID }}
+          private-key: ${{ secrets.NB_BOT_KEY }}
+
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          token: ${{ steps.generate-token.outputs.token || github.token }}
+
+      - name: Set up just
+        uses: extractions/setup-just@v4
+
+      - name: Build api, federation-api and query-tool images (:local)
+        run: just images
+
+      - name: Generate the example API responses
+        run: scripts/make-api-responses.sh --keep
+
+      # The responses must come from this commit's code, never from published images
+      - name: Check that only locally built Neurobagel images ran
+        run: |
+          status=0
+          for c in portal-federation-1 portal-query_federation-1 protected_node-api-1 open_node-api-1; do
+            image=$(docker inspect -f '{{.Config.Image}}' "$c")
+            echo "$c: $image"
+            case "$image" in
+              *neurobagel/*:local) ;;
+              *) echo "::error::$c runs $image, not a :local image"; status=1 ;;
+            esac
+          done
+          exit $status
+
+      - name: Show the changes
+        run: git diff --stat -- examples/api-responses
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.generate-token.outputs.token || github.token }}
+          add-paths: examples/api-responses/*.json
+          commit-message: "chore: update example API responses"
+          title: "chore: update example API responses"
+          body: |
+            This PR updates `examples/api-responses/` with responses from the APIs built from ${{ github.sha }}.
+
+            Automated changes by the `examples.yml` workflow and [create-pull-request](https://github.com/peter-evans/create-pull-request).
+          sign-commits: true
+          base: main
+          branch: create-pull-request/update-api-examples
+          labels: _bot
+
+      - name: Stop the test deployment
+        if: always()
+        run: scripts/test-nodes.sh down

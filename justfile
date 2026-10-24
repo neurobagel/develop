@@ -72,6 +72,39 @@ build tool:
     esac
     docker build -f "tools/{{tool}}/Dockerfile" -t "neurobagel/${image}:local" .
 
+# Build the api, federation-api and query-tool images, tagged :local
+images:
+    just build api
+    just build federation-api
+    just build query-tool
+
+# Run a local Neurobagel stack (stack/) with the :local images: node API on 8000, federation API on 8080, query tool on 3000
+dev: images
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd stack
+    [ -f .env ] || cp template.env .env
+    [ -f local_nb_nodes.json ] || cp local_nb_nodes.template.json local_nb_nodes.json
+    NB_NAPI_TAG=local NB_FAPI_TAG=local NB_QUERY_TAG=local NB_API_QUERY_URL=http://localhost:8080 \
+      docker compose up -d
+
+# Stop the local stack started by `just dev`
+dev-down:
+    cd stack && docker compose down
+
+# Start or stop the two-node test deployment (scripts/test-nodes.sh): up, down, prepare, start
+test-nodes command *args:
+    scripts/test-nodes.sh {{command}} {{args}}
+
+# Build the images, start the two-node test deployment, and run the full-stack Cypress tests in e2e/
+e2e: images
+    scripts/test-nodes.sh up --no-public-nodes
+    cd e2e && npm ci && npx cypress run --browser chrome --config excludeSpecPattern="**/simple-test.cy.js"
+
+# Regenerate examples/api-responses/ from the APIs built from this checkout
+examples: images
+    scripts/make-api-responses.sh
+
 # Check that protected paths of imported tools are unchanged
 check-unchanged:
     scripts/check-unchanged.sh

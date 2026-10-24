@@ -1,0 +1,72 @@
+name: E2E
+
+# Full-stack tests: the e2e/ Cypress suite (from the recipes repository) against
+# a two-node deployment of stack/ running the images built from this commit.
+
+on:
+  pull_request:
+    paths:
+      - 'tools/api/**'
+      - 'tools/federation-api/**'
+      - 'tools/query-tool/**'
+      - 'stack/**'
+      - 'examples/**'
+      - 'e2e/**'
+      - 'scripts/test-nodes.sh'
+      - 'justfile'
+      - '.github/workflows/e2e.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up just
+        uses: extractions/setup-just@v4
+
+      - name: Build api, federation-api and query-tool images (:local)
+        run: just images
+
+      # Only the two local nodes: public nodes are outside this repository's control
+      - name: Start the two-node test deployment
+        run: scripts/test-nodes.sh up --no-public-nodes
+
+      - name: Set up node env
+        uses: actions/setup-node@v7
+        with:
+          node-version: 20
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v7
+        with:
+          working-directory: e2e
+          wait-on: http://localhost:3000
+          config: excludeSpecPattern="**/simple-test.cy.js"
+          # otherwise, defaults to Electron
+          browser: chrome
+
+      - name: Show containers and logs on failure
+        if: failure()
+        run: |
+          docker ps -a
+          for c in portal-federation-1 portal-query_federation-1 protected_node-api-1 open_node-api-1; do
+            echo "=== $c"; docker logs "$c" 2>&1 | tail -50 || true
+          done
+
+      - name: Upload e2e screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-screenshots
+          path: e2e/cypress/screenshots
+          retention-days: 30
+
+      - name: Stop the test deployment
+        if: always()
+        run: scripts/test-nodes.sh down

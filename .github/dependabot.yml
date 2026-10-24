@@ -39,6 +39,7 @@ updates:
       - "/tools/query-tool"
       - "/tools/annotation-tool"
       - "/docs"
+      - "/e2e"
     schedule:
       interval: "weekly"
     groups:

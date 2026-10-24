@@ -3,9 +3,25 @@ Example inputs and outputs from Neurobagel tools.
 
 ## Regenerating examples
 
-Code to regenerate the example JSONLD files: https://github.com/neurobagel/bagel-cli/blob/main/helper_scripts/generate_neurobagel_example_jsonlds.sh
+Code to regenerate the example JSONLD files: [`tools/bagel-cli/helper_scripts/generate_neurobagel_example_jsonlds.sh`](../tools/bagel-cli/helper_scripts/generate_neurobagel_example_jsonlds.sh)
 
-Code to regenerate the example API responses: https://github.com/neurobagel/neurobagel_examples/blob/main/.github/workflows/make_api_responses.yml
+### Example API responses
+
+The files in `api-responses/` (except the `*_query_*` files, which are no longer generated) are recorded from the node and federation APIs built from the current commit of this repository, so they always match the code next to them. From the repository root:
+
+```bash
+just examples
+```
+
+This builds the api, federation-api and query-tool images (`just images`), starts the two-node test deployment (`scripts/test-nodes.sh`), and runs `scripts/make-api-responses.sh`, which:
+
+- federates only over two local nodes: "2 OpenNeuro Datasets" (two datasets from [neurobagel/openneuro-annotations](https://github.com/neurobagel/openneuro-annotations), aggregated responses, port 8000) and "BIDS Synthetic" (the synthetic example dataset, record-level responses, port 8001),
+- records the federation API's partial-success, failure and full-success responses to `POST /datasets` and `POST /subjects`, and the node APIs' `POST /subjects` and `POST /datasets` responses,
+- writes them to `api-responses/` and stops the deployment.
+
+Review the changes with `git diff examples/api-responses`. The order of items in lists can change between runs, and so can the network error text in the failure responses, which comes from the container engine's DNS (CI uses Docker).
+
+The `Examples` workflow (`.github/workflows/examples.yml`) does the same on GitHub when started by hand, and opens a pull request if the responses changed.
 
 ## `api-responses/`
 Examples of responses returned by Neurobagel APIs.
