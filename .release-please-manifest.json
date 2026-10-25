@@ -1,5 +1,5 @@
 {
-  "tools/api": "0.11.0",
+  "tools/api": "0.12.0",
   "tools/federation-api": "0.10.0",
   "tools/bagel-cli": "0.11.6",
   "tools/query-tool": "0.17.0",
