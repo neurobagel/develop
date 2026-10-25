@@ -33,6 +33,27 @@ just check-unchanged  # check that imported tools' source and tests are unchange
 
 `just lint` needs [actionlint](https://github.com/rhysd/actionlint) and [shellcheck](https://www.shellcheck.net/).
 
+## Running the full stack
+
+Build the api, federation-api and query-tool images from this checkout and run them together:
+
+```bash
+just dev       # one local node: node API on 8000, federation API on 8080, query tool on http://localhost:3000
+just dev-down  # stop it
+```
+
+`just dev` uses `stack/` (a development copy of [neurobagel/recipes](https://github.com/neurobagel/recipes)) with the images tagged `:local`. It creates `stack/.env` and `stack/local_nb_nodes.json` from their templates if they do not exist.
+
+The full-stack tests in `e2e/` and the example API responses in `examples/` use a two-node deployment instead (`scripts/test-nodes.sh`):
+
+```bash
+just e2e        # build the images, start the two nodes, run the Cypress tests in e2e/
+just examples   # build the images and regenerate examples/api-responses/
+just test-nodes down
+```
+
+These deployments use the same ports, so run one at a time.
+
 ## Commit hooks
 
 One [pre-commit](https://pre-commit.com/) configuration at the root, `.pre-commit-config.yaml`, holds every tool's hooks, each scoped to its folder and using the tool's own config files. Install it once:
@@ -72,6 +93,8 @@ Each pull request runs CI only for the folders it touches.
 | --- | --- |
 | `ci.yml` | Runs the pre-commit hooks (and the docs link check, non-blocking), lints workflows and scripts, detects which tools a change touches, runs those tools' tests, and checks that imported source and tests are unchanged |
 | `docs.yml` | Builds the docs on pull requests and deploys them to GitHub Pages on merge |
+| `e2e.yml` | Runs the full-stack tests in `e2e/` against a two-node deployment of the images built from the pull request |
+| `examples.yml` | Started by hand: regenerates `examples/api-responses/` from the images built from `main` and opens a pull request if they changed |
 | `linkspector.yml` | Checks the links in api's `README.md` (configured by `tools/api/.linkspector.yml`) on changes to api's Markdown |
 
 ## Migration
@@ -97,3 +120,5 @@ Each pull request runs CI only for the folders it touches.
 | Step 8 | One root `.pre-commit-config.yaml` replaces the per-tool configs of api, federation-api, bagel-cli and docs, and the frontends' husky hooks; CI runs it on every pull request | pre-commit only reads a config at the repository root, and husky only installs hooks there | all | [Commit hooks](#commit-hooks) |
 | Step 9 | One root `.github/dependabot.yml` replaces the tools' identical per-repository files; updates of the same group across tools arrive in one pull request; Dependabot also updates Docker base images (new) | One configuration for all tools; fewer, grouped update PRs | all | [Dependency updates](#dependency-updates) |
 | R4 (Step 9) | Dependabot proposes pin updates for bagel-cli's external submodules (`tests/bids-examples`, `bagel/pipeline-catalog`, `bagel/communities`) weekly, grouped in one PR; a CI job checks that the wheel still bundles `communities` and `pipeline-catalog` | Replaces manual pin bumps while keeping the external repositories' provenance | bagel-cli | [bagel-cli README: Setup](tools/bagel-cli/README.md#setup) |
+| Step 10 | `just dev` runs the stack from `stack/` with images built from the checkout; recipes' full-stack Cypress tests live in `e2e/` and run in CI (`e2e.yml`) against a two-node deployment of the PR's images (`scripts/test-nodes.sh`), federating over the two local nodes only | Full-stack tests now test the code in the same commit, not published images | api, federation-api, query-tool | [Running the full stack](#running-the-full-stack), [e2e/README.md](e2e/README.md) |
+| R5 (Step 10) | The example API responses are generated in this repository from the APIs built from the current commit (`just examples`, `examples.yml`), instead of from published images in neurobagel_examples | An API change and its updated example responses land in one PR | api, federation-api, examples | [examples/README.md: Example API responses](examples/README.md#example-api-responses) |

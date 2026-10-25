@@ -13,3 +13,12 @@ node_modules/
 
 # Written by the api test graph setup (tools/api/docker-compose.yml)
 tools/api/test_graph_data/
+
+# Working copies of stack/ for the two-node test deployments (scripts/test-nodes.sh)
+/.test-nodes/
+
+# Cypress output of the full-stack tests
+e2e/node_modules/
+e2e/cypress/screenshots/
+e2e/cypress/videos/
+e2e/cypress/downloads/
