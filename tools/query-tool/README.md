@@ -280,7 +280,7 @@ Nightly images: every push to `main` that changes this tool rebuilds `<registry>
 ### Releases
 
 Tags: `query-tool-vX.Y.Z`. Published to: Docker Hub `neurobagel/query_tool`, and the site https://query.neurobagel.org.
-Release automation (release-please) is not set up in this repository yet, so no releases are made from it.
+Released by release-please: when a merged PR with a `feat` or `fix` commit changes `tools/query-tool/`, release-please opens (or updates) a release PR for query-tool that bumps the version and updates `tools/query-tool/CHANGELOG.md`. Merging that PR tags `query-tool-vX.Y.Z` and creates a GitHub release. Publishing to the channels above is not automated yet.
 PR titles must follow Conventional Commits with scope `query-tool`, for example `fix(query-tool): ...`.
 
 ## License

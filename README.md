@@ -87,6 +87,15 @@ One `.github/dependabot.yml` covers every tool, checked weekly:
 
 Each pull request runs CI only for the folders it touches.
 
+## Releases
+
+Each tool is versioned and released on its own by [release-please](https://github.com/googleapis/release-please) (`release-please-config.json`, current versions in `.release-please-manifest.json`):
+
+- Pull requests are squash-merged, and their title becomes the commit message, so titles must follow [Conventional Commits](https://www.conventionalcommits.org/), optionally with a tool as scope: `fix(api): ...`, `feat(query-tool): ...`. The `PR title` check enforces this.
+- release-please looks at which tool folders each commit on `main` changed. For every tool with `feat` or `fix` commits since its last release, it keeps a release PR open (one per tool) with the version bump and changelog. Before 1.0, a breaking change (`feat!:`) bumps the minor version.
+- Merging a release PR tags `<tool>-vX.Y.Z` and creates a GitHub release.
+- `docs`, `chore`, `build`, `ci`, `test` and `refactor` commits do not cause releases. The CI job `release-preview` shows what release-please would propose.
+
 ## Repository-wide workflows
 
 | Workflow | What it does |
@@ -95,6 +104,8 @@ Each pull request runs CI only for the folders it touches.
 | `docs.yml` | Builds the docs on pull requests and deploys them to GitHub Pages on merge |
 | `e2e.yml` | Runs the full-stack tests in `e2e/` against a two-node deployment of the images built from the pull request |
 | `nightly.yml` | On push to `main`: rebuilds and pushes `:nightly` images (amd64 and arm64) of the tools whose image inputs changed, to `IMAGE_REGISTRY`/`IMAGE_NAMESPACE` |
+| `release.yml` | On push to `main`: runs release-please (release PRs, tags, GitHub releases) |
+| `pr-title.yml` | Checks that PR titles follow Conventional Commits |
 | `examples.yml` | Started by hand: regenerates `examples/api-responses/` from the images built from `main` and opens a pull request if they changed |
 | `linkspector.yml` | Checks the links in api's `README.md` (configured by `tools/api/.linkspector.yml`) on changes to api's Markdown |
 
@@ -124,3 +135,4 @@ Each pull request runs CI only for the folders it touches.
 | Step 10 | `just dev` runs the stack from `stack/` with images built from the checkout; recipes' full-stack Cypress tests live in `e2e/` and run in CI (`e2e.yml`) against a two-node deployment of the PR's images (`scripts/test-nodes.sh`), federating over the two local nodes only | Full-stack tests now test the code in the same commit, not published images | api, federation-api, query-tool | [Running the full stack](#running-the-full-stack), [e2e/README.md](e2e/README.md) |
 | R5 (Step 10) | The example API responses are generated in this repository from the APIs built from the current commit (`just examples`, `examples.yml`), instead of from published images in neurobagel_examples | An API change and its updated example responses land in one PR | api, federation-api, examples | [examples/README.md: Example API responses](examples/README.md#example-api-responses) |
 | Step 11 | Nightly images are built by one root workflow from the root build context, only for tools whose image inputs changed, for linux/amd64 and linux/arm64 (query-tool was amd64 only), to the registry set by repository variables; bagel-cli's nightly image installs the wheel built in the same run (R3) | GitHub only runs root workflows; one place for registry configuration | api, federation-api, query-tool, bagel-cli | [Repository-wide workflows](#repository-wide-workflows) |
+| Step 12 | Releases are cut per tool by release-please from Conventional Commits PR titles, instead of intuit/auto with PR labels; PRs are squash-merged | auto supports one package per repository | all tools | [Releases](#releases) |
