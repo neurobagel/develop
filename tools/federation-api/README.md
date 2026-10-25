@@ -112,6 +112,8 @@ The build context is the repository root, so images must be built from there wit
 
 The image contains the `app` package and its runtime dependencies, exported from `uv.lock`, and serves the API on port 8000.
 
+Nightly images: every push to `main` that changes this tool rebuilds `<registry>/<namespace>/federation_api:nightly` for linux/amd64 and linux/arm64 (`.github/workflows/nightly.yml`; registry and namespace come from the repository variables `IMAGE_REGISTRY` and `IMAGE_NAMESPACE`, Docker Hub `neurobagel/federation_api:nightly` for the main Neurobagel repository).
+
 ### Releases
 
 Tags: `federation-api-vX.Y.Z`. Published to: Docker Hub `neurobagel/federation_api`.

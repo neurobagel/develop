@@ -240,6 +240,8 @@ The build context is the repository root, so images must be built from there wit
 
 The image contains the `app` package and its runtime dependencies, exported from `uv.lock`, and serves the API on port 8000. It requires at least `NB_GRAPH_USERNAME` and `NB_GRAPH_PASSWORD` and a datasets metadata file at runtime (see [Set the environment variables](#set-the-environment-variables)).
 
+Nightly images: every push to `main` that changes this tool rebuilds `<registry>/<namespace>/api:nightly` for linux/amd64 and linux/arm64 (`.github/workflows/nightly.yml`; registry and namespace come from the repository variables `IMAGE_REGISTRY` and `IMAGE_NAMESPACE`, Docker Hub `neurobagel/api:nightly` for the main Neurobagel repository).
+
 ### Releases
 
 Tags: `api-vX.Y.Z`. Published to: Docker Hub `neurobagel/api`.
