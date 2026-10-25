@@ -1,4 +1,14 @@
-# v0.10.0 (Mon Sep 14 2026)
+# Changelog
+
+## [0.11.0](https://github.com/neurobagel/develop/compare/federation-api-v0.10.0...federation-api-v0.11.0) (2026-10-25)
+
+
+### Features
+
+* **api:** &lt;change&gt; ([a36df7c](https://github.com/neurobagel/develop/commit/a36df7cd456722ae4ae1f6581910c618e4bab344))
+* **api:** &lt;change&gt; ([d6ebe21](https://github.com/neurobagel/develop/commit/d6ebe219fcdcbe4e51050dcbb9cfbe97c5cb90cc))
+
+## v0.10.0 (Mon Sep 14 2026)
 
 #### 💥 Breaking Changes
 
@@ -23,7 +33,7 @@
 
 ---
 
-# v0.9.1 (Wed Sep 02 2026)
+## v0.9.1 (Wed Sep 02 2026)
 
 #### 🐛 Bug Fixes
 
@@ -35,7 +45,7 @@
 
 ---
 
-# v0.9.0 (Thu Jun 04 2026)
+## v0.9.0 (Thu Jun 04 2026)
 
 #### 🚀 Enhancements
 
@@ -53,7 +63,7 @@
 
 ---
 
-# v0.8.1 (Wed Mar 04 2026)
+## v0.8.1 (Wed Mar 04 2026)
 
 #### 🚀 Enhancements
 
@@ -66,7 +76,7 @@
 
 ---
 
-# v0.8.0 (Thu Jan 15 2026)
+## v0.8.0 (Thu Jan 15 2026)
 
 #### 💥 Breaking Changes
 
@@ -82,7 +92,7 @@
 
 ---
 
-# v0.7.1 (Tue Dec 23 2025)
+## v0.7.1 (Tue Dec 23 2025)
 
 #### 🐛 Bug Fixes
 
@@ -94,7 +104,7 @@
 
 ---
 
-# v0.7.0 (Thu Dec 11 2025)
+## v0.7.0 (Thu Dec 11 2025)
 
 #### 🚀 Enhancements
 
@@ -106,7 +116,7 @@
 
 ---
 
-# v0.6.2 (Wed Dec 03 2025)
+## v0.6.2 (Wed Dec 03 2025)
 
 #### 🐛 Bug Fixes
 
@@ -118,7 +128,7 @@
 
 ---
 
-# v0.6.1 (Mon Nov 03 2025)
+## v0.6.1 (Mon Nov 03 2025)
 
 #### 🔩 Dependency Updates
 
@@ -130,7 +140,7 @@
 
 ---
 
-# v0.6.0 (Wed Oct 22 2025)
+## v0.6.0 (Wed Oct 22 2025)
 
 #### 🚀 Enhancements
 
@@ -148,7 +158,7 @@
 
 ---
 
-# v0.5.0 (Thu Sep 11 2025)
+## v0.5.0 (Thu Sep 11 2025)
 
 #### 💥 Breaking Changes
 
@@ -164,7 +174,7 @@
 
 ---
 
-# v0.4.5 (Thu Feb 13 2025)
+## v0.4.5 (Thu Feb 13 2025)
 
 #### 🐛 Bug Fixes
 
@@ -176,7 +186,7 @@
 
 ---
 
-# v0.4.4 (Wed Feb 12 2025)
+## v0.4.4 (Wed Feb 12 2025)
 
 #### 🚀 Enhancements
 
@@ -189,7 +199,7 @@
 
 ---
 
-# v0.4.3 (Mon Dec 02 2024)
+## v0.4.3 (Mon Dec 02 2024)
 
 #### 🏠 Internal
 
@@ -201,7 +211,7 @@
 
 ---
 
-# v0.4.2 (Fri Nov 01 2024)
+## v0.4.2 (Fri Nov 01 2024)
 
 #### 🚀 Enhancements
 
@@ -213,7 +223,7 @@
 
 ---
 
-# v0.4.1 (Thu Oct 31 2024)
+## v0.4.1 (Thu Oct 31 2024)
 
 #### 🚀 Enhancements
 
@@ -225,7 +235,7 @@
 
 ---
 
-# v0.4.0 (Thu Oct 24 2024)
+## v0.4.0 (Thu Oct 24 2024)
 
 #### 💥 Breaking Changes
 
@@ -256,7 +266,7 @@
 
 ---
 
-# v0.3.0 (Fri Aug 02 2024)
+## v0.3.0 (Fri Aug 02 2024)
 
 #### 💥 Breaking Changes
 
@@ -269,7 +279,7 @@
 
 ---
 
-# v0.2.1 (Thu Jun 20 2024)
+## v0.2.1 (Thu Jun 20 2024)
 
 #### 🚀 Enhancements
 
@@ -285,7 +295,7 @@
 
 ---
 
-# v0.2.0 (Wed Jun 12 2024)
+## v0.2.0 (Wed Jun 12 2024)
 
 #### 🚀 Enhancements
 
@@ -298,7 +308,7 @@
 
 ---
 
-# v0.1.0 (Thu Apr 11 2024)
+## v0.1.0 (Thu Apr 11 2024)
 
 :tada: This release contains work from new contributors! :tada:
 
