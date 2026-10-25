@@ -1,0 +1,184 @@
+name: Nightly images
+
+# Builds and pushes `:nightly` images of the tools whose image inputs changed in
+# a push to main (all of them on workflow_dispatch), for linux/amd64 and
+# linux/arm64, to ${IMAGE_REGISTRY}/${IMAGE_NAMESPACE}/<image>:nightly.
+# Replaces the tools' build_docker_nightly.yml workflows, which pushed to Docker Hub.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.images.outputs.images }}
+      bagel-cli: ${{ steps.images.outputs.bagel-cli }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check repository variables
+        env:
+          IMAGE_REGISTRY: ${{ vars.IMAGE_REGISTRY }}
+          IMAGE_NAMESPACE: ${{ vars.IMAGE_NAMESPACE }}
+        run: |
+          if [ -z "$IMAGE_REGISTRY" ] || [ -z "$IMAGE_NAMESPACE" ]; then
+            echo "::error::Set the repository variables IMAGE_REGISTRY and IMAGE_NAMESPACE"
+            exit 1
+          fi
+
+      # The files that end up in each image, plus the files that build it
+      - name: Detect changed images
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            api:
+              - 'tools/api/**'
+              - '.github/workflows/nightly.yml'
+              - '.github/actions/docker-build/**'
+            federation-api:
+              - 'tools/federation-api/**'
+              - '.github/workflows/nightly.yml'
+              - '.github/actions/docker-build/**'
+            query-tool:
+              - 'tools/query-tool/**'
+              - 'examples/**'
+              - '.github/workflows/nightly.yml'
+              - '.github/actions/docker-build/**'
+            bagel-cli:
+              - 'tools/bagel-cli/**'
+              - '.gitmodules'
+              - '.github/workflows/nightly.yml'
+              - '.github/actions/docker-build/**'
+
+      - name: List images to build
+        id: images
+        env:
+          ALL: ${{ github.event_name == 'workflow_dispatch' }}
+          CHANGED: ${{ steps.filter.outputs.changes }}
+        run: |
+          if [ "$ALL" = "true" ]; then CHANGED='["api","federation-api","query-tool","bagel-cli"]'; fi
+          images=$(jq -nc --argjson changed "$CHANGED" '[
+            {"tool": "api", "image": "api"},
+            {"tool": "federation-api", "image": "federation_api"},
+            {"tool": "query-tool", "image": "query_tool"}
+          ] | map(select(.tool as $t | $changed | index($t) != null))')
+          bagel=$(jq -nr --argjson changed "$CHANGED" '$changed | index("bagel-cli") != null')
+          echo "images=$images" >> "$GITHUB_OUTPUT"
+          echo "bagel-cli=$bagel" >> "$GITHUB_OUTPUT"
+          echo "Images: $images, bagel-cli: $bagel"
+
+  image:
+    needs: changes
+    if: needs.changes.outputs.images != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.changes.outputs.images) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # As upstream's query-tool nightly: the navbar shows the commit instead of a release version
+      - name: Set query-tool's version to build:<sha>
+        if: matrix.tool == 'query-tool'
+        working-directory: tools/query-tool
+        run: |
+          jq --arg v "build:${GITHUB_SHA::7}" '.version = $v' package.json > package.json.tmp
+          mv package.json.tmp package.json
+          jq -r .version package.json
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Log in to the image registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ vars.IMAGE_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.image }}:nightly
+        uses: ./.github/actions/docker-build
+        with:
+          tool: ${{ matrix.tool }}
+          tags: ${{ vars.IMAGE_REGISTRY }}/${{ vars.IMAGE_NAMESPACE }}/${{ matrix.image }}:nightly
+          platforms: linux/amd64,linux/arm64
+          push: "true"
+
+  # R3: build the wheel once; the image installs exactly that wheel
+  bagel-cli-wheel:
+    needs: changes
+    if: needs.changes.outputs.bagel-cli == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # hatch-vcs derives the version (a .devN after the last bagel-cli-v* tag) from tags
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Build wheel
+        working-directory: tools/bagel-cli
+        run: uv build --wheel
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v7
+        with:
+          name: bagel-wheel
+          path: tools/bagel-cli/dist/*.whl
+          if-no-files-found: error
+          retention-days: 7
+
+  bagel-cli-image:
+    needs: bagel-cli-wheel
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download wheel
+        uses: actions/download-artifact@v8
+        with:
+          name: bagel-wheel
+          path: tools/bagel-cli/dist
+
+      - name: Show wheel
+        run: ls -l tools/bagel-cli/dist
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Log in to the image registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ vars.IMAGE_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push bagelcli:nightly
+        uses: ./.github/actions/docker-build
+        with:
+          tool: bagel-cli
+          tags: ${{ vars.IMAGE_REGISTRY }}/${{ vars.IMAGE_NAMESPACE }}/bagelcli:nightly
+          platforms: linux/amd64,linux/arm64
+          push: "true"

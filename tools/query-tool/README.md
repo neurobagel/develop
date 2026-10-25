@@ -275,6 +275,8 @@ The build context is the repository root, so images must be built from there wit
 
 The image contains the production build of the app, served by nginx on port 5173. The `NB_*` variables are substituted when the container starts, and it exits unless `NB_API_QUERY_URL` is set (see [Mandatory configuration](#mandatory-configuration)).
 
+Nightly images: every push to `main` that changes this tool rebuilds `<registry>/<namespace>/query_tool:nightly` for linux/amd64 and linux/arm64 (`.github/workflows/nightly.yml`; registry and namespace come from the repository variables `IMAGE_REGISTRY` and `IMAGE_NAMESPACE`, Docker Hub `neurobagel/query_tool:nightly` for the main Neurobagel repository). In nightly images the navbar shows the version `build:<commit>` instead of a release version.
+
 ### Releases
 
 Tags: `query-tool-vX.Y.Z`. Published to: Docker Hub `neurobagel/query_tool`, and the site https://query.neurobagel.org.

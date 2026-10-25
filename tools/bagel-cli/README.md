@@ -96,7 +96,13 @@ The wheel bundles `bagel/communities/` and `bagel/pipeline-catalog/`; the source
 
 The `neurobagel/bagelcli` image contains exactly the `bagel` wheel that is
 published to PyPI for the same version. Nightly images contain the wheel
-built from `main` at that commit.
+built from `main` at that commit: every push to `main` that changes bagel-cli
+builds the wheel once and then `<registry>/<namespace>/bagelcli:nightly` from it,
+for linux/amd64 and linux/arm64 (`.github/workflows/nightly.yml`; registry and
+namespace come from the repository variables `IMAGE_REGISTRY` and
+`IMAGE_NAMESPACE`, Docker Hub `neurobagel/bagelcli:nightly` for the main
+Neurobagel repository). Its `--version` is a `.devN` version after the last
+`bagel-cli-v*` tag.
 
 How the image is built:
 - The release workflow builds the wheel once.
