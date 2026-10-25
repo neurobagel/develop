@@ -19,6 +19,9 @@ updates:
     labels:
       - "_bot"
       - "dependencies"
+    # Conventional Commits title for the PR-title check; build changes cut no release
+    commit-message:
+      prefix: "build"
 
   # bagel-cli's external submodules: tests/bids-examples, bagel/pipeline-catalog
   # and bagel/communities (the last two are bundled into the bagel wheel)
@@ -33,6 +36,9 @@ updates:
     labels:
       - "_bot"
       - "dependencies"
+    # Conventional Commits title for the PR-title check; build changes cut no release
+    commit-message:
+      prefix: "build"
 
   - package-ecosystem: "npm"
     directories:
@@ -55,6 +61,9 @@ updates:
     labels:
       - "_bot"
       - "dependencies"
+    # Conventional Commits title for the PR-title check; build changes cut no release
+    commit-message:
+      prefix: "build"
 
   # Security updates only, as upstream
   - package-ecosystem: "uv"
@@ -68,6 +77,9 @@ updates:
     labels:
       - "_bot"
       - "dependencies"
+    # Conventional Commits title for the PR-title check; build changes cut no release
+    commit-message:
+      prefix: "build"
 
   # The docs' requirements.txt; security updates only, as upstream
   - package-ecosystem: "pip"
@@ -78,6 +90,9 @@ updates:
     labels:
       - "_bot"
       - "dependencies"
+    # Conventional Commits title for the PR-title check; build changes cut no release
+    commit-message:
+      prefix: "build"
 
   # Base images of the Dockerfiles (new in the monorepo)
   - package-ecosystem: "docker"
@@ -101,3 +116,6 @@ updates:
     labels:
       - "_bot"
       - "dependencies"
+    # Conventional Commits title for the PR-title check; build changes cut no release
+    commit-message:
+      prefix: "build"

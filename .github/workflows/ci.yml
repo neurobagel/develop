@@ -64,6 +64,42 @@ jobs:
         with:
           extra_args: markdown-link-check-docs --all-files
 
+  # What release-please would propose: for PRs from this repository on the PR
+  # branch itself, otherwise on main. Informational; release.yml does the real run.
+  release-preview:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check bootstrap-sha
+        run: |
+          sha=$(jq -r '."bootstrap-sha"' release-please-config.json)
+          git cat-file -e "${sha}^{commit}" || { echo "::error::bootstrap-sha $sha is not a commit"; exit 1; }
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+
+      - name: release-please dry run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref || 'main' }}
+        run: |
+          {
+            echo "## release-please dry run on \`$TARGET\`"
+            echo
+            echo '```'
+            npx --yes release-please@17 release-pr --dry-run \
+              --token "$GITHUB_TOKEN" --repo-url "$GITHUB_REPOSITORY" --target-branch "$TARGET" 2>&1 \
+              | grep -vE '^\s*$' || true
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
   changes:
     runs-on: ubuntu-latest
     permissions:

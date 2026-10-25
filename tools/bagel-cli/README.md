@@ -137,7 +137,7 @@ docker run --rm neurobagel/bagelcli:<tag> --version
 ### Releases
 
 Tags: `bagel-cli-vX.Y.Z`. Published to: PyPI `bagel`, Docker Hub `neurobagel/bagelcli`.
-Release automation (release-please) is not set up in this repository yet, so no releases are made from it.
+Released by release-please: when a merged PR with a `feat` or `fix` commit changes `tools/bagel-cli/`, release-please opens (or updates) a release PR for bagel-cli that bumps the version and updates `tools/bagel-cli/CHANGELOG.md`. Merging that PR tags `bagel-cli-vX.Y.Z` and creates a GitHub release. Publishing to the channels above is not automated yet.
 PR titles must follow Conventional Commits with scope `bagel-cli`, for example `fix(bagel-cli): ...`.
 
 ### Updating dependencies

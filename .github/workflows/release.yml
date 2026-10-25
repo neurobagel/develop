@@ -1,0 +1,57 @@
+name: Release
+
+# release-please opens one release PR per tool with releasable changes
+# (feat/fix since its last release) and, when a release PR is merged, tags
+# <tool>-vX.Y.Z and creates the GitHub release. Publish jobs are added in Step 13.
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      api-release-created: ${{ steps.rp.outputs['tools/api--release_created'] }}
+      api-version: ${{ steps.rp.outputs['tools/api--version'] }}
+      api-tag: ${{ steps.rp.outputs['tools/api--tag_name'] }}
+      federation-api-release-created: ${{ steps.rp.outputs['tools/federation-api--release_created'] }}
+      federation-api-version: ${{ steps.rp.outputs['tools/federation-api--version'] }}
+      federation-api-tag: ${{ steps.rp.outputs['tools/federation-api--tag_name'] }}
+      bagel-cli-release-created: ${{ steps.rp.outputs['tools/bagel-cli--release_created'] }}
+      bagel-cli-version: ${{ steps.rp.outputs['tools/bagel-cli--version'] }}
+      bagel-cli-tag: ${{ steps.rp.outputs['tools/bagel-cli--tag_name'] }}
+      query-tool-release-created: ${{ steps.rp.outputs['tools/query-tool--release_created'] }}
+      query-tool-version: ${{ steps.rp.outputs['tools/query-tool--version'] }}
+      query-tool-tag: ${{ steps.rp.outputs['tools/query-tool--tag_name'] }}
+      annotation-tool-release-created: ${{ steps.rp.outputs['tools/annotation-tool--release_created'] }}
+      annotation-tool-version: ${{ steps.rp.outputs['tools/annotation-tool--version'] }}
+      annotation-tool-tag: ${{ steps.rp.outputs['tools/annotation-tool--tag_name'] }}
+    steps:
+      # A GitHub App token, so that release PRs trigger CI; without the app,
+      # GITHUB_TOKEN is used and CI must be started by hand on release PRs.
+      - name: Generate a token
+        id: generate-token
+        if: vars.NB_BOT_ID != ''
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.NB_BOT_ID }}
+          private-key: ${{ secrets.NB_BOT_KEY }}
+
+      - name: Run release-please
+        id: rp
+        uses: googleapis/release-please-action@v5
+        with:
+          token: ${{ steps.generate-token.outputs.token || github.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Show outputs
+        env:
+          OUTPUTS: ${{ toJSON(steps.rp.outputs) }}
+        run: echo "$OUTPUTS"
