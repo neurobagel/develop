@@ -194,7 +194,7 @@ The test graph and its example data come from the monorepo's shared folders: `do
 
 ### Tests
 
-The tests use [Pytest](https://docs.pytest.org/). From `tools/api/`, run the unit tests (integration tests are skipped by default):
+The tests use [Pytest](https://docs.pytest.org/). From `tools/api/`, run the unit tests (integration tests are skipped by default; the markers are defined in `pytest.ini`):
 
 ```bash
 uv run pytest
