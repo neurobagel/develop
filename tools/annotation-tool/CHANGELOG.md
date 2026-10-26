@@ -1,4 +1,13 @@
-# v0.7.8 (Fri Sep 11 2026)
+# Changelog
+
+## [0.7.9](https://github.com/neurobagel/develop/compare/annotation-tool-v0.7.8...annotation-tool-v0.7.9) (2026-10-26)
+
+
+### Bug Fixes
+
+* **deps:** override postcss-selector-parser to patch vulnerability ([3d1eb95](https://github.com/neurobagel/develop/commit/3d1eb955e4b71ec152fd678f8d13d6fbdcecac7f))
+
+## v0.7.8 (Fri Sep 11 2026)
 
 #### 🏠 Internal
 
@@ -10,7 +19,7 @@
 
 ---
 
-# v0.7.7 (Thu Aug 20 2026)
+## v0.7.7 (Thu Aug 20 2026)
 
 #### 🚀 Enhancements
 
@@ -22,7 +31,7 @@
 
 ---
 
-# v0.7.6 (Tue Aug 18 2026)
+## v0.7.6 (Tue Aug 18 2026)
 
 :tada: This release contains work from new contributors! :tada:
 
@@ -67,7 +76,7 @@ Thanks for all your work!
 
 ---
 
-# v0.7.5 (Wed Jun 10 2026)
+## v0.7.5 (Wed Jun 10 2026)
 
 #### 🚀 Enhancements
 
@@ -79,7 +88,7 @@ Thanks for all your work!
 
 ---
 
-# v0.7.4 (Thu Jun 04 2026)
+## v0.7.4 (Thu Jun 04 2026)
 
 #### 🚀 Enhancements
 
@@ -91,7 +100,7 @@ Thanks for all your work!
 
 ---
 
-# v0.7.3 (Thu Jun 04 2026)
+## v0.7.3 (Thu Jun 04 2026)
 
 #### 🚀 Enhancements
 
@@ -103,7 +112,7 @@ Thanks for all your work!
 
 ---
 
-# v0.7.2 (Wed Jun 03 2026)
+## v0.7.2 (Wed Jun 03 2026)
 
 #### 🏠 Internal
 
@@ -115,7 +124,7 @@ Thanks for all your work!
 
 ---
 
-# v0.7.1 (Tue May 26 2026)
+## v0.7.1 (Tue May 26 2026)
 
 #### 🚀 Enhancements
 
@@ -127,7 +136,7 @@ Thanks for all your work!
 
 ---
 
-# v0.7.0 (Fri May 22 2026)
+## v0.7.0 (Fri May 22 2026)
 
 #### 🚀 Enhancements
 
@@ -144,7 +153,7 @@ Thanks for all your work!
 
 ---
 
-# v0.6.4 (Tue Apr 21 2026)
+## v0.6.4 (Tue Apr 21 2026)
 
 #### 🚀 Enhancements
 
@@ -160,7 +169,7 @@ Thanks for all your work!
 
 ---
 
-# v0.6.3 (Mon Apr 13 2026)
+## v0.6.3 (Mon Apr 13 2026)
 
 #### 🐛 Bug Fixes
 
@@ -172,7 +181,7 @@ Thanks for all your work!
 
 ---
 
-# v0.6.2 (Tue Apr 07 2026)
+## v0.6.2 (Tue Apr 07 2026)
 
 #### 🚀 Enhancements
 
@@ -184,7 +193,7 @@ Thanks for all your work!
 
 ---
 
-# v0.6.1 (Fri Mar 27 2026)
+## v0.6.1 (Fri Mar 27 2026)
 
 #### 🚀 Enhancements
 
@@ -196,7 +205,7 @@ Thanks for all your work!
 
 ---
 
-# v0.6.0 (Wed Mar 25 2026)
+## v0.6.0 (Wed Mar 25 2026)
 
 #### 💥 Breaking Changes
 
@@ -237,7 +246,7 @@ Thanks for all your work!
 
 ---
 
-# v0.5.1 (Sat Feb 21 2026)
+## v0.5.1 (Sat Feb 21 2026)
 
 #### 🚀 Enhancements
 
@@ -249,7 +258,7 @@ Thanks for all your work!
 
 ---
 
-# v0.5.0 (Fri Feb 13 2026)
+## v0.5.0 (Fri Feb 13 2026)
 
 :tada: This release contains work from a new contributor! :tada:
 
@@ -270,7 +279,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.4.8 (Tue Dec 23 2025)
+## v0.4.8 (Tue Dec 23 2025)
 
 #### 🐛 Bug Fixes
 
@@ -291,7 +300,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.4.7 (Tue Dec 09 2025)
+## v0.4.7 (Tue Dec 09 2025)
 
 #### 🐛 Bug Fixes
 
@@ -303,7 +312,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.4.6 (Mon Dec 08 2025)
+## v0.4.6 (Mon Dec 08 2025)
 
 #### 🐛 Bug Fixes
 
@@ -315,7 +324,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.4.5 (Mon Dec 01 2025)
+## v0.4.5 (Mon Dec 01 2025)
 
 #### 🚀 Enhancements
 
@@ -336,7 +345,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.4.4 (Thu Nov 06 2025)
+## v0.4.4 (Thu Nov 06 2025)
 
 #### 🐛 Bug Fixes
 
@@ -349,7 +358,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.4.3 (Mon Oct 27 2025)
+## v0.4.3 (Mon Oct 27 2025)
 
 #### 🐛 Bug Fixes
 
@@ -362,7 +371,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.4.2 (Thu Oct 16 2025)
+## v0.4.2 (Thu Oct 16 2025)
 
 #### 🚀 Enhancements
 
@@ -374,7 +383,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.4.1 (Tue Sep 30 2025)
+## v0.4.1 (Tue Sep 30 2025)
 
 #### 🐛 Bug Fixes
 
@@ -386,7 +395,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.4.0 (Fri Sep 26 2025)
+## v0.4.0 (Fri Sep 26 2025)
 
 #### 🚀 Enhancements
 
@@ -410,7 +419,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.3.4 (Fri Sep 05 2025)
+## v0.3.4 (Fri Sep 05 2025)
 
 #### 🐛 Bug Fixes
 
@@ -422,7 +431,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.3.3 (Thu Sep 04 2025)
+## v0.3.3 (Thu Sep 04 2025)
 
 #### 🐛 Bug Fixes
 
@@ -434,7 +443,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.3.2 (Wed Sep 03 2025)
+## v0.3.2 (Wed Sep 03 2025)
 
 #### 🚀 Enhancements
 
@@ -451,7 +460,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.3.1 (Thu Aug 28 2025)
+## v0.3.1 (Thu Aug 28 2025)
 
 #### 🐛 Bug Fixes
 
@@ -463,7 +472,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.3.0 (Wed Aug 27 2025)
+## v0.3.0 (Wed Aug 27 2025)
 
 #### 💥 Breaking Changes
 
@@ -490,7 +499,7 @@ Thank you, Tushar Jamdade ([@Tusharjamdade](https://github.com/Tusharjamdade)), 
 
 ---
 
-# v0.2.0 (Thu Jul 24 2025)
+## v0.2.0 (Thu Jul 24 2025)
 
 :tada: This release contains work from a new contributor! :tada:
 
@@ -528,7 +537,7 @@ Thank you, Alyssa Dai ([@alyssadai](https://github.com/alyssadai)), for all your
 
 ---
 
-# v0.1.0 (Tue Mar 18 2025)
+## v0.1.0 (Tue Mar 18 2025)
 
 :tada: This release contains work from new contributors! :tada:
 
