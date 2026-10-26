@@ -17,7 +17,7 @@ Please refer to our [**official documentation**](https://neurobagel.org/user_gui
 ## Launching the API
 ### 1. Set the local Neurobagel nodes to federate over
 Create a configuration JSON file called `local_nb_nodes.json` containing the URLs and (arbitrary) names of the local nodes you wish to federate over.
-Each node must be denoted by a dictionary `{}` with two key-value pairs: `"NodeName"` for the name of the node, and `"ApiURL"` for the url of the API exposed for that node. 
+Each node must be denoted by a dictionary `{}` with two key-value pairs: `"NodeName"` for the name of the node, and `"ApiURL"` for the URL of the API exposed for that node. 
 Multiple nodes must be wrapped in a list `[]`.
 
 For a template `local_nb_nodes.json` file that you can clone and edit, 
