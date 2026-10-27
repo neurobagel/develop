@@ -200,7 +200,7 @@ You can refer to [the neurobagel documentation](https://neurobagel.org/user_guid
 
 ## Testing
 
-The query tool utilizes [Cypress](https://www.cypress.io/) framework for testing.
+The query tool utilizes the [Cypress](https://www.cypress.io/) framework for testing, configured in `cypress.config.ts`.
 
 To run the tests interactively, execute the following command from `tools/query-tool/`:
 

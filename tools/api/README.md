@@ -206,7 +206,7 @@ The integration tests of SPARQL queries need the test graph store and the datase
 docker compose up -d test_graph export_datasets_metadata
 ```
 
-Wait until `docker logs api-test_graph-1` shows `FINISHED UPLOADING DATA`, then run all tests:
+Wait until `docker logs api-test_graph-1` shows `FINISHED UPLOADING DATA`, then run all tests (unit and integration):
 
 ```bash
 uv run pytest -m "integration or not integration"
