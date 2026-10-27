@@ -117,5 +117,5 @@ Nightly images: every push to `main` that changes this tool rebuilds `<registry>
 ### Releases
 
 Tags: `federation-api-vX.Y.Z`. Published to: Docker Hub `neurobagel/federation_api`.
-Released by release-please: when a merged PR with a `feat` or `fix` commit changes `tools/federation-api/`, release-please opens (or updates) a release PR for federation-api that bumps the version and updates `tools/federation-api/CHANGELOG.md`. Merging that PR tags `federation-api-vX.Y.Z` and creates a GitHub release. Publishing to the channels above is not automated yet.
+Released by release-please: when a merged PR with a `feat` or `fix` commit changes `tools/federation-api/`, release-please adds federation-api to the repository's single, combined release PR, with the version bump and the new `tools/federation-api/CHANGELOG.md` entries. Merging that PR releases every tool in it: federation-api gets the tag `federation-api-vX.Y.Z` and its own GitHub release. Publishing to the channels above is not automated yet.
 PR titles must follow Conventional Commits with scope `federation-api`, for example `fix(federation-api): ...`.

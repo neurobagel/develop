@@ -1,13 +1,15 @@
 name: Release
 
-# release-please opens one release PR per tool with releasable changes
-# (feat/fix since its last release) and, when a release PR is merged, tags
-# <tool>-vX.Y.Z and creates the GitHub release. Publish jobs are added in Step 13.
+# release-please keeps one combined release PR open with every tool that has
+# releasable changes (feat/fix since its last release); merging it tags each of
+# those tools <tool>-vX.Y.Z and creates one GitHub release per tool.
 
 on:
   push:
     branches:
       - main
+  # To re-run release-please by hand, e.g. after editing a merged PR's commit override
+  workflow_dispatch:
 
 permissions:
   contents: write
