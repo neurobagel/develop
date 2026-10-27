@@ -98,7 +98,13 @@ jobs:
         with:
           workingDirectory: tools/${{ inputs.tool }}
           fail: true
-          args: --verbose --no-progress '**/*.md' '**/*.html' '**/*.ts' '**/*.tsx'
+          # Release PRs add changelog links that compare against the tag the PR
+          # creates, so they 404 until it is merged. CLI excludes add to the
+          # tool's lychee.toml excludes.
+          args: >-
+            --verbose --no-progress
+            --exclude '^https://github\.com/neurobagel/[^/]+/compare/'
+            '**/*.md' '**/*.html' '**/*.ts' '**/*.tsx'
 
   unit:
     if: inputs.run-unit
