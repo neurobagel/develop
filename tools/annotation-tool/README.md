@@ -125,7 +125,7 @@ The annotation tool has no Docker image. It is deployed as a static site.
 ### Releases
 
 Tags: `annotation-tool-vX.Y.Z`. Published to: the site https://annotate.neurobagel.org.
-Released by release-please: when a merged PR with a `feat` or `fix` commit changes `tools/annotation-tool/`, release-please opens (or updates) a release PR for annotation-tool that bumps the version and updates `tools/annotation-tool/CHANGELOG.md`. Merging that PR tags `annotation-tool-vX.Y.Z` and creates a GitHub release. Publishing to the channels above is not automated yet.
+Released by release-please: when a merged PR with a `feat` or `fix` commit changes `tools/annotation-tool/`, release-please adds annotation-tool to the repository's single, combined release PR, with the version bump and the new `tools/annotation-tool/CHANGELOG.md` entries. Merging that PR releases every tool in it: annotation-tool gets the tag `annotation-tool-vX.Y.Z` and its own GitHub release. Publishing to the channels above is not automated yet.
 PR titles must follow Conventional Commits with scope `annotation-tool`, for example `fix(annotation-tool): ...`.
 
 ## License

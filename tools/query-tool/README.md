@@ -200,7 +200,7 @@ You can refer to [the neurobagel documentation](https://neurobagel.org/user_guid
 
 ## Testing
 
-The query tool utilizes [Cypress](https://www.cypress.io/) framework for testing.
+The query tool utilizes the [Cypress](https://www.cypress.io/) framework for testing, configured in `cypress.config.ts`.
 
 To run the tests interactively, execute the following command from `tools/query-tool/`:
 
@@ -280,7 +280,7 @@ Nightly images: every push to `main` that changes this tool rebuilds `<registry>
 ### Releases
 
 Tags: `query-tool-vX.Y.Z`. Published to: Docker Hub `neurobagel/query_tool`, and the site https://query.neurobagel.org.
-Released by release-please: when a merged PR with a `feat` or `fix` commit changes `tools/query-tool/`, release-please opens (or updates) a release PR for query-tool that bumps the version and updates `tools/query-tool/CHANGELOG.md`. Merging that PR tags `query-tool-vX.Y.Z` and creates a GitHub release. Publishing to the channels above is not automated yet.
+Released by release-please: when a merged PR with a `feat` or `fix` commit changes `tools/query-tool/`, release-please adds query-tool to the repository's single, combined release PR, with the version bump and the new `tools/query-tool/CHANGELOG.md` entries. Merging that PR releases every tool in it: query-tool gets the tag `query-tool-vX.Y.Z` and its own GitHub release. Publishing to the channels above is not automated yet.
 PR titles must follow Conventional Commits with scope `query-tool`, for example `fix(query-tool): ...`.
 
 ## License

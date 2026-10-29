@@ -194,7 +194,7 @@ The test graph and its example data come from the monorepo's shared folders: `do
 
 ### Tests
 
-The tests use [Pytest](https://docs.pytest.org/). From `tools/api/`, run the unit tests (integration tests are skipped by default):
+The tests use [Pytest](https://docs.pytest.org/). From `tools/api/`, run the unit tests (integration tests are skipped by default; the markers are defined in `pytest.ini`):
 
 ```bash
 uv run pytest
@@ -206,7 +206,7 @@ The integration tests of SPARQL queries need the test graph store and the datase
 docker compose up -d test_graph export_datasets_metadata
 ```
 
-Wait until `docker logs api-test_graph-1` shows `FINISHED UPLOADING DATA`, then run all tests:
+Wait until `docker logs api-test_graph-1` shows `FINISHED UPLOADING DATA`, then run all tests (unit and integration):
 
 ```bash
 uv run pytest -m "integration or not integration"
@@ -245,7 +245,7 @@ Nightly images: every push to `main` that changes this tool rebuilds `<registry>
 ### Releases
 
 Tags: `api-vX.Y.Z`. Published to: Docker Hub `neurobagel/api`.
-Released by release-please: when a merged PR with a `feat` or `fix` commit changes `tools/api/`, release-please opens (or updates) a release PR for api that bumps the version and updates `tools/api/CHANGELOG.md`. Merging that PR tags `api-vX.Y.Z` and creates a GitHub release. Publishing to the channels above is not automated yet.
+Released by release-please: when a merged PR with a `feat` or `fix` commit changes `tools/api/`, release-please adds api to the repository's single, combined release PR, with the version bump and the new `tools/api/CHANGELOG.md` entries. Merging that PR releases every tool in it: api gets the tag `api-vX.Y.Z` and its own GitHub release. Publishing to the channels above is not automated yet.
 PR titles must follow Conventional Commits with scope `api`, for example `fix(api): ...`.
 
 ## The default Neurobagel SPARQL query

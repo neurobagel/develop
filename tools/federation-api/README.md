@@ -17,7 +17,7 @@ Please refer to our [**official documentation**](https://neurobagel.org/user_gui
 ## Launching the API
 ### 1. Set the local Neurobagel nodes to federate over
 Create a configuration JSON file called `local_nb_nodes.json` containing the URLs and (arbitrary) names of the local nodes you wish to federate over.
-Each node must be denoted by a dictionary `{}` with two key-value pairs: `"NodeName"` for the name of the node, and `"ApiURL"` for the url of the API exposed for that node. 
+Each node must be denoted by a dictionary `{}` with two key-value pairs: `"NodeName"` for the name of the node, and `"ApiURL"` for the URL of the API exposed for that node. 
 Multiple nodes must be wrapped in a list `[]`.
 
 For a template `local_nb_nodes.json` file that you can clone and edit, 
@@ -117,5 +117,5 @@ Nightly images: every push to `main` that changes this tool rebuilds `<registry>
 ### Releases
 
 Tags: `federation-api-vX.Y.Z`. Published to: Docker Hub `neurobagel/federation_api`.
-Released by release-please: when a merged PR with a `feat` or `fix` commit changes `tools/federation-api/`, release-please opens (or updates) a release PR for federation-api that bumps the version and updates `tools/federation-api/CHANGELOG.md`. Merging that PR tags `federation-api-vX.Y.Z` and creates a GitHub release. Publishing to the channels above is not automated yet.
+Released by release-please: when a merged PR with a `feat` or `fix` commit changes `tools/federation-api/`, release-please adds federation-api to the repository's single, combined release PR, with the version bump and the new `tools/federation-api/CHANGELOG.md` entries. Merging that PR releases every tool in it: federation-api gets the tag `federation-api-vX.Y.Z` and its own GitHub release. Publishing to the channels above is not automated yet.
 PR titles must follow Conventional Commits with scope `federation-api`, for example `fix(federation-api): ...`.
